@@ -1,0 +1,32 @@
+services:
+  backend:
+    build: ./backend
+    container_name: transcendence_backend
+    env_file:
+      - .env
+    depends_on:
+      - db
+
+  frontend:
+    build: ./frontend
+    container_name: transcendence_frontend
+
+  nginx:
+    build: ./nginx
+    container_name: transcendence_nginx
+    ports:
+      - "1880:1880"
+    depends_on:
+      - backend
+      - frontend
+
+  db:
+    image: postgres:16-alpine
+    container_name: transcendence_db
+    env_file:
+      - .env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:
