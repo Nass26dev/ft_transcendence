@@ -15,7 +15,7 @@ services:
     build: ./nginx
     container_name: transcendence_nginx
     ports:
-      - "1880:1880"
+      - "1080:1080"
     depends_on:
       - backend
       - frontend
