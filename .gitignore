@@ -1,11 +1,55 @@
-# Frontend
-frontend/node_modules/
-frontend/dist/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# Backend
-backend/__pycache__/
-backend/*.pyc
-backend/db.sqlite3
+# testing
+/coverage
 
-# Env
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+venv/
+__pycache__/
+*.pyc
 .env
+.env.local
+
+# Django
+db.sqlite3
+*.log
+media/
+staticfiles/
+.env
+local_settings.py
+node_modules/
+.next
