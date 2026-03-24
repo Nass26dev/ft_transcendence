@@ -1,45 +1,70 @@
 services:
+  #nginx:
+   #container_name: nginx
+    #restart: always
+    #ports:
+    #  - "80:80"
+    #  - "443:443"
+    #volumes:
+    # - ./nginx/conf:/etc/nginx/conf.d 
+    # - ./nginx/certs:/etc/nginx/certs 
+    #networks:
+    # - transcendence_networks
+    #depends_on:
+    # - frontend
+    #- backend
   db:
     image: postgres:16
     container_name: transcendence_db
     restart: always
+    env_file:
+      - .env
     environment:
       POSTGRES_DB: transcendence
       POSTGRES_USER: transcendence
       POSTGRES_PASSWORD: transcendence
-    ports:
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - transcendence_networks
 
   backend:
     build: ./api
+    env_file:
+      - .env
     container_name: transcendence_backend
     volumes:
       - ./api:/app
+    networks:
+      - transcendence_networks
     ports:
       - "8000:8000"
     depends_on:
       - db
-    environment:
-      DB_NAME: transcendence
-      DB_USER: transcendence
-      DB_PASSWORD: transcendence
-      DB_HOST: db
-      DB_PORT: 5432
-    command: python3 manage.py runserver 0.0.0.0:8000
+    command: >
+      sh -c "python3 manage.py makemigrations &&
+             python3 manage.py migrate &&
+             python3 manage.py runserver 0.0.0.0:8000"
 
   frontend:
     build: ./frontend
+    env_file:
+      - .env
     container_name: transcendence_frontend
+    networks:
+      - transcendence_networks
+    ports:
+      - "3000:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    ports:
-      - "3000:3000"
     depends_on:
       - backend
     command: npm run dev
 
 volumes:
   postgres_data:
+
+networks:
+  transcendence_networks:
+    driver: bridge

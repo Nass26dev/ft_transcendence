@@ -2,6 +2,6 @@
 
 export default function page() {
   return (
-    <div>Bienvenue</div>
+    <div>Bienvenue yannis le raciste</div>
   )
 }
