@@ -31,3 +31,20 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
+
+.HeaderButtonStyle {
+  padding: 4px 12px;
+  margin: 1px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.HeaderButtonStyle:hover {
+  background: #636771;
+  transform: scale(1.05);
+}
