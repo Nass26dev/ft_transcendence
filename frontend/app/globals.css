@@ -33,6 +33,29 @@ body {
 }
 
 .HeaderButtonStyle {
+  padding: 5px 13px;
+  margin: 1px;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: white;
+  transition: all 0.3s ease;
+}
+
+.HeaderButtonStyle:hover {
+  background: #313131;
+  transform: scale(1.05);
+}
+
+.HeaderButtonStyle.active {
+  background: #313131;
+  transform: scale(1.05);
+}
+
+.AboveContentButtonStyle {
   padding: 4px 12px;
   margin: 1px;
   border-radius: 6px;
@@ -44,7 +67,12 @@ body {
   transition: all 0.3s ease;
 }
 
-.HeaderButtonStyle:hover {
+.AboveContentButtonStyle:hover {
+  background: #636771;
+  transform: scale(1.05);
+}
+
+.AboveContentButtonStyle.active {
   background: #636771;
   transform: scale(1.05);
 }
