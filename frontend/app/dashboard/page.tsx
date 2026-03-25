@@ -6,21 +6,6 @@ function Header() {
       <div
         style={{
           backgroundColor: "#000000",
-          color: "white",
-          padding: "10px 20px",
-          textAlign: "center",
-          fontSize: "18px",
-          fontWeight: 500,
-          justifyContent: "center",
-        }}
-      >
-        Kop est une plateforme gratuite ici, pas de risques d'endettement,
-        isolement, dépendance.
-      </div>
-
-      <div
-        style={{
-          backgroundColor: "#000000",
           paddingTop: "8px",
           display: "flex",
           alignItems: "center",
