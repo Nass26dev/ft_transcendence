@@ -45,6 +45,20 @@ services:
       sh -c "python3 manage.py makemigrations &&
              python3 manage.py migrate &&
              python3 manage.py runserver 0.0.0.0:8000"
+  match-updater:
+    build: ./api
+    env_file:
+      - .env
+    container_name: transcendence_match_updater
+    volumes:
+      - ./api:/app
+    networks:
+      - transcendence_networks
+    depends_on:
+      - db
+      - backend
+    restart: always
+    command: sh /app/cron_matches.sh
 
   frontend:
     build: ./frontend

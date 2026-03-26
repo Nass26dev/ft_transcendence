@@ -8,6 +8,7 @@ from users.views import (
 )
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from matches.views import get_matches
 
 class GoogleLoginView(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
@@ -26,4 +27,7 @@ urlpatterns = [
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
     
     path('api/auth/social/google/', GoogleLoginView.as_view()),
+
+    path('api/matches/', get_matches ,name='get_matches'),
+
 ]
