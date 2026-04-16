@@ -1,9 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import axios from "axios"
-
-// --- TYPES TYPESCRIPT ---
+import api from "@/utils/api";
 
 interface Odd {
   label: string;
@@ -229,7 +227,7 @@ export default function Page() {
   const [selections, setSelections] = useState<Selection[]>([])
 
   useEffect(() => {
-    axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/matches/`)
+    api.get(`${process.env.NEXT_PUBLIC_API_URL}/api/matches/`)
       .then(res => setMatches(res.data))
       .catch(err => console.error(err))
       .finally(() => setLoading(false))
