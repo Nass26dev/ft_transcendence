@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from .models import Match
 
 def get_matches(request):
-    matches = Match.objects.all().order_by('time')
+    matches = Match.objects.filter(competition='UEFA Champions League').order_by('time')
     data = []
     for m in matches:
         data.append({
