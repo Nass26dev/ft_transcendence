@@ -18,7 +18,7 @@ class Command(BaseCommand):
     #     }
     #     headers = { 'X-Auth-Token': os.getenv('FOOTBALL_DATA_API') }
 
-        def handle(self, *args, **options):
+    def handle(self, *args, **options):
         today = datetime.now().date()
         past_week = today - timedelta(days=4)
         

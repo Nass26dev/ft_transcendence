@@ -6,6 +6,7 @@ import { useState, useEffect, Suspense } from 'react'; // Ajout de useEffect et 
 import { useGoogleLogin } from '@react-oauth/google';
 import Image from 'next/image';
 import Link from 'next/link';
+import axios from 'axios';
 
 function LoginContent() {
   const router = useRouter();
@@ -41,27 +42,15 @@ function LoginContent() {
     }
   };
 
-  const handleVerifyOtp = async () => {
-    setError(null);
-    try {
-      const response = await api.post('/api/auth/login/verify/', {
-        user_id: userId,
-        code: otpCode
-      });
-
-      const { access, refresh } = response.data;
-
-      await fetch('/api/set-token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ access, refresh }),
-      });
-
-      router.push('/dashboard');
-    } catch (err: any) {
-      setError(err.response?.data || { detail: "Code invalide ou expiré." });
-    }
-  };
+const handleVerifyOtp = async () => {
+  setError(null);
+  try {
+    await axios.post('/api/auth/login', { user_id: userId, code: otpCode });
+    router.push('/dashboard');
+  } catch (err: any) {
+    setError(err.response?.data || { detail: "Code invalide ou expiré." });
+  }
+};
 
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {

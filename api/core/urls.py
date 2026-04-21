@@ -30,4 +30,6 @@ urlpatterns = [
 
     path('api/matches/', get_matches ,name='get_matches'),
 
+    # path('api/users/me',UserProfileView.as_view()),
+
 ]

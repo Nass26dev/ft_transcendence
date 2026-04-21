@@ -24,6 +24,7 @@ CORS_ALLOW_CREDENTIALS = True
 AUTH_USER_MODEL = 'users.User'
 
 INSTALLED_APPS = [
+    'users',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,7 +41,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'dj_rest_auth',
     'dj_rest_auth.registration', 
-    'users',
     'matches',
 ]
 
