@@ -20,7 +20,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         today = datetime.now().date()
-        past_week = today - timedelta(days=4)
+        past_week = today - timedelta(days=30)
         
         url = "https://api.football-data.org/v4/competitions/CL/matches"
         params = {

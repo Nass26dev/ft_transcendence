@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'dj_rest_auth',
     'dj_rest_auth.registration', 
     'matches',
+    'friends',
 ]
 
 SITE_ID = 1
@@ -67,17 +68,15 @@ AUTHENTICATION_BACKENDS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'users.authentication.CookieJWTAuthentication',
     )
 }
 
 REST_AUTH = {
     'USE_JWT': True,
-    'JWT_AUTH_COOKIE': None,
-    'JWT_AUTH_REFRESH_COOKIE': None,
-    'JWT_AUTH_HTTPONLY': False,
+    'JWT_AUTH_COOKIE': 'access_token',
+    'JWT_AUTH_REFRESH_COOKIE': 'refresh_token', 
+    'JWT_AUTH_HTTPONLY': True,              
     'REGISTER_SERIALIZER': 'users.serializers.RegisterSerializer',
 }
 
