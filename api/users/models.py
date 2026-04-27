@@ -7,7 +7,7 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
-    wallet = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    wallet = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
 
  #profil
     bio = models.TextField(blank=True)

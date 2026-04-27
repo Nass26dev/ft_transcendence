@@ -7,27 +7,27 @@ from matches.models import Match
 class Command(BaseCommand):
     help = 'Récupère les matchs de la semaine depuis l\'API'
 
-    # def handle(self, *args, **options):
-    #     today = datetime.now().date()
-    #     next_week = today + timedelta(days=30)
-        
-    #     url = "https://api.football-data.org/v4/competitions/CL/matches"
-    #     params = {
-    #         'dateFrom': today.strftime('%Y-%m-%d'),
-    #         'dateTo': next_week.strftime('%Y-%m-%d')
-    #     }
-    #     headers = { 'X-Auth-Token': os.getenv('FOOTBALL_DATA_API') }
-
     def handle(self, *args, **options):
         today = datetime.now().date()
-        past_week = today - timedelta(days=30)
+        next_week = today + timedelta(days=7)
         
         url = "https://api.football-data.org/v4/competitions/CL/matches"
         params = {
-            'dateFrom': past_week.strftime('%Y-%m-%d'),
-            'dateTo': today.strftime('%Y-%m-%d'),
+            'dateFrom': today.strftime('%Y-%m-%d'),
+            'dateTo': next_week.strftime('%Y-%m-%d')
         }
         headers = { 'X-Auth-Token': os.getenv('FOOTBALL_DATA_API') }
+
+    # def handle(self, *args, **options):
+    #     today = datetime.now().date()
+    #     past_week = today - timedelta(days=30)
+        
+    #     url = "https://api.football-data.org/v4/competitions/CL/matches"
+    #     params = {
+    #         'dateFrom': past_week.strftime('%Y-%m-%d'),
+    #         'dateTo': today.strftime('%Y-%m-%d'),
+    #     }
+    #     headers = { 'X-Auth-Token': os.getenv('FOOTBALL_DATA_API') }
 
         self.stdout.write("Connexion à l'API...")
         
