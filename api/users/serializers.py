@@ -8,7 +8,11 @@ class RegisterSerializer(BaseRegisterSerializer):
     username = None
     first_name = serializers.CharField(required=False, default='')
     last_name = serializers.CharField(required=False, default='')
+<<<<<<< HEAD
     wallet = serializers.DecimalField(required=False, default=0, max_digits=10, decimal_places=2)
+=======
+    wallet = serializers.DecimalField(required=False, default=100, max_digits=10, decimal_places=2)
+>>>>>>> engiusep
 
     def get_cleaned_data(self):
         return {
@@ -17,13 +21,18 @@ class RegisterSerializer(BaseRegisterSerializer):
             'password2': self.validated_data.get('password2', ''),
             'first_name': self.validated_data.get('first_name', ''),
             'last_name': self.validated_data.get('last_name', ''),
+<<<<<<< HEAD
             'wallet': self.validated_data.get('wallet', 0),
+=======
+            'wallet': self.validated_data.get('wallet', 100),
+>>>>>>> engiusep
         }
 
     def save(self, request):
         user = super().save(request)
         user.first_name = self.cleaned_data.get('first_name', '')
         user.last_name = self.cleaned_data.get('last_name', '')
+<<<<<<< HEAD
         user.wallet = self.cleaned_data.get('wallet', 0)
         user.save()
         return user
@@ -32,3 +41,25 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'first_name', 'last_name', 'is_staff','wallet']
+=======
+        user.wallet = self.cleaned_data.get('wallet', 100)
+        user.save()
+        return user
+
+from rest_framework import serializers
+from .models import User
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'email',
+            'bio',
+            'avatar',
+            'first_name',
+            'last_name',
+            'wallet'
+        ]
+>>>>>>> engiusep

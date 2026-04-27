@@ -8,6 +8,11 @@ from users.views import (
 )
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+<<<<<<< HEAD
+=======
+from matches.views import get_matches
+from django.urls import path, include
+>>>>>>> engiusep
 
 class GoogleLoginView(SocialLoginView):
     adapter_class = GoogleOAuth2Adapter
@@ -26,4 +31,13 @@ urlpatterns = [
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
     
     path('api/auth/social/google/', GoogleLoginView.as_view()),
+<<<<<<< HEAD
+=======
+
+    path('api/matches/', get_matches ,name='get_matches'),
+
+    path('api/friends/',include('friends.urls')),
+    # path('api/users/me',UserProfileView.as_view()),
+
+>>>>>>> engiusep
 ]

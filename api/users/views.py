@@ -46,6 +46,7 @@ class LoginStep2View(APIView):
         code_saisi = request.data.get('code')
         code_attendu = cache.get(f"otp_{user_id}")
         
+<<<<<<< HEAD
         if code_attendu and code_saisi == code_attendu:
             user = User.objects.get(id=user_id)
             
@@ -58,6 +59,41 @@ class LoginStep2View(APIView):
                 "refresh": str(refresh),            
                 "user": UserSerializer(user).data
             }, status=200)
+=======
+        print(f"user_id: {user_id}")
+        print(f"code_saisi: {code_saisi} (type: {type(code_saisi)})")
+        print(f"code_attendu: {code_attendu} (type: {type(code_attendu)})")
+        
+        if code_attendu and code_saisi == code_attendu:
+            user = User.objects.get(id=user_id)
+            refresh = RefreshToken.for_user(user)
+            cache.delete(f"otp_{user_id}")
+            
+            is_production = True  
+            
+            response = Response({
+                "user": UserSerializer(user).data
+            }, status=200)
+            
+            response.set_cookie(
+                key="access_token",
+                value=str(refresh.access_token),
+                httponly=True,
+                secure=is_production,
+                samesite="Strict",
+                max_age=60 * 5,
+            )
+            response.set_cookie(
+                key="refresh_token",
+                value=str(refresh),
+                httponly=True,
+                secure=is_production,
+                samesite="Strict",
+                max_age=60 * 60 * 24 * 7,
+            )
+            
+            return response
+>>>>>>> engiusep
         
         return Response({"error": "Code invalide"}, status=400)
 

@@ -6,6 +6,10 @@ import { useState, useEffect, Suspense } from 'react'; // Ajout de useEffect et 
 import { useGoogleLogin } from '@react-oauth/google';
 import Image from 'next/image';
 import Link from 'next/link';
+<<<<<<< HEAD
+=======
+import axios from 'axios';
+>>>>>>> engiusep
 
 function LoginContent() {
   const router = useRouter();
@@ -41,6 +45,7 @@ function LoginContent() {
     }
   };
 
+<<<<<<< HEAD
   const handleVerifyOtp = async () => {
     setError(null);
     try {
@@ -62,6 +67,17 @@ function LoginContent() {
       setError(err.response?.data || { detail: "Code invalide ou expiré." });
     }
   };
+=======
+const handleVerifyOtp = async () => {
+  setError(null);
+  try {
+    await axios.post('/api/auth/login', { user_id: userId, code: otpCode });
+    router.push('/dashboard');
+  } catch (err: any) {
+    setError(err.response?.data || { detail: "Code invalide ou expiré." });
+  }
+};
+>>>>>>> engiusep
 
   const loginWithGoogle = useGoogleLogin({
     onSuccess: async (tokenResponse) => {

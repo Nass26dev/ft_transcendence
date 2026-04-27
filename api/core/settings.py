@@ -6,13 +6,14 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
-SECRET_KEY = 'django-insecure-0+t2*)o04+=am8iwa&&9k$nfisxixjvsu8=&5&d94_)4grj)d='
+SECRET_KEY = os.getenv('SECRET_KEY_DJANGO')
 
 DEBUG = True
 
 ALLOWED_HOSTS = [
     'localhost', 
-    '127.0.0.1'
+    '127.0.0.1',
+    "*"
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -23,6 +24,7 @@ CORS_ALLOW_CREDENTIALS = True
 AUTH_USER_MODEL = 'users.User'
 
 INSTALLED_APPS = [
+    'users',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,7 +41,8 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'dj_rest_auth',
     'dj_rest_auth.registration', 
-    'users',
+    'matches',
+    'friends',
 ]
 
 SITE_ID = 1
@@ -65,17 +68,15 @@ AUTHENTICATION_BACKENDS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'users.authentication.CookieJWTAuthentication',
     )
 }
 
 REST_AUTH = {
     'USE_JWT': True,
-    'JWT_AUTH_COOKIE': None,
-    'JWT_AUTH_REFRESH_COOKIE': None,
-    'JWT_AUTH_HTTPONLY': False,
+    'JWT_AUTH_COOKIE': 'access_token',
+    'JWT_AUTH_REFRESH_COOKIE': 'refresh_token', 
+    'JWT_AUTH_HTTPONLY': True,              
     'REGISTER_SERIALIZER': 'users.serializers.RegisterSerializer',
 }
 
