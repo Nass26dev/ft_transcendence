@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Kop",
-  description: "",
+  description: "Le paris sportif sans pognon. 100 % adrénaline, 0 % facture.",
 };
 
 export default function RootLayout({

@@ -1,78 +1,88 @@
 @import "tailwindcss";
 
+/* @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap'); */
+
 :root {
-  --background: #ffffff;
-  --foreground: #1a1a1a;
-  --primary: #dc2626;
-  --primary-hover: #b91c1c;
-  --primary-foreground: #ffffff;
-  --muted: #f5f5f5;
-  --muted-foreground: #737373;
-  --border: #e5e5e5;
-  --ring: #dc2626;
+  /* Surfaces */
+  --bg: #0A0A0B;
+  --surface-1: #131318;
+  --surface-2: #1C1C24;
+  --surface-3: #26262F;
+  --border: #2A2A33;
+  --border-strong: #3A3A45;
+
+  /* Text */
+  --text: #F5F5F7;
+  --text-2: #B5B5BD;
+  --text-3: #6E6E78;
+  --text-4: #4A4A54;
+
+  /* Brand */
+  --kop: #E10000;
+  --kop-bright: #FF1A1A;
+  --kop-deep: #B80000;
+
+  /* Accents */
+  --green: #A3FF12;
+  --yellow: #FFD60A;
+  --blue: #4A8DFF;
+
+  /* Fonts */
+  --font-ui: 'Inter Tight', -apple-system, system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter Tight', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-hover: var(--primary-hover);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
+  --color-bg: var(--bg);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-border: var(--border);
-  --color-ring: var(--ring);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-border-strong: var(--border-strong);
+
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-text-4: var(--text-4);
+
+  --color-kop: var(--kop);
+  --color-kop-bright: var(--kop-bright);
+  --color-kop-deep: var(--kop-deep);
+
+  --color-green: var(--green);
+  --color-yellow: var(--yellow);
+  --color-blue: var(--blue);
+
+  --font-ui: var(--font-ui);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-feature-settings: "ss01", "cv01", "tnum";
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
-.HeaderButtonStyle {
-  padding: 5px 13px;
-  margin: 1px;
-  border-top-left-radius: 6px;
-  border-top-right-radius: 6px;
-  border: none;
+button {
+  font-family: inherit;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  color: white;
-  transition: all 0.3s ease;
 }
 
-.HeaderButtonStyle:hover {
-  background: #313131;
-  transform: scale(1.05);
-}
-
-.HeaderButtonStyle.active {
-  background: #313131;
-  transform: scale(1.05);
-}
-
-.AboveContentButtonStyle {
-  padding: 4px 12px;
-  margin: 1px;
-  border-radius: 6px;
-  border: none;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 500;
-  color: white;
-  transition: all 0.3s ease;
-}
-
-.AboveContentButtonStyle:hover {
-  background: #636771;
-  transform: scale(1.05);
-}
-
-.AboveContentButtonStyle.active {
-  background: #636771;
-  transform: scale(1.05);
+/* Pulse animation pour les tags live */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
 }
