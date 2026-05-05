@@ -409,7 +409,7 @@ Tests unitaires obligatoires : combinés mixtes, void (match annulé), reconcili
 - nginx config + TLS (certbot ou cert dev)
 - CI GitHub Actions (lint + tests + build par PR)
 - Intégration API sportive : fetcher Celery + cache Redis + mode mock
-- Modèles Sport/Competition/Match/Team/Odds + sync
+- Modèles Sport/Competition/Matches/Team/Odds + sync
 - **Settle engine** (cœur technique) + tests intensifs
 - Wallet transactions atomiques
 - Endpoints `/matches/*`, `/bets/*`, `/leaderboards/*`

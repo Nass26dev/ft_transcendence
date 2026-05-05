@@ -83,7 +83,7 @@ export function Sidebar() {
     <aside className="sticky top-0 flex h-screen w-[232px] flex-col gap-7 border-r border-border bg-bg px-4 py-5">
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2.5 px-2">
-        <img src="/assets/logo.png" alt="Kop" className="h-7 w-auto" />
+        <img src="/logo-clear.png" alt="Kop" className="h-7 w-auto" />
         <span className="font-display text-[22px] font-bold tracking-[-0.03em]">
           Kop
         </span>
