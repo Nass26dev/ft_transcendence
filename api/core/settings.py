@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'matches',
     'friends',
     'chat',
+    'league',
 ]
 
 SITE_ID = 1
