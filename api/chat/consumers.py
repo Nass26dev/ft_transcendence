@@ -2,7 +2,7 @@ import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from .models import Message
-from league.models import League  # ✅ ajouté
+from league.models import League
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -30,29 +30,36 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
         await self.accept()
 
-        async def disconnect(self,close_code):
-            await self.channel_layer.group_discard(
-                self.room_group_name,
-                self.channel_name
-            )
-        async def receive(self,text_data):
-            data = json.loads(text_data)
-            content = data['content']
-            user = self.scope['user']
+    async def disconnect(self, close_code):
+        await self.channel_layer.group_discard(
+            self.room_group_name,
+            self.channel_name
+        )
 
+    async def receive(self, text_data):
+        data = json.loads(text_data)
+        content = data['content']
+        user = self.scope['user']
 
-            message = await sync_to_async(Message.objects.create)
-            (
-                sender=user,
-                content=content,
-                league_id = self.league_id;
-            )
+        message = await sync_to_async(Message.objects.create)(
+            sender=user,
+            content=content,
+            league_id=self.league_id
+        )
+
         await self.channel_layer.group_send(
             self.room_group_name,
-        {
-            'type': 'chat_message',
-            'message': content,
-            'username': user.username,
-            'created_at': str(message.created_at)
-        }
-    )
+            {
+                'type': 'chat_message',
+                'message': content,
+                'username': user.username,
+                'created_at': str(message.created_at)
+            }
+        )
+
+    async def chat_message(self, event):
+        await self.send(text_data=json.dumps({
+            'message': event['message'],
+            'username': event['username'],
+            'created_at': event['created_at']
+        }))
