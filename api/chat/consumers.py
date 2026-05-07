@@ -7,9 +7,9 @@ from django.contrib.auth import get_user_model
 
 User = get_user_model()
 
-class ChatConsumer(AsyncWebsocketConsumer):  # ✅ la classe
+class ChatConsumer(AsyncWebsocketConsumer):
 
-    async def connect(self):  # ✅ indenté dans la classe
+    async def connect(self):
         self.league_id = self.scope['url_route']['kwargs']['league_id']
         self.room_group_name = f'chat_{self.league_id}'
         user = self.scope['user']
@@ -29,3 +29,30 @@ class ChatConsumer(AsyncWebsocketConsumer):  # ✅ la classe
             self.channel_name
         )
         await self.accept()
+
+        async def disconnect(self,close_code):
+            await self.channel_layer.group_discard(
+                self.room_group_name,
+                self.channel_name
+            )
+        async def receive(self,text_data):
+            data = json.loads(text_data)
+            content = data['content']
+            user = self.scope['user']
+
+
+            message = await sync_to_async(Message.objects.create)
+            (
+                sender=user,
+                content=content,
+                league_id = self.league_id;
+            )
+        await self.channel_layer.group_send(
+            self.room_group_name,
+        {
+            'type': 'chat_message',
+            'message': content,
+            'username': user.username,
+            'created_at': str(message.created_at)
+        }
+    )
