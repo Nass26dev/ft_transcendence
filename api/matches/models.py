@@ -30,14 +30,14 @@ class Match(models.Model):
     competition     = models.CharField(max_length=10, choices=COMPETITION_CHOICES)  # "L1", "PL"…
 
     # ---- Équipes ----
-    home_team       = models.CharField(max_length=100)   # nom complet  "Paris SG"
+    home_team       = models.CharField(max_length=100)
     away_team       = models.CharField(max_length=100)
     home_team_crest = models.URLField(max_length=500, blank=True, null=True)
     away_team_crest = models.URLField(max_length=500, blank=True, null=True)
 
     # ---- Horaire & statut ----
     time            = models.DateTimeField()             # datetime UTC du coup d'envoi
-    status          = models.CharField(max_length=20, choices=STATUS_CHOICES, default="soon")
+    status          = models.CharField(max_lejngth=20, choices=STATUS_CHOICES, default="soon")
     minute          = models.SmallIntegerField(null=True, blank=True)  # minute de jeu si live
 
     # ---- Score ----
