@@ -28,7 +28,8 @@ LEAGUES = {
     "BUN":  ("Bundesliga", "/allemagne/bundesliga/", "/classement/allemagne/bundesliga/"),
     "LIGA": ("La Liga", "/espagne/liga/", "/classement/espagne/liga/"),
     "SA":   ("Serie A", "/italie/serie-a/", "/classement/italie/serie-a/"),
-    "UCL":  ("Champions League", "/europe/ligue-des-champions/", "/classement/europe/ligue-des-champions/"),
+    "PPL":  ("Primeira Liga", "/portugal/primeira-liga/", "/classement/portugal/primeira-liga/"),
+    "L2":   ("Ligue 2", "/france/ligue-2/", "/classement/france/ligue-2"),
 }
 
 HEADERS = {
@@ -315,10 +316,6 @@ class Command(BaseCommand):
                     time.sleep(REQUEST_DELAY)
                 else:
                     self.stdout.write(self.style.WARNING(f"   Classement ignoré (pas de URL pour {slug})"))
-                if soup:
-                    sc, su = upsert_standings(scrape_standings(soup, slug))
-                    total_sc += sc; total_su += su
-                    self.stdout.write(self.style.SUCCESS(f"   Classement: {sc} créés, {su} MàJ"))
                 time.sleep(REQUEST_DELAY)
 
         self.stdout.write("\n" + "=" * 50)
