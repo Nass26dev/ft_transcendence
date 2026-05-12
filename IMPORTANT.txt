@@ -1,3 +1,0 @@
-Sur le frontend toujours passer par notre fonction API pour faire une requete au backend exemple = api.post('/api/auth/login/', { email, password });
-Cest grace a ca quon cest si on fait un refresh token ou non !
-
