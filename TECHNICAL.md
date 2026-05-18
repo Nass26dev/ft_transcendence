@@ -142,6 +142,17 @@ audit_log
   metadata (JSONB), ip, created_at
 ```
 
+### Decoupage apps Django
+
+apps/
+├── users/          → users, friendships
+├── leagues/        → leagues, league_memberships
+├── sports/         → sports, competitions, teams, matches, odds
+├── betting/        → bets, bet_selections
+├── social/         → notifications, chat_messages
+├── gamification/   → daily_challenges
+└── core/           → audit_log
+
 ### Index critiques
 
 - `bets (user_fk, status)` — historique paris user

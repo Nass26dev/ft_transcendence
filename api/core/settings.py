@@ -1,11 +1,12 @@
 from pathlib import Path
 from dotenv import load_dotenv
 import os
-
+from celery.schedules import crontab
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
+
 SECRET_KEY = os.getenv('SECRET_KEY_DJANGO')
 
 DEBUG = True
@@ -40,11 +41,13 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
     'dj_rest_auth',
-    'dj_rest_auth.registration', 
-    'matches',
+    'dj_rest_auth.registration',
+    'django_celery_beat',
+    'django_celery_results',
     'friends',
     'chat',
     'league',
+    'sports',
 ]
 
 SITE_ID = 1
@@ -115,14 +118,15 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 SITE_ID = 1
 
-from pathlib import Path
-BASE_DIR = Path(__file__).resolve().parent.parent
-
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
+    "default": {
+        "ENGINE": "django.db.backends.postgresql",
+        "NAME": os.getenv("POSTGRES_DB"),
+        "USER": os.getenv("POSTGRES_USER"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "HOST": os.getenv("POSTGRES_HOST", "db"),
+        "PORT": os.getenv("POSTGRES_PORT", "5432"),
+    },
 }
 
 AUTH_PASSWORD_VALIDATORS = [
@@ -151,3 +155,19 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CELERY_BROKER_URL = "redis://redis:6379/0"
+CELERY_RESULT_BACKEND = "django-db"
+CELERY_CACHE_BACKEND = "default"
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TIMEZONE = "Europe/Paris"
+CELERY_TASK_TRACK_STARTED = True
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
+CELERY_BEAT_SCHEDULE = {
+    "scrape-matches-every-5min": {
+        "task": "sports.scrape_all_matches",
+        "schedule": 30.0,
+    },
+}

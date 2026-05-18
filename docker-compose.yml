@@ -9,34 +9,70 @@ services:
     # - ./nginx/conf:/etc/nginx/conf.d 
     # - ./nginx/certs:/etc/nginx/certs 
     #networks:
-    # - transcendence_networks
+    # - t_networks
     #depends_on:
     # - frontend
     #- backend
   db:
+    ports:
+      - "5432:5432"
     image: postgres:16
-    container_name: transcendence_db
+    container_name: t_db
     restart: always
     env_file:
       - .env
     environment:
-      POSTGRES_DB: transcendence
-      POSTGRES_USER: transcendence
-      POSTGRES_PASSWORD: transcendence
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - transcendence_networks
+      - t_networks
+
+  redis:
+    image: redis:7-alpine
+    container_name: t_redis
+    networks:
+      - t_networks
+
+  celery_worker:
+    build: ./api
+    container_name: t_celery_w
+    command: celery -A core worker -l info
+    volumes:
+      - ./api:/app
+    depends_on:
+      - redis
+      - db
+    env_file: .env
+    networks:
+      - t_networks
+
+  celery_beat:
+    build: ./api
+    container_name: t_celery_b
+    command: celery -A core beat -l info
+    volumes:
+      - ./api:/app
+    depends_on:
+      - redis
+      - db
+    env_file: .env
+    networks:
+      - t_networks
 
   backend:
     build: ./api
     env_file:
       - .env
-    container_name: transcendence_backend
+    container_name: t_backend
     volumes:
       - ./api:/app
     networks:
-      - transcendence_networks
+      - t_networks
     ports:
       - "8000:8000"
     depends_on:
@@ -45,28 +81,14 @@ services:
       sh -c "python3 manage.py makemigrations &&
              python3 manage.py migrate &&
              python3 manage.py runserver 0.0.0.0:8000"
-  match-updater:
-    build: ./api
-    env_file:
-      - .env
-    container_name: transcendence_match_updater
-    volumes:
-      - ./api:/app
-    networks:
-      - transcendence_networks
-    depends_on:
-      - db
-      - backend
-    restart: always
-    command: sh /app/cron_matches.sh
 
   frontend:
     build: ./frontend
     env_file:
       - .env
-    container_name: transcendence_frontend
+    container_name: t_frontend
     networks:
-      - transcendence_networks
+      - t_networks
     ports:
       - "3000:3000"
     volumes:
@@ -80,5 +102,5 @@ volumes:
   postgres_data:
 
 networks:
-  transcendence_networks:
+  t_networks:
     driver: bridge
