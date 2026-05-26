@@ -9,15 +9,7 @@ logger = logging.getLogger(__name__)
 PARIS = ZoneInfo("Europe/Paris")
 
 LEAGUES = {
-    "L1":   ("Ligue 1",        "/france/ligue-1/"),
-    "PL":   ("Premier League", "/angleterre/premier-league/"),
-    "BUN":  ("Bundesliga",     "/allemagne/bundesliga/"),
-    "LIGA": ("La Liga",        "/espagne/liga/"),
-    "SA":   ("Serie A",        "/italie/serie-a/"),
-    "PPL":  ("Primeira Liga",  "/portugal/primeira-liga/"),
-    "L2":   ("Ligue 2",        "/france/ligue-2/"),
-    "UK": ("UK premiere league","/ukraine/premier-league/"),
-    "ALL": ("ALL matchday","/resultats/18-05-2026/"),
+    "ALL": ("ALL matchday",""),
 }
 
 

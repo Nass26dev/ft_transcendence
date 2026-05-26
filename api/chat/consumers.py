@@ -50,7 +50,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'chat_message', # redis appelle chat_message
+                'type': 'chat_message',
                 'message': content,
                 'username': user.username,
                 'created_at': str(message.created_at)
