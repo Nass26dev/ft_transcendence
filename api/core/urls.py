@@ -31,4 +31,8 @@ urlpatterns = [
     # ── Amis ──────────────────────────────────────────────────────────
     path("api/friends/", include("friends.urls")),
 
+    # ── Sport ──────────────────────────────────────────────────────────
+    path("api/", include("sports.urls")),
+
+
 ]

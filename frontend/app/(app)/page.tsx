@@ -117,7 +117,7 @@ export default function HomePage() {
       )}
 
       {/* Onboarding */}
-      {showOnboard && <Onboarding onClose={() => setShowOnboard(false)} />}
+      {/* {showOnboard && <Onboarding onClose={() => setShowOnboard(false)} />} */}
     </>
   );
 }

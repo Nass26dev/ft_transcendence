@@ -9,44 +9,57 @@ logger = logging.getLogger(__name__)
 PARIS = ZoneInfo("Europe/Paris")
 
 LEAGUES = {
-    "L1":   ("Ligue 1",        "/france/ligue-1/"),
-    "PL":   ("Premier League", "/angleterre/premier-league/"),
-    "BUN":  ("Bundesliga",     "/allemagne/bundesliga/"),
-    "LIGA": ("La Liga",        "/espagne/liga/"),
-    "SA":   ("Serie A",        "/italie/serie-a/"),
-    "PPL":  ("Primeira Liga",  "/portugal/primeira-liga/"),
-    "L2":   ("Ligue 2",        "/france/ligue-2/"),
-    "UK": ("UK premiere league","/ukraine/premier-league/"),
-    "ALL": ("ALL matchday","/resultats/18-05-2026/"),
+    "france/ligue-1":            ("Ligue 1",          "ligue-1"),
+    "france/ligue-2":            ("Ligue 2",          "ligue-2"),
+    "angleterre/premier-league": ("Premier League",   "premier-league"),
+    "allemagne/bundesliga":      ("Bundesliga",       "bundesliga"),
+    "espagne/liga":              ("La Liga",          "la-liga"),
+    "italie/serie-a":            ("Serie A",          "serie-a"),
+    "portugal/primeira-liga":    ("Primeira Liga",    "primeira-liga"),
+    "ukraine/premier-league":    ("Premier League UA", "premier-league-ua"),
 }
 
+RESTE_DU_MONDE = ("Reste du monde", "reste-du-monde")
 
-def parse_matches_page(
-    soup: BeautifulSoup,
-    competition_slug: str,
-    competition_name: str,
-) -> list[dict]:
-    """Extrait les matchs depuis les data-attributes des éléments .feedGame."""
+
+def match_competition(href: str) -> tuple[str, str]:
+    """france/ligue-1/barrages/ → ('Ligue 1', 'ligue-1'). Fallback : Reste du monde."""
+    clean = href.strip("/")
+    for fragment, (name, slug) in LEAGUES.items():
+        if clean.startswith(fragment):
+            return name, slug
+    return RESTE_DU_MONDE
+
+
+def parse_matches_page(soup: BeautifulSoup) -> list[dict]:
+    """Extrait les matchs en suivant les sections de compétition."""
     results = []
+    current_comp_name, current_comp_slug = RESTE_DU_MONDE
 
-    for game in soup.select(".feedGame"):
-        home = game.get("data-team1")
-        away = game.get("data-team2")
+    # Parcourt compLink et feedGame dans l'ordre du document
+    for el in soup.select(".compLink, .feedGame"):
+        classes = el.get("class", [])
+
+        if "compLink" in classes:
+            href = el.get("href", "")
+            current_comp_name, current_comp_slug = match_competition(href)
+            continue
+
+        # ── ici el est un .feedGame ──
+        home = el.get("data-team1")
+        away = el.get("data-team2")
         if not home or not away:
             continue
 
-        # Score
-        score_home = game.get("data-score1")
-        score_away = game.get("data-score2")
+        score_home = el.get("data-score1")
+        score_away = el.get("data-score2")
         score_home = int(score_home) if score_home and score_home.isdigit() else None
         score_away = int(score_away) if score_away and score_away.isdigit() else None
 
-        # Minute
-        minute_raw = game.get("data-minute")
+        minute_raw = el.get("data-minute")
         minute = int(minute_raw) if minute_raw and minute_raw.isdigit() else None
 
-        # Statut
-        status_raw = game.get("data-status", "")
+        status_raw = el.get("data-status", "")
         if minute is not None:
             status = "live"
         elif status_raw in ("Term.", "Res", "Fin prol.", "Fin pen."):
@@ -57,22 +70,23 @@ def parse_matches_page(
             status = "finished"
         else:
             status = "scheduled"
-        dt_fr = game.get("data-dt_fr", "")
+
+        dt_fr = el.get("data-dt_fr", "")
         try:
             kickoff = datetime.strptime(dt_fr, "%Y-%m-%d %H:%M").replace(tzinfo=PARIS)
         except ValueError:
             kickoff = datetime.now(tz=PARIS)
-            logger.warning("[%s] date invalide: %r", competition_slug, dt_fr)
+            logger.warning("[%s] date invalide: %r", current_comp_slug, dt_fr)
 
         external_id = (
-            f"footlive:{competition_slug}:{home}:{away}:{kickoff:%Y%m%d}"
+            f"footlive:{current_comp_slug}:{home}:{away}:{kickoff:%Y%m%d}"
             .lower()
             .replace(" ", "-")
         )
 
         results.append({
-            "competition_slug": competition_slug,
-            "competition_name": competition_name,
+            "competition_slug": current_comp_slug,
+            "competition_name": current_comp_name,
             "home_team":        home,
             "away_team":        away,
             "kickoff_at":       kickoff,
@@ -83,5 +97,5 @@ def parse_matches_page(
             "external_id":      external_id,
         })
 
-    logger.info("[%s] %d matchs parsés", competition_slug, len(results))
+    logger.info("%d matchs parsés", len(results))
     return results

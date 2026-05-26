@@ -3,7 +3,6 @@
 import React from "react";
 import { Crest } from "@/components/kop/ui/Crest";
 import { Tag } from "@/components/kop/ui/Tag";
-import { TEAMS, LEAGUES } from "@/data/kop-data";
 import type { Match, PickHandlers } from "@/utils/types";
 import { OddPill } from "./OddPill";
 
@@ -12,8 +11,6 @@ interface LiveTileProps extends PickHandlers {
 }
 
 export function LiveTile({ match, onPick, isPicked, onOpen }: LiveTileProps) {
-  const lg = (LEAGUES as any)[match.league];
-
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!(e.target as HTMLElement).closest("[data-odd-pill]")) {
       onOpen(match.id);
@@ -27,28 +24,24 @@ export function LiveTile({ match, onPick, isPicked, onOpen }: LiveTileProps) {
     >
       {/* Header */}
       <div className="flex items-center justify-between">
-        <Tag kind="live">{match.minute}&apos;</Tag>
+        <Tag kind="live">
+          {match.current_minute != null ? `${match.current_minute}'` : "LIVE"}
+        </Tag>
         <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-text-3">
-          {lg.n}
+          {match.competition}
         </span>
       </div>
 
       {/* Score */}
       <div className="my-3 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Crest team={match.home} size={32} />
-          <span className="text-sm font-semibold">
-            {(TEAMS as any)[match.home].n}
-          </span>
+          <span className="text-sm font-semibold">{match.home_team}</span>
         </div>
         <div className="font-display tnum text-2xl font-bold tracking-[-0.02em]">
-          {match.scoreH} − {match.scoreA}
+          {match.home_score ?? 0} − {match.away_score ?? 0}
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">
-            {(TEAMS as any)[match.away].n}
-          </span>
-          <Crest team={match.away} size={32} />
+          <span className="text-sm font-semibold">{match.away_team}</span>
         </div>
       </div>
 
@@ -58,7 +51,7 @@ export function LiveTile({ match, onPick, isPicked, onOpen }: LiveTileProps) {
           <OddPill
             key={k}
             label={k}
-            value={match.odds[k]}
+            value={match.odds?.[k]}
             selected={isPicked(match.id, k)}
             onClick={() => onPick(match, k)}
             fullWidth

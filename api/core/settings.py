@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
+    'django_filters',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -166,8 +167,12 @@ CELERY_TIMEZONE = "Europe/Paris"
 CELERY_TASK_TRACK_STARTED = True
 CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_BEAT_SCHEDULE = {
-    "scrape-matches-every-5min": {
-        "task": "sports.scrape_all_matches",
-        "schedule": 30.0,
+    "scrape-live": {
+        "task": "sports.scrape_live",
+        "schedule": 30.0,  # toutes les 30 secondes
+    },
+    "scrape-upcoming": {
+        "task": "sports.scrape_upcoming",
+        "schedule": crontab(hour=0, minute=0),  # minuit
     },
 }

@@ -1,14 +1,13 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Icon } from "@/components/kop/ui/Icon";
 import { Tag } from "@/components/kop/ui/Tag";
 import { Kops } from "@/components/kop/ui/Kops";
 import { MatchCard } from "@/components/kop/match/MatchCard";
 import { LiveTile } from "@/components/kop/match/LiveTile";
+import api from '@/utils/api';
 import {
-  MATCHES,
-  LIVE,
   TRENDING,
   CHALLENGES,
   FRIENDS_FEED,
@@ -16,25 +15,25 @@ import {
 } from "@/data/kop-data";
 import type { Match, PickHandlers } from "@/utils/types";
 
-// ---------- Types ----------
+// Compétitions majeures à garder dans "prochains gros matchs"
+const MAJOR_COMPETITIONS = [
+  "Ligue 1",
+  "Ligue 2",
+  "Premier League",
+  "Bundesliga",
+  "La Liga",
+  "Serie A",
+  "Primeira Liga",
+];
 
 type Route =
-  | "home"
-  | "live"
-  | "sports"
-  | "tickets"
-  | "leagues"
-  | "leaderboard"
-  | "challenges"
-  | "profile"
-  | "match";
+  | "home" | "live" | "sports" | "tickets" | "leagues"
+  | "leaderboard" | "challenges" | "profile" | "match";
 
 interface HomeScreenProps extends PickHandlers {
   onNav: (route: Route) => void;
   friendsOn: boolean;
 }
-
-// ---------- Component ----------
 
 export function HomeScreen({
   onPick,
@@ -43,12 +42,36 @@ export function HomeScreen({
   onNav,
   friendsOn,
 }: HomeScreenProps) {
+  const [live, setLive] = useState<Match[]>([]);
+  const [upcoming, setUpcoming] = useState<Match[]>([]);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [liveRes, upcomingRes] = await Promise.all([
+          api.get("/api/matches/live/"),
+          api.get("/api/matches/upcoming/"),
+        ]);
+
+        setLive(liveRes.data);
+
+        // filtre front : on ne garde que les championnats majeurs
+        const major = (upcomingRes.data as Match[]).filter((m) =>
+          MAJOR_COMPETITIONS.some((c) => m.competition.startsWith(c))
+        );
+        setUpcoming(major);
+      } catch (err) {
+        console.error("Erreur chargement matchs:", err);
+      }
+    };
+    load();
+  }, []);
+
   return (
     <div className="max-w-[1480px] px-8 pb-15 pt-7">
-      {/* ============= HERO ============= */}
+      {/* ============= HERO ============= (inchangé) */}
       <div className="relative mb-7 overflow-hidden rounded-[14px] border border-border bg-gradient-to-br from-[#1A0606] to-bg px-9 py-8">
         <div className="pointer-events-none absolute -right-20 -top-20 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,var(--kop)_0%,transparent_70%)] opacity-[0.18]" />
-
         <div className="relative grid grid-cols-[1fr_auto] items-center gap-8">
           <div>
             <div className="mb-3.5 inline-flex gap-2">
@@ -80,7 +103,6 @@ export function HomeScreen({
             </div>
           </div>
 
-          {/* Trending */}
           <div className="flex min-w-[280px] flex-col gap-2.5">
             <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
               Tendances Kop
@@ -92,9 +114,7 @@ export function HomeScreen({
               >
                 <Icon name="fire" size={16} stroke={1.8} />
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px] font-semibold">
-                    {t.tag}
-                  </div>
+                  <div className="truncate text-[13px] font-semibold">{t.tag}</div>
                   <div className="text-[11px] text-text-3">{t.vol}</div>
                 </div>
                 <span className="font-mono tnum font-bold text-green">
@@ -108,13 +128,12 @@ export function HomeScreen({
 
       {/* ============= MAIN ROW ============= */}
       <div className="flex items-start gap-4">
-        {/* ----- Left: live + top matches ----- */}
         <div className="min-w-0 flex-1">
           {/* Live strip */}
           <SectionHead
             title={
               <>
-                En direct <Tag kind="live">2 matchs</Tag>
+                En direct <Tag kind="live">{live.length} matchs</Tag>
               </>
             }
             sub="Cotes mises à jour en temps réel"
@@ -125,21 +144,27 @@ export function HomeScreen({
             }
           />
           <div className="mb-6 grid grid-cols-2 gap-4">
-            {LIVE.map((m: Match) => (
-              <LiveTile
-                key={m.id}
-                match={m}
-                onPick={onPick}
-                isPicked={isPicked}
-                onOpen={onOpen}
-              />
-            ))}
+            {live.length === 0 ? (
+              <div className="col-span-2 rounded-lg border border-border bg-surface-1 px-4 py-6 text-center text-[13px] text-text-3">
+                Aucun match en direct pour le moment.
+              </div>
+            ) : (
+              live.map((m) => (
+                <LiveTile
+                  key={m.id}
+                  match={m}
+                  onPick={onPick}
+                  isPicked={isPicked}
+                  onOpen={onOpen}
+                />
+              ))
+            )}
           </div>
 
-          {/* Top matches */}
+          {/* Prochains gros matchs */}
           <SectionHead
-            title="Les chocs du week-end"
-            sub="Sélection rédactionnelle"
+            title="Les prochains gros matchs"
+            sub="Championnats majeurs · 7 prochains jours"
             action={
               <GhostBtn onClick={() => onNav("sports")}>
                 Tous les matchs <Icon name="chevron" size={12} />
@@ -147,21 +172,26 @@ export function HomeScreen({
             }
           />
           <div className="grid grid-cols-2 gap-4">
-            {MATCHES.slice(0, 4).map((m: Match) => (
-              <MatchCard
-                key={m.id}
-                match={m}
-                onPick={onPick}
-                isPicked={isPicked}
-                onOpen={onOpen}
-              />
-            ))}
+            {upcoming.length === 0 ? (
+              <div className="col-span-2 rounded-lg border border-border bg-surface-1 px-4 py-6 text-center text-[13px] text-text-3">
+                Aucun match à venir dans les grands championnats.
+              </div>
+            ) : (
+              upcoming.slice(0, 4).map((m) => (
+                <MatchCard
+                  key={m.id}
+                  match={m}
+                  onPick={onPick}
+                  isPicked={isPicked}
+                  onOpen={onOpen}
+                />
+              ))
+            )}
           </div>
         </div>
 
-        {/* ----- Right rail ----- */}
+        {/* ----- Right rail (inchangé, données fixes) ----- */}
         <aside className="flex w-[320px] flex-none flex-col gap-[18px]">
-          {/* Challenges teaser */}
           <div className="rounded-[10px] border border-border bg-surface-1 p-4">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-display text-base">Défis du jour</h3>
@@ -190,7 +220,6 @@ export function HomeScreen({
             </div>
           </div>
 
-          {/* Friends feed */}
           {friendsOn && (
             <div className="rounded-[10px] border border-border bg-surface-1">
               <div className="flex items-center justify-between border-b border-border p-3.5">
@@ -251,7 +280,6 @@ export function HomeScreen({
             </div>
           )}
 
-          {/* Mini league */}
           <div className="rounded-[10px] border border-border bg-surface-1 p-4">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-display text-base">Ta ligue</h3>
@@ -296,8 +324,6 @@ export function HomeScreen({
     </div>
   );
 }
-
-// ---------- Sub-components ----------
 
 function SectionHead({
   title,
