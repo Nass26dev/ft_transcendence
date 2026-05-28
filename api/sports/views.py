@@ -1,5 +1,5 @@
 # sports/views.py
-from datetime import timedelta
+from datetime import date, timedelta
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -40,7 +40,8 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         return Response(serializer.data)
 
     def live(self, request):
-        qs = self.get_queryset().filter(status="live")
+        today = date.today()
+        qs = self.get_queryset().filter(status="live", kickoff_at__date=today)
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 

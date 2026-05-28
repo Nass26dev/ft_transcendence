@@ -161,7 +161,6 @@ export function HomeScreen({
             )}
           </div>
 
-          {/* Prochains gros matchs */}
           <SectionHead
             title="Les prochains gros matchs"
             sub="Championnats majeurs · 7 prochains jours"

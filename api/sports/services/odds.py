@@ -91,10 +91,10 @@ def compute_match_odds(match: Match) -> dict:
             defaults={"value": value},
         )
 
-    logger.info(
-        "Cotes %s — %s/%s/%s",
-        match, odds["home"], odds["draw"], odds["away"],
-    )
+    # logger.info(
+    #     "Cotes %s — %s/%s/%s",
+    #     match, odds["home"], odds["draw"], odds["away"],
+    # )
     return odds
 
 
