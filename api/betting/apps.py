@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
-class SportsConfig(AppConfig):
+class BettingConfig(AppConfig):
     default_auto_field = "django.db.models.BigAutoField"
-    name = "sports"
+    name = "betting"
