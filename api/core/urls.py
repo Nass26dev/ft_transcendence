@@ -34,5 +34,7 @@ urlpatterns = [
     # ── Sport ──────────────────────────────────────────────────────────
     path("api/", include("sports.urls")),
 
+    #  Betting
+    path("api/", include("betting.urls")),
 
 ]
