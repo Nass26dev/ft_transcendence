@@ -25,8 +25,7 @@ urlpatterns = [
     path("api/auth/social/google/", GoogleLoginView.as_view()),
 
     # ── Profil ────────────────────────────────────────────────────────
-    path("api/profile/",  ProfileView.as_view(), name="profile"),
-    path("api/register/", RegisterView.as_view(), name="register"),
+    path("api/", include("users.urls")),
 
     # ── Amis ──────────────────────────────────────────────────────────
     path("api/friends/", include("friends.urls")),
