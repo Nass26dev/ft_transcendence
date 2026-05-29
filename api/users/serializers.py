@@ -3,7 +3,6 @@ from rest_framework import serializers
 from .models import User
 
 
-
 class RegisterSerializer(BaseRegisterSerializer):
     username = None
     first_name = serializers.CharField(required=False, default='')
@@ -37,10 +36,12 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id',
+            'username',
             'email',
-            'bio',
-            'avatar',
             'first_name',
             'last_name',
-            'wallet'
+            'bio',
+            'avatar',
+            'wallet',
+            'date_joined',
         ]
