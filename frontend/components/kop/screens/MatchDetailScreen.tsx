@@ -2,8 +2,8 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Icon } from "@/components/kop/ui/Icon";
-import { Tag } from "@/components/kop/ui/Tag";
+import { Icon } from "@/components/ui/Icon";
+import { Tag } from "@/components/ui/Tag";
 import {
   TEAMS,
   LEAGUES,

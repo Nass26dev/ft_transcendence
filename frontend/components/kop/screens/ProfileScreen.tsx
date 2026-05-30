@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Tag } from "@/components/kop/ui/Tag";
-import { StatCard } from "@/components/kop/ui/StatCard";
+import { Tag } from "@/components/ui/Tag";
+import { StatCard } from "@/components/ui/StatCard";
 
 // ---------- Data ----------
 

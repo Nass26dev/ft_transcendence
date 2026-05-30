@@ -3,8 +3,8 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Icon } from "@/components/kop/ui/Icon";
-import { Kops } from "@/components/kop/ui/Kops";
+import { Icon } from "@/components/ui/Icon";
+import { Kops } from "@/components/ui/Kops";
 
 // ---------- Types ----------
 

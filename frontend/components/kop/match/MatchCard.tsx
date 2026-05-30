@@ -2,7 +2,7 @@
 
 import React from "react";
 import type { Match, PickHandlers } from "@/utils/types";
-import { OddPill } from "./OddPill";
+import { OddPill } from "@/components/ui/OddPill";
 
 interface MatchCardProps extends PickHandlers {
   match: Match;

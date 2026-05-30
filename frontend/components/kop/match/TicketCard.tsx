@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { Icon } from "@/components/kop/ui/Icon";
-import { Tag } from "@/components/kop/ui/Tag";
-import { Kops } from "@/components/kop/ui/Kops";
+import { Icon } from "@/components/ui/Icon";
+import { Tag } from "@/components/ui/Tag";
+import { Kops } from "@/components/ui/Kops";
 import type { Bet, BetStatus } from "@/utils/types";
 
 interface TicketCardProps {

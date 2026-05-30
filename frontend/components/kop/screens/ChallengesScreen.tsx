@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Kops } from "@/components/kop/ui/Kops";
+import { Kops } from "@/components/ui/Kops";
 import { CHALLENGES } from "@/data/kop-data";
 import type { Challenge } from "@/utils/types";
 

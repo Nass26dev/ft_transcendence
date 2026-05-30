@@ -1,6 +1,6 @@
 import React from "react";
-import { Sidebar } from "@/components/kop/Sidebar";
-import { Topbar } from "@/components/kop/Topbar";
+import { Sidebar } from "@/components/layout/Sidebar";
+import { Topbar } from "@/components/layout/Topbar";
 
 export default function AppLayout({
   children,

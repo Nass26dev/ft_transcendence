@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Icon } from "@/components/kop/ui/Icon";
-import { KCoin } from "@/components/kop/ui/Kops";
+import { Icon } from "@/components/ui/Icon";
+import { KCoin } from "@/components/ui/Kops";
 
 // ---------- Types ----------
 

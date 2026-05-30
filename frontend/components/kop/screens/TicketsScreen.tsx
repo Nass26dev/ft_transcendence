@@ -4,7 +4,7 @@ import React from "react";
 import { TicketCard } from "@/components/kop/match/TicketCard";
 import { MY_BETS } from "@/data/kop-data";
 import type { BetStatus } from "@/utils/types";
-import { StatCard } from "@/components/kop/ui/StatCard";
+import { StatCard } from "@/components/ui/StatCard";
 
 
 type TabKey = BetStatus | "all";

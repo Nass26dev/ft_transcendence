@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Tag } from "@/components/kop/ui/Tag";
+import { Tag } from "@/components/ui/Tag";
 import { LiveTile } from "@/components/kop/match/LiveTile";
 import { CompactRow } from "@/components/kop/match/CompactRow";
 import { LIVE, MATCHES } from "@/data/kop-data";

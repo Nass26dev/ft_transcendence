@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { Crest } from "@/components/kop/ui/Crest";
-import { Tag } from "@/components/kop/ui/Tag";
+import { Crest } from "@/components/ui/Crest";
+import { Tag } from "@/components/ui/Tag";
 import type { Match, PickHandlers } from "@/utils/types";
-import { OddPill } from "./OddPill";
+import { OddPill } from "@/components/ui/OddPill";
 
 interface LiveTileProps extends PickHandlers {
   match: Match;

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Icon } from "@/components/kop/ui/Icon";
+import { Icon } from "@/components/ui/Icon";
 
 // ---------- Data ----------
 

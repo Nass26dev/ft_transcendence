@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { Crest } from "@/components/kop/ui/Crest";
+import { Crest } from "@/components/ui/Crest";
 import { TEAMS, LEAGUES } from "@/data/kop-data";
 import type { Match, MatchHandlers } from "@/utils/types";
-import { OddPill } from "./OddPill";
+import { OddPill } from "@/components/ui/OddPill";
 
 interface CompactRowProps extends MatchHandlers {
   match: Match;

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Kops } from "@/components/kop/ui/Kops";
+import { Kops } from "@/components/ui/Kops";
 import { LEAGUE_BOARD } from "@/data/kop-data";
 import type { LeagueBoardEntry } from "@/utils/types";
 

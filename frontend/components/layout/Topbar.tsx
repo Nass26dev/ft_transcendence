@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { Icon } from "@/components/kop/ui/Icon";
+import { Icon } from "@/components/ui/Icon";
 
 export function Topbar() {
   const balance = 10000;
