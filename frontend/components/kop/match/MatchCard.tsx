@@ -37,7 +37,7 @@ export function MatchCard({ match, onPick, isPicked, onOpen }: MatchCardProps) {
       <div className="mb-3.5 flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-3">
         <span className="text-text-2">{match.competition}</span>
         <span className="text-text-4">•</span>
-        <span>{formatKickoff(match.kickoff_at)}</span>
+        <span>{formatKickoff(match.kickoff_at ?? "")}</span>
       </div>
 
       {/* Teams + odds */}

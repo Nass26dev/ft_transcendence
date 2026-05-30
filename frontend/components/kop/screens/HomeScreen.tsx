@@ -31,7 +31,7 @@ type Route =
   | "leaderboard" | "challenges" | "profile" | "match";
 
 interface HomeScreenProps extends PickHandlers {
-  onNav: (route: Route) => void;
+  onNav?: (route: Route) => void;
   friendsOn: boolean;
 }
 
@@ -57,7 +57,7 @@ export function HomeScreen({
 
         // filtre front : on ne garde que les championnats majeurs
         const major = (upcomingRes.data as Match[]).filter((m) =>
-          MAJOR_COMPETITIONS.some((c) => m.competition.startsWith(c))
+          MAJOR_COMPETITIONS.some((c) => m.competition?.startsWith(c))
         );
         setUpcoming(major);
       } catch (err) {
@@ -95,7 +95,7 @@ export function HomeScreen({
                 Voir les cotes <Icon name="arrow" size={14} stroke={2.4} />
               </button>
               <button
-                onClick={() => onNav("leagues")}
+                onClick={() => onNav?.("leagues")}
                 className="rounded-md border border-border-strong bg-transparent px-5 py-3.5 text-[15px] font-semibold text-text transition-colors hover:bg-surface-1"
               >
                 Créer une ligue
@@ -107,7 +107,7 @@ export function HomeScreen({
             <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
               Tendances Kop
             </div>
-            {TRENDING.map((t: any, i: number) => (
+            {TRENDING.map((t, i) => (
               <div
                 key={i}
                 className="flex items-center gap-3 rounded-lg border border-border bg-black/35 px-3 py-2.5"
@@ -138,7 +138,7 @@ export function HomeScreen({
             }
             sub="Cotes mises à jour en temps réel"
             action={
-              <GhostBtn onClick={() => onNav("live")}>
+              <GhostBtn onClick={() => onNav?.("live")}>
                 Tout voir <Icon name="chevron" size={12} />
               </GhostBtn>
             }
@@ -165,7 +165,7 @@ export function HomeScreen({
             title="Les prochains gros matchs"
             sub="Championnats majeurs · 7 prochains jours"
             action={
-              <GhostBtn onClick={() => onNav("sports")}>
+              <GhostBtn onClick={() => onNav?.("sports")}>
                 Tous les matchs <Icon name="chevron" size={12} />
               </GhostBtn>
             }
@@ -194,10 +194,10 @@ export function HomeScreen({
           <div className="rounded-[10px] border border-border bg-surface-1 p-4">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-display text-base">Défis du jour</h3>
-              <GhostBtn onClick={() => onNav("challenges")}>Voir tout</GhostBtn>
+              <GhostBtn onClick={() => onNav?.("challenges")}>Voir tout</GhostBtn>
             </div>
             <div className="flex flex-col gap-2.5">
-              {CHALLENGES.slice(0, 2).map((c: any) => (
+              {CHALLENGES.slice(0, 2).map((c) => (
                 <div key={c.id} className="rounded-lg bg-surface-2 p-3">
                   <div className="mb-1.5 flex justify-between">
                     <span className="text-[13px] font-semibold">
@@ -226,7 +226,7 @@ export function HomeScreen({
                 <Tag kind="green">Live</Tag>
               </div>
               <div>
-                {FRIENDS_FEED.slice(0, 5).map((f: any) => (
+                {FRIENDS_FEED.slice(0, 5).map((f) => (
                   <div
                     key={f.id}
                     className="flex gap-2.5 border-b border-border px-3.5 py-3 last:border-b-0"
@@ -282,12 +282,12 @@ export function HomeScreen({
           <div className="rounded-[10px] border border-border bg-surface-1 p-4">
             <div className="mb-3 flex items-center justify-between">
               <h3 className="font-display text-base">Ta ligue</h3>
-              <GhostBtn onClick={() => onNav("leagues")}>Ouvrir</GhostBtn>
+              <GhostBtn onClick={() => onNav?.("leagues")}>Ouvrir</GhostBtn>
             </div>
             <div className="mb-2.5 text-[12px] text-text-3">
               Les Kopistes du Mardi · 12 joueurs
             </div>
-            {LEAGUE_BOARD.slice(0, 4).map((r: any) => (
+            {LEAGUE_BOARD.slice(0, 4).map((r) => (
               <div
                 key={r.rank}
                 className="flex items-center gap-2.5 border-b border-border py-2 text-[13px] last:border-b-0"

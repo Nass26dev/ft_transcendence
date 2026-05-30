@@ -9,7 +9,7 @@ import type { SlipPick, PlacePayload } from "@/utils/types";
 // ---------- Types ----------
 
 interface BetSlipProps {
-  picks: Pick[];
+  picks: SlipPick[];
   onRemove: (id: string) => void;
   onClear: () => void;
   onPlace: (payload: PlacePayload) => void;

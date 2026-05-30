@@ -80,7 +80,7 @@ export default function HomePage() {
       <HomeScreen
         onPick={handlePick}
         isPicked={isPicked}
-        onOpen={(id) => router.push(`/matches/${id}`)}
+        onOpen={(id: string) => router.push(`/matches/${id}`)}
         friendsOn={true}
       />
 
