@@ -10,6 +10,8 @@ import type {
   Trending,
   LeagueCardData,
   PublicLeague,
+  CompetitionStat,
+  Badge,
 } from "@/utils/types";
 
 export const TEAMS: Record<string, Team> = {
@@ -187,4 +189,20 @@ export const TOP_LEAGUES: PublicLeague[] = [
   { n: "Le Classique Club", members: 2150, emoji: "🔥", desc: "PSG vs OM, rien d'autre" },
   { n: "Tipsters Pro", members: 1890, emoji: "🎯", desc: "Réservée aux gros win rate" },
   { n: "Lyon Bets", members: 1240, emoji: "🦁", desc: "Communauté lyonnaise" },
+];
+
+export const COMPETITIONS: CompetitionStat[] = [
+  { lg: "Ligue 1", flag: "🇫🇷", bets: 64, wr: 58, roi: "+18.2 %" },
+  { lg: "Champions League", flag: "⭐", bets: 31, wr: 52, roi: "+8.4 %" },
+  { lg: "Premier League", flag: "🇬🇧", bets: 28, wr: 46, roi: "−4.1 %" },
+  { lg: "La Liga", flag: "🇪🇸", bets: 24, wr: 54, roi: "+12.0 %" },
+];
+
+export const BADGES: Badge[] = [
+  { e: "🎯", n: "Sniper", d: "10 paris simples gagnés" },
+  { e: "🔥", n: "En feu", d: "Streak de 5" },
+  { e: "⭐", n: "C1 expert", d: "20 paris UCL" },
+  { e: "🍻", n: "Mardi soir", d: "Top 3 ligue privée" },
+  { e: "🦅", n: "Lyon city", d: "Supporter local" },
+  { e: "🔒", n: "???", d: "À débloquer", locked: true },
 ];

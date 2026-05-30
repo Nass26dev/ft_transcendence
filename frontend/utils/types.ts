@@ -141,6 +141,21 @@ export interface Trending {
   odd: number;
 }
 
+export interface CompetitionStat {
+  lg: string;
+  flag: string;
+  bets: number;
+  wr: number;
+  roi: string;
+}
+
+export interface Badge {
+  e: string;
+  n: string;
+  d: string;
+  locked?: boolean;
+}
+
 export interface LeagueCardData {
   n: string;
   d: number;

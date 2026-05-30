@@ -24,3 +24,14 @@ export function getPodiumColor(rank: number): string {
 export function getAvatarTextColor(bg: string): string {
   return bg === "#FFD60A" || bg === "#A3FF12" ? "#000" : "#fff";
 }
+
+/** Couleur d'un ROI (négatif = kop, sinon vert). Gère "-" et "−". */
+export function getRoiColor(roi: string): string {
+  const isNeg = roi.startsWith("-") || roi.startsWith("−");
+  return isNeg ? "text-kop-bright" : "text-green";
+}
+
+/** Couleur de la barre de win rate (vert si ≥ 50, sinon kop). */
+export function getWrBarColor(wr: number): string {
+  return wr >= 50 ? "bg-green" : "bg-kop";
+}
