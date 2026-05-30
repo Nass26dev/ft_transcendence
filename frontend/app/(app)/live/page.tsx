@@ -2,8 +2,10 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { LiveScreen } from "@/components/kop/screens/LiveScreen";
+import { LIVE, MATCHES } from "@/data/kop-data";
 import type { Match } from "@/utils/types";
+import { LiveGrid } from "./_components/LiveGrid";
+import { UpcomingList } from "./_components/UpcomingList";
 
 export default function LivePage() {
   const router = useRouter();
@@ -15,11 +17,16 @@ export default function LivePage() {
 
   const isPicked = (_mId: string, _k: string) => false;
 
+  const handlers = {
+    onPick: handlePick,
+    isPicked,
+    onOpen: (id: string) => router.push(`/matches/${id}`),
+  };
+
   return (
-    <LiveScreen
-      onPick={handlePick}
-      isPicked={isPicked}
-      onOpen={(id) => router.push(`/matches/${id}`)}
-    />
+    <div className="max-w-[1480px] px-8 pb-15 pt-7">
+      <LiveGrid matches={LIVE} {...handlers} />
+      <UpcomingList matches={MATCHES.slice(0, 5)} {...handlers} />
+    </div>
   );
 }
