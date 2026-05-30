@@ -6,6 +6,7 @@ import type {
   FriendBet,
   LeagueBoardEntry,
   Challenge,
+  SeasonChallenge,
   Trending,
 } from "@/utils/types";
 
@@ -145,4 +146,28 @@ export const TRENDING: Trending[] = [
   { tag: "PSG vainqueur", vol: "24 % des Kopistes", odd: 1.45 },
   { tag: "Real - Bayern : +2.5 buts", vol: "18 %", odd: 1.90 },
   { tag: "Arsenal & Liverpool BTTS", vol: "14 %", odd: 1.75 },
+];
+
+export const SEASON_CHALLENGES: SeasonChallenge[] = [
+  {
+    ttl: "Premier combiné gagnant",
+    desc: "Termine un combiné x3 ou plus",
+    progress: 0,
+    total: 1,
+    reward: 5000,
+  },
+  {
+    ttl: "Streak hot",
+    desc: "10 paris gagnants d'affilée",
+    progress: 4,
+    total: 10,
+    reward: 10000,
+  },
+  {
+    ttl: "Roi de la Ligue 1",
+    desc: "Top 3 d'une ligue privée 4 sem.",
+    progress: 1,
+    total: 4,
+    reward: 25000,
+  },
 ];

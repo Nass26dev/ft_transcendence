@@ -127,6 +127,14 @@ export interface Challenge {
   reward: number;
 }
 
+export interface SeasonChallenge {
+  ttl: string;
+  desc: string;
+  progress: number;
+  total: number;
+  reward: number;
+}
+
 export interface Trending {
   tag: string;
   vol: string;
