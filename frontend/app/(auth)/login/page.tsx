@@ -19,10 +19,11 @@ function LoginContent() {
   const [otpCode, setOtpCode] = useState('');
   const [userId, setUserId] = useState<number | null>(null);
   const [step, setStep] = useState(1);
-  const [error, setError] = useState<Record<string, any> | null>(null);
+  const [error, setError] = useState<Record<string, string> | null>(null);
 
   useEffect(() => {
     if (emailFromUrl) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync field when ?email= changes
       setEmail(emailFromUrl);
     }
   }, [emailFromUrl]);
@@ -37,8 +38,9 @@ function LoginContent() {
         setUserId(data.user_id);
         setStep(2);
       }
-    } catch (err: any) {
-      setError(err.response?.data || { detail: "Identifiants invalides." });
+    } catch (err) {
+      const data = axios.isAxiosError(err) ? err.response?.data : null;
+      setError(data || { detail: "Identifiants invalides." });
     }
   };
 
@@ -47,8 +49,9 @@ const handleVerifyOtp = async () => {
   try {
     await axios.post('/api/auth/login', { user_id: userId, code: otpCode });
     router.push('/dashboard');
-  } catch (err: any) {
-    setError(err.response?.data || { detail: "Code invalide ou expiré." });
+  } catch (err) {
+    const data = axios.isAxiosError(err) ? err.response?.data : null;
+    setError(data || { detail: "Code invalide ou expiré." });
   }
 };
 
@@ -142,7 +145,7 @@ const handleVerifyOtp = async () => {
                     href="/register" 
                     className="text-blue-600 font-semibold hover:underline"
                   >
-                    S'inscrire
+                    S&apos;inscrire
                   </Link>
                 </p>
               </div>

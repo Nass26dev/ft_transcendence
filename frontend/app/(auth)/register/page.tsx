@@ -1,17 +1,17 @@
 "use client";
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password1, setPassword1] = useState('');
   const [password2, setPassword2] = useState('');
-  const [error, setError] = useState<Record<string, any> | null>(null);
+  const [error, setError] = useState<Record<string, unknown> | null>(null);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -97,7 +97,7 @@ export default function RegisterPage() {
             type="submit" 
             className="w-full mt-2 p-3 rounded-md bg-blue-600 hover:bg-blue-700 text-white font-medium transition duration-200"
           >
-            S'inscrire
+            S&apos;inscrire
           </button>
         </form>
       )}
