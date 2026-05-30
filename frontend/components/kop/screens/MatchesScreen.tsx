@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CompactRow } from "@/components/kop/match/CompactRow";
+import { CompactRow } from "@/components/match/CompactRow";
 import { MATCHES } from "@/data/kop-data";
 import type { MatchHandlers } from "@/utils/types";
 

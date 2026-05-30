@@ -2,8 +2,8 @@
 
 import React from "react";
 import { Tag } from "@/components/ui/Tag";
-import { LiveTile } from "@/components/kop/match/LiveTile";
-import { CompactRow } from "@/components/kop/match/CompactRow";
+import { LiveTile } from "@/components/match/LiveTile";
+import { CompactRow } from "@/components/match/CompactRow";
 import { LIVE, MATCHES } from "@/data/kop-data";
 import type { MatchHandlers } from "@/utils/types";
 

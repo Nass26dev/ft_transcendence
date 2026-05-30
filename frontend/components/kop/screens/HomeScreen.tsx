@@ -4,8 +4,8 @@ import React, { useEffect, useState } from "react";
 import { Icon } from "@/components/ui/Icon";
 import { Tag } from "@/components/ui/Tag";
 import { Kops } from "@/components/ui/Kops";
-import { MatchCard } from "@/components/kop/match/MatchCard";
-import { LiveTile } from "@/components/kop/match/LiveTile";
+import { MatchCard } from "@/components/match/MatchCard";
+import { LiveTile } from "@/components/match/LiveTile";
 import api from '@/utils/api';
 import {
   TRENDING,

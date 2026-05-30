@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { TicketCard } from "@/components/kop/match/TicketCard";
+import { TicketCard } from "@/components/betting/TicketCard";
 import { MY_BETS } from "@/data/kop-data";
 import type { BetStatus } from "@/utils/types";
 import { StatCard } from "@/components/ui/StatCard";

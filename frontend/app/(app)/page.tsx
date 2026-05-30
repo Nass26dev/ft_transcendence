@@ -3,8 +3,8 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 
-import { BetSlip } from "@/components/kop/Slip";
-import { Onboarding } from "@/components/kop/Onboarding";
+import { BetSlip } from "@/components/betting/BetSlip";
+import { Onboarding } from "@/components/betting/Onboarding";
 import { HomeScreen } from "@/components/kop/screens/HomeScreen";
 
 import { TEAMS } from "@/data/kop-data";
