@@ -141,6 +141,21 @@ export interface Trending {
   odd: number;
 }
 
+export interface LeagueCardData {
+  n: string;
+  d: number;
+  w: string;
+  emoji: string;
+  mine?: boolean;
+}
+
+export interface PublicLeague {
+  n: string;
+  members: number;
+  emoji: string;
+  desc: string;
+}
+
 // ---------- UI ----------
 
 export type TagKind = "default" | "live" | "soon" | "green";

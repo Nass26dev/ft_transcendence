@@ -8,6 +8,8 @@ import type {
   Challenge,
   SeasonChallenge,
   Trending,
+  LeagueCardData,
+  PublicLeague,
 } from "@/utils/types";
 
 export const TEAMS: Record<string, Team> = {
@@ -170,4 +172,19 @@ export const SEASON_CHALLENGES: SeasonChallenge[] = [
     total: 4,
     reward: 25000,
   },
+];
+
+export const MY_LEAGUES: LeagueCardData[] = [
+  { n: "Les Kopistes du Mardi", d: 12, w: "S 23", emoji: "🍻", mine: true },
+  { n: "Bureau FC", d: 8, w: "S 18", emoji: "💼" },
+  { n: "Famille Benkiri", d: 7, w: "S 9", emoji: "👨‍👩‍👧" },
+];
+
+export const TOP_LEAGUES: PublicLeague[] = [
+  { n: "Ligue 1 Nation", members: 8420, emoji: "🇫🇷", desc: "La plus grande ligue francophone" },
+  { n: "C1 Predictors", members: 5210, emoji: "⭐", desc: "Spé Champions League" },
+  { n: "Premier League FR", members: 3840, emoji: "🇬🇧", desc: "Pour les fans de la PL" },
+  { n: "Le Classique Club", members: 2150, emoji: "🔥", desc: "PSG vs OM, rien d'autre" },
+  { n: "Tipsters Pro", members: 1890, emoji: "🎯", desc: "Réservée aux gros win rate" },
+  { n: "Lyon Bets", members: 1240, emoji: "🦁", desc: "Communauté lyonnaise" },
 ];
