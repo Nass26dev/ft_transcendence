@@ -9,6 +9,7 @@ from sports.scraper.footlive import parse_matches_page
 from sports.scraper.upsert import upsert_matches
 from sports.models import Match
 from sports.services.odds import compute_odds_for_queryset
+from sports.services.settle import settle_finished_matches
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
@@ -47,7 +48,14 @@ def scrape_live() -> dict:
     today = date.today()
     qs = Match.objects.filter(kickoff_at__date=today)
     n = compute_odds_for_queryset(qs)
-    return {"total_created": created, "total_updated": updated, "odds_computed": n}
+    # règle les paris des matchs qui viennent de se terminer
+    settled = settle_finished_matches()
+    return {
+        "total_created": created,
+        "total_updated": updated,
+        "odds_computed": n,
+        "bets_settled": settled,
+    }
 
 
 @shared_task(name="sports.scrape_upcoming")
@@ -60,6 +68,12 @@ def scrape_upcoming() -> dict:
     )
     summary["odds_computed"] = compute_odds_for_queryset(qs)
     return summary
+
+
+@shared_task(name="sports.settle_bets")
+def settle_bets() -> dict:
+    """Règle les paris des matchs terminés/annulés (déclenchable seul)."""
+    return {"bets_settled": settle_finished_matches()}
 
 
 # Lancer uniquement une fois au demarrage : python manage.py shell -c "from sports.tasks import scrape_history; scrape_history.delay()"

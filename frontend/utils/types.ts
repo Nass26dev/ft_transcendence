@@ -34,7 +34,10 @@ export interface Match {
   status?: "soon" | "live" | "done";
 
   odds: Record<OddKey, number>;
+  /** Répartition des paris des Kopistes (% sur 1/X/2), renvoyée par l'API. */
   conf?: Record<OddKey, number>;
+  /** Nombre total de paris pris sur ce match (pour l'état "0 pari"). */
+  bets_total?: number;
   trend?: Partial<Record<OddKey, Trend>>;
 
   // Live only
@@ -141,6 +144,19 @@ export interface Trending {
   odd: number;
 }
 
+/** Pari "tendance" renvoyé par GET /api/betting/trending/. */
+export interface TrendingBet {
+  match_id: number;
+  label: string;
+  selection: "home" | "draw" | "away";
+  count: number;
+  share: number;
+  odd: number;
+  home_team: string;
+  away_team: string;
+  window: "1h" | "24h" | "all";
+}
+
 export interface CompetitionStat {
   lg: string;
   flag: string;
@@ -154,6 +170,30 @@ export interface Badge {
   n: string;
   d: string;
   locked?: boolean;
+}
+
+/** Défi renvoyé par GET /api/challenges/. */
+export interface ApiChallenge {
+  code: string;
+  kind: "daily" | "season";
+  icon: string;
+  title: string;
+  description: string;
+  reward: number;
+  progress: number;
+  target: number;
+  completed: boolean;
+  claimed: boolean;
+}
+
+/** Badge renvoyé par GET /api/badges/. */
+export interface ApiBadge {
+  code: string;
+  emoji: string;
+  name: string;
+  description: string;
+  unlocked: boolean;
+  unlocked_at: string | null;
 }
 
 export interface LeagueCardData {

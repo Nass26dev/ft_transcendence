@@ -1,34 +1,44 @@
 import React from "react";
 import { StatCard } from "@/components/ui/StatCard";
+import type { Bet } from "@/utils/types";
 
-export function TicketsStats() {
+export function TicketsStats({ bets }: { bets: Bet[] }) {
+  const pending = bets.filter((b) => b.status === "pending");
+  const settled = bets.filter((b) => b.status !== "pending");
+  const won = bets.filter((b) => b.status === "won");
+
+  const inPlay = pending.reduce((s, b) => s + b.stake, 0);
+  const potential = pending.reduce((s, b) => s + b.payout, 0);
+  const winRate = settled.length
+    ? Math.round((won.length / settled.length) * 100)
+    : 0;
+
   return (
     <div className="mb-6 grid grid-cols-4 gap-3.5">
       <StatCard
         label="Tickets en cours"
-        value="1"
-        delta="200 K en jeu"
+        value={String(pending.length)}
+        delta={`${inPlay.toLocaleString("fr-FR")} K en jeu`}
         deltaKind="muted"
       />
       <StatCard
         label="Gain potentiel"
-        value="1 620"
+        value={potential.toLocaleString("fr-FR")}
         valueKind="green"
-        delta="×8.10 cote"
-        deltaKind="up"
+        delta="sur paris en cours"
+        deltaKind="muted"
       />
       <StatCard
         label="Win rate"
-        value="54 %"
-        delta="+3 % cette sem."
-        deltaKind="up"
+        value={`${winRate} %`}
+        delta={`${settled.length} paris réglés`}
+        deltaKind="muted"
       />
       <StatCard
-        label="ROI"
-        value="+12.4 %"
-        valueKind="green"
-        delta="+850 K ce mois"
-        deltaKind="up"
+        label="Paris totaux"
+        value={String(bets.length)}
+        delta={`${won.length} gagnés`}
+        deltaKind="muted"
       />
     </div>
   );

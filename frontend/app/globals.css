@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
-/* @import url('https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap'); */
+/* Polices chargées via next/font (app/layout.tsx) :
+   Inter Tight (UI) · Archivo (titres, sport) · JetBrains Mono (cotes). */
 
 :root {
   /* Surfaces */
@@ -27,10 +28,10 @@
   --yellow: #FFD60A;
   --blue: #4A8DFF;
 
-  /* Fonts */
-  --font-ui: 'Inter Tight', -apple-system, system-ui, sans-serif;
-  --font-display: 'Space Grotesk', 'Inter Tight', sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
+  /* Fonts (chargées via next/font, cf. app/layout.tsx) */
+  --font-ui: var(--font-inter-tight), -apple-system, system-ui, sans-serif;
+  --font-display: var(--font-archivo), var(--font-inter-tight), sans-serif;
+  --font-mono: var(--font-jetbrains-mono), monospace;
 }
 
 @theme inline {

@@ -2,7 +2,8 @@
 
 import React from "react";
 import { Kops } from "@/components/ui/Kops";
-import { CHALLENGES, LEAGUE_BOARD } from "@/data/kop-data";
+import { LEAGUE_BOARD } from "@/data/kop-data";
+import { useChallenges } from "@/hooks/useChallenges";
 import { GhostBtn } from "./GhostBtn";
 import { RailFriendsFeed } from "./RailFriendsFeed";
 
@@ -12,6 +13,7 @@ interface HomeRailProps {
 }
 
 export function HomeRail({ friendsOn, onNav }: HomeRailProps) {
+  const { daily } = useChallenges();
   return (
     <aside className="flex w-[320px] flex-none flex-col gap-[18px]">
       <div className="rounded-[10px] border border-border bg-surface-1 p-4">
@@ -20,25 +22,32 @@ export function HomeRail({ friendsOn, onNav }: HomeRailProps) {
           <GhostBtn onClick={() => onNav?.("challenges")}>Voir tout</GhostBtn>
         </div>
         <div className="flex flex-col gap-2.5">
-          {CHALLENGES.slice(0, 2).map((c) => (
-            <div key={c.id} className="rounded-lg bg-surface-2 p-3">
-              <div className="mb-1.5 flex justify-between">
-                <span className="text-[13px] font-semibold">
-                  {c.icon} {c.ttl}
-                </span>
-                <Kops amount={c.reward} size={12} color="var(--green)" />
-              </div>
-              <div className="h-1 overflow-hidden rounded-[2px] bg-surface-3">
-                <div
-                  className="h-full rounded-[2px] bg-green"
-                  style={{ width: `${(c.progress / c.total) * 100}%` }}
-                />
-              </div>
-              <div className="mt-1.5 text-[11px] text-text-3">
-                {c.progress} / {c.total}
-              </div>
+          {daily.length === 0 ? (
+            <div className="rounded-lg bg-surface-2 p-3 text-[12px] text-text-3">
+              Connecte-toi pour voir tes défis du jour.
             </div>
-          ))}
+          ) : (
+            daily.slice(0, 2).map((c) => (
+              <div key={c.code} className="rounded-lg bg-surface-2 p-3">
+                <div className="mb-1.5 flex justify-between">
+                  <span className="text-[13px] font-semibold">
+                    {c.icon} {c.title}
+                  </span>
+                  <Kops amount={c.reward} size={12} color="var(--green)" />
+                </div>
+                <div className="h-1 overflow-hidden rounded-[2px] bg-surface-3">
+                  <div
+                    className="h-full rounded-[2px] bg-green"
+                    style={{ width: `${Math.min(100, (c.progress / c.target) * 100)}%` }}
+                  />
+                </div>
+                <div className="mt-1.5 text-[11px] text-text-3">
+                  {c.progress} / {c.target}
+                  {c.claimed && <span className="ml-2 text-green">· récupéré ✓</span>}
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </div>
 

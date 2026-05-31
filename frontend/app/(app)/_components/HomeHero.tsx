@@ -3,14 +3,28 @@
 import React from "react";
 import { Icon } from "@/components/ui/Icon";
 import { Tag } from "@/components/ui/Tag";
-import { TRENDING } from "@/data/kop-data";
+import { useTrending } from "@/hooks/useTrending";
+import type { TrendingBet } from "@/utils/types";
 
 interface HomeHeroProps {
   onOpen: (id: string) => void;
   onNav?: (route: string) => void;
 }
 
+/** Libellé de volume selon la fenêtre réellement utilisée par l'API. */
+function volLabel(t: TrendingBet): string {
+  const w =
+    t.window === "1h"
+      ? "dernière heure"
+      : t.window === "24h"
+        ? "24 dernières h"
+        : "au total";
+  return `${t.share}% des Kopistes · ${w}`;
+}
+
 export function HomeHero({ onOpen, onNav }: HomeHeroProps) {
+  const { trending } = useTrending();
+
   return (
     <div className="relative mb-7 overflow-hidden rounded-[14px] border border-border bg-gradient-to-br from-[#1A0606] to-bg px-9 py-8">
       <div className="pointer-events-none absolute -right-20 -top-20 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,var(--kop)_0%,transparent_70%)] opacity-[0.18]" />
@@ -49,21 +63,28 @@ export function HomeHero({ onOpen, onNav }: HomeHeroProps) {
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
             Tendances Kop
           </div>
-          {TRENDING.map((t, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-3 rounded-lg border border-border bg-black/35 px-3 py-2.5"
-            >
-              <Icon name="fire" size={16} stroke={1.8} />
-              <div className="min-w-0 flex-1">
-                <div className="truncate text-[13px] font-semibold">{t.tag}</div>
-                <div className="text-[11px] text-text-3">{t.vol}</div>
-              </div>
-              <span className="font-mono tnum font-bold text-green">
-                {t.odd.toFixed(2)}
-              </span>
+          {trending.length === 0 ? (
+            <div className="rounded-lg border border-border bg-black/35 px-3 py-2.5 text-[12px] text-text-3">
+              Pas encore de tendance — lance le premier pari.
             </div>
-          ))}
+          ) : (
+            trending.map((t) => (
+              <button
+                key={`${t.match_id}-${t.selection}`}
+                onClick={() => onOpen(String(t.match_id))}
+                className="flex items-center gap-3 rounded-lg border border-border bg-black/35 px-3 py-2.5 text-left transition-colors hover:border-border-strong hover:bg-black/50"
+              >
+                <Icon name="fire" size={16} stroke={1.8} />
+                <div className="min-w-0 flex-1">
+                  <div className="truncate text-[13px] font-semibold">{t.label}</div>
+                  <div className="text-[11px] text-text-3">{volLabel(t)}</div>
+                </div>
+                <span className="font-mono tnum font-bold text-green">
+                  {t.odd.toFixed(2)}
+                </span>
+              </button>
+            ))
+          )}
         </div>
       </div>
     </div>

@@ -55,26 +55,30 @@ class LoginStep2View(APIView):
             refresh = RefreshToken.for_user(user)
             cache.delete(f"otp_{user_id}")
             
-            is_production = True  
-            
+            from django.conf import settings
+            # En dev (DEBUG=True, http://localhost), un cookie Secure n'est pas
+            # renvoyé par le navigateur -> le refresh_token serait perdu. On
+            # n'active Secure qu'en prod (HTTPS).
+            secure_cookies = not settings.DEBUG
+
             response = Response({
                 "user": UserSerializer(user).data
             }, status=200)
-            
+
             response.set_cookie(
                 key="access_token",
                 value=str(refresh.access_token),
                 httponly=True,
-                secure=is_production,
-                samesite="Strict",
+                secure=secure_cookies,
+                samesite="Lax",
                 max_age=60 * 5,
             )
             response.set_cookie(
                 key="refresh_token",
                 value=str(refresh),
                 httponly=True,
-                secure=is_production,
-                samesite="Strict",
+                secure=secure_cookies,
+                samesite="Lax",
                 max_age=60 * 60 * 24 * 7,
             )
             
@@ -88,6 +92,42 @@ class ProfileView(APIView):
     def get(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+
+
+DAILY_BONUS_AMOUNT = 500
+
+
+class DailyBonusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from django.db import transaction
+        from django.utils import timezone
+
+        today = timezone.localdate()
+        with transaction.atomic():
+            user = User.objects.select_for_update().get(pk=request.user.pk)
+            if user.last_daily_bonus == today:
+                return Response(
+                    {"detail": "Bonus déjà récupéré aujourd'hui."},
+                    status=400,
+                )
+            user.wallet += DAILY_BONUS_AMOUNT
+            user.last_daily_bonus = today
+            user.save(update_fields=["wallet", "last_daily_bonus"])
+
+        return Response(UserSerializer(user).data, status=200)
+
+class OnboardingCompleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if not user.onboarding_completed:
+            user.onboarding_completed = True
+            user.save(update_fields=["onboarding_completed"])
+        return Response(UserSerializer(user).data, status=200)
+
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()

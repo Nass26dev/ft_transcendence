@@ -1,27 +1,46 @@
+"use client";
+
 import React from "react";
 import { Tag } from "@/components/ui/Tag";
+import { useProfile } from "@/app/(app)/_components/ProfileProvider";
+import { userInitials, displayName } from "@/utils/user";
 
 export function ProfileHero() {
+  const { profile } = useProfile();
+
+  if (!profile) {
+    return (
+      <div className="mb-6 h-[140px] rounded-[10px] border border-border bg-surface-1" />
+    );
+  }
+
+  const memberSince = profile.date_joined
+    ? new Date(profile.date_joined).toLocaleDateString("fr-FR", {
+        month: "long",
+        year: "numeric",
+      })
+    : null;
+
   return (
     <div className="mb-6 rounded-[10px] border border-border bg-gradient-to-br from-[#1A0808] to-surface-1 p-7">
       <div className="flex items-center gap-5">
         {/* Avatar */}
         <div className="grid h-20 w-20 flex-none place-items-center rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#C9184A] text-[28px] font-bold">
-          YO
+          {userInitials(profile)}
         </div>
 
         {/* Identity */}
         <div className="min-w-0 flex-1">
           <h1 className="font-display text-[32px] font-bold tracking-[-0.02em]">
-            Yohann Lefèvre
+            {displayName(profile)}
           </h1>
           <div className="mt-1 text-[13px] text-text-3">
-            @you · Membre depuis sept. 2025
+            @{profile.username || profile.email.split("@")[0]}
+            {memberSince && <> · Membre depuis {memberSince}</>}
           </div>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Tag kind="green">Niveau 12 · Pronostiqueur</Tag>
-            <Tag>Lyon, FR</Tag>
-            <Tag>3 ligues</Tag>
+            <Tag kind="green">Pronostiqueur</Tag>
+            <Tag>{profile.email}</Tag>
           </div>
         </div>
 
@@ -31,7 +50,7 @@ export function ProfileHero() {
             Solde
           </div>
           <div className="font-display tnum text-4xl font-bold text-kop-bright">
-            52 300
+            {profile.wallet.toLocaleString("fr-FR")}
           </div>
           <div className="text-xs text-text-3">Kops</div>
         </div>

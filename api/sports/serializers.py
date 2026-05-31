@@ -8,13 +8,15 @@ class MatchListSerializer(serializers.ModelSerializer):
     home_team = serializers.StringRelatedField()
     away_team = serializers.StringRelatedField()
     odds = serializers.SerializerMethodField()
+    conf = serializers.SerializerMethodField()
+    bets_total = serializers.SerializerMethodField()
 
     class Meta:
         model = Match
         fields = [
             "id", "competition", "home_team", "away_team",
             "kickoff_at", "status", "home_score", "away_score",
-            "current_minute", "odds",
+            "current_minute", "odds", "conf", "bets_total",
         ]
 
     def get_odds(self, obj):
@@ -24,6 +26,31 @@ class MatchListSerializer(serializers.ModelSerializer):
             if o.market == "1N2" and o.selection in mapping:
                 result[mapping[o.selection]] = float(o.value)
         return result
+
+    def _bet_counts(self, obj):
+        # Valeurs annotées par MatchViewSet.get_queryset() ; 0 si non annoté.
+        return (
+            getattr(obj, "bets_home", 0) or 0,
+            getattr(obj, "bets_draw", 0) or 0,
+            getattr(obj, "bets_away", 0) or 0,
+        )
+
+    def get_bets_total(self, obj):
+        return sum(self._bet_counts(obj))
+
+    def get_conf(self, obj):
+        h, d, a = self._bet_counts(obj)
+        total = h + d + a
+        if total == 0:
+            return {"1": 0, "X": 0, "2": 0}
+        # Pourcentages entiers sommant 100 (méthode du plus grand reste).
+        raw = {"1": h / total * 100, "X": d / total * 100, "2": a / total * 100}
+        floored = {k: int(v) for k, v in raw.items()}
+        remainder = 100 - sum(floored.values())
+        order = sorted(raw, key=lambda k: raw[k] - floored[k], reverse=True)
+        for k in order[:remainder]:
+            floored[k] += 1
+        return floored
 
 class OddsSerializer(serializers.ModelSerializer):
     class Meta:
