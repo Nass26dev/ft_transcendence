@@ -13,6 +13,9 @@ export function useBetSlip() {
   const [toast, setToast] = useState<Toast | null>(null);
 
   const handlePick = (match: Match, k: string, customLabel?: string) => {
+    const odd = match.odds?.[k as "1" | "X" | "2"];
+    if (typeof odd !== "number") return; // cote indisponible : pas de pick
+
     setPicks((prev) => {
       const existing = prev.find((p) => p.matchId === match.id);
       const id = `${match.id}-${k}`;
@@ -22,15 +25,17 @@ export function useBetSlip() {
       }
 
       const filtered = prev.filter((p) => p.matchId !== match.id);
+      const home = match.home_team ?? TEAMS[match.home]?.sh ?? match.home;
+      const away = match.away_team ?? TEAMS[match.away]?.sh ?? match.away;
       return [
         ...filtered,
         {
           id,
           matchId: match.id,
           k,
-          game: `${TEAMS[match.home].sh} vs ${TEAMS[match.away].sh}`,
+          game: `${home} vs ${away}`,
           label: customLabel || labelFor(k, match),
-          odd: match.odds[k as "1" | "X" | "2"],
+          odd,
         },
       ];
     });
