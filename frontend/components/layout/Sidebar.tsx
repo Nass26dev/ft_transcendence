@@ -35,19 +35,25 @@ function buildItems(liveCount: number): NavItem[] {
   ];
 }
 
-/** Construit la nav sociale (le badge "Mes paris" reflète le nombre de paris en cours). */
-function buildSocial(pendingBetsCount: number): NavItem[] {
+/** Construit la nav sociale. Les entrées personnelles (Mes paris, Amis) ne
+ *  sont affichées qu'aux utilisateurs connectés. */
+function buildSocial(pendingBetsCount: number, isAuthenticated: boolean): NavItem[] {
+  const personal: NavItem[] = isAuthenticated
+    ? [
+        {
+          href: "/tickets",
+          label: "Mes paris",
+          icon: "ticket",
+          badge: pendingBetsCount > 0 ? String(pendingBetsCount) : undefined,
+        },
+        { href: "/friends", label: "Amis", icon: "user" },
+      ]
+    : [];
   return [
-    {
-      href: "/tickets",
-      label: "Mes paris",
-      icon: "ticket",
-      badge: pendingBetsCount > 0 ? String(pendingBetsCount) : undefined,
-    },
-    { href: "/friends", label: "Amis", icon: "user" },
+    ...personal,
     { href: "/leagues", label: "Ligues", icon: "league" },
     { href: "/leaderboard", label: "Classement", icon: "trophy" },
-    { href: "/challenges", label: "Défis", icon: "flame", badgeMuted: "3" },
+    { href: "/challenges", label: "Défis", icon: "flame" },
   ];
 }
 
@@ -99,7 +105,7 @@ function NavItemRow({ it }: { it: NavItem }) {
 // ---------- Component ----------
 
 export function Sidebar() {
-  const { profile, claimDailyBonus } = useProfile();
+  const { profile, isAuthenticated, claimDailyBonus } = useProfile();
   const available = profile?.daily_bonus_available ?? false;
 
   const { live } = useHomeMatches();
@@ -109,7 +115,7 @@ export function Sidebar() {
   const pendingBetsCount = bets.filter((b) => b.status === "pending").length;
 
   const items = buildItems(liveCount);
-  const social = buildSocial(pendingBetsCount);
+  const social = buildSocial(pendingBetsCount, isAuthenticated);
 
   return (
     <aside className="sticky top-0 flex h-screen w-[232px] flex-col gap-7 border-r border-border bg-bg px-4 py-5">
@@ -136,13 +142,15 @@ export function Sidebar() {
         ))}
       </div>
 
-      {/* Compte */}
-      <div className="flex flex-col gap-0.5">
-        <NavSectionTitle>Compte</NavSectionTitle>
-        {ME.map((it) => (
-          <NavItemRow key={it.href} it={it} />
-        ))}
-      </div>
+      {/* Compte — réservé aux utilisateurs connectés */}
+      {isAuthenticated && (
+        <div className="flex flex-col gap-0.5">
+          <NavSectionTitle>Compte</NavSectionTitle>
+          {ME.map((it) => (
+            <NavItemRow key={it.href} it={it} />
+          ))}
+        </div>
+      )}
 
       {/* Bonus card — masquée une fois le bonus récupéré */}
       {available && (

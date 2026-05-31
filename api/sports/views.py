@@ -50,8 +50,11 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         return Response(serializer.data)
 
     def live(self, request):
-        today = date.today()
-        qs = self.get_queryset().filter(status="live", kickoff_at__date=today)
+        # Matchs réellement en cours : status=live démarré dans les dernières
+        # heures. Couvre les matchs à cheval sur minuit et écarte les "live"
+        # fantômes restés bloqués (kickoff vieux de plusieurs jours/mois).
+        cutoff = timezone.now() - timedelta(hours=4)
+        qs = self.get_queryset().filter(status="live", kickoff_at__gte=cutoff)
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 

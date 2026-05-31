@@ -41,7 +41,12 @@ services:
   celery_worker:
     build: ./api
     container_name: t_celery_w
-    command: celery -A core worker -l info
+    # Attend que le backend ait appliqué les migrations (base fraîche après
+    # down -v) avant de consommer des tâches qui touchent la base.
+    command: >
+      sh -c "until python3 manage.py migrate --check >/dev/null 2>&1; do echo 'worker: attente des migrations...'; sleep 2; done &&
+             celery -A core worker -l info"
+    restart: on-failure
     volumes:
       - ./api:/app
     depends_on:
@@ -54,7 +59,12 @@ services:
   celery_beat:
     build: ./api
     container_name: t_celery_b
-    command: celery -A core beat -l info
+    # Idem : sans cette attente, le beat lit ses tables django_celery_beat
+    # avant leur création (migrate) et crashe -> aucune tâche périodique.
+    command: >
+      sh -c "until python3 manage.py migrate --check >/dev/null 2>&1; do echo 'beat: attente des migrations...'; sleep 2; done &&
+             celery -A core beat -l info"
+    restart: on-failure
     volumes:
       - ./api:/app
     depends_on:
