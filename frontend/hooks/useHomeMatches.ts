@@ -19,7 +19,11 @@ export function useHomeMatches() {
         ]);
 
         setLive(liveRes.data);
-        setUpcoming(filterByMajorCompetitions(upcomingRes.data));
+        // On privilégie les grands championnats, mais hors saison (aucun match
+        // majeur à venir) on retombe sur les autres matchs pour ne pas avoir
+        // une home vide.
+        const major = filterByMajorCompetitions(upcomingRes.data);
+        setUpcoming(major.length > 0 ? major : upcomingRes.data);
       } catch (err) {
         console.error("Erreur chargement matchs:", err);
       }

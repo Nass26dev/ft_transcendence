@@ -26,7 +26,7 @@ export function useBetSlipHandlers(): MatchHandlers {
 
 export function BetSlipProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { profile, refreshProfile } = useProfile();
+  const { profile, isAuthenticated, ready, refreshProfile } = useProfile();
   const balance = profile?.wallet ?? 0;
   const {
     picks,
@@ -41,7 +41,15 @@ export function BetSlipProvider({ children }: { children: React.ReactNode }) {
   } = useBetSlip(refreshProfile);
 
   const handlers: MatchHandlers = {
-    onPick: handlePick,
+    // Parier nécessite d'être connecté : un visiteur qui clique une cote est
+    // redirigé vers la connexion plutôt que d'ajouter un pari inutilisable.
+    onPick: (match, k) => {
+      if (ready && !isAuthenticated) {
+        router.push("/login");
+        return;
+      }
+      handlePick(match, k);
+    },
     isPicked,
     onOpen: (id: string) => router.push(`/matches/${id}`),
   };

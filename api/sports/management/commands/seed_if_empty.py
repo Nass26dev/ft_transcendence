@@ -19,10 +19,12 @@ class Command(BaseCommand):
         from sports.tasks import scrape_history, scrape_upcoming
 
         try:
-            # .delay() pousse simplement le message dans Redis ; le celery_worker
-            # traite le scraping en arrière-plan (scrape_history est long, ~6 min).
-            scrape_history.delay()
+            # .delay() pousse les messages dans Redis ; le celery_worker traite
+            # en arrière-plan. On enfile d'abord scrape_upcoming (rapide, ~20s :
+            # c'est le contenu principal de l'app), puis scrape_history (long,
+            # ~6 min) — ainsi les matchs à venir apparaissent vite.
             scrape_upcoming.delay()
+            scrape_history.delay()
         except Exception as exc:  # broker indisponible : on ne casse pas le boot
             self.stderr.write(
                 self.style.WARNING(
