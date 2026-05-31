@@ -8,6 +8,9 @@ export interface Profile {
   id: number;
   username: string;
   email: string;
+  first_name?: string;
+  last_name?: string;
+  date_joined?: string;
   wallet: number;
   daily_bonus_available: boolean;
   onboarding_completed: boolean;

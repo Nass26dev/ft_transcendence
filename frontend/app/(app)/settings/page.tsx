@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { useProfile } from "../_components/ProfileProvider";
+import { userInitials } from "@/utils/user";
 
 // ---------- Préférence persistée (localStorage) ----------
 
@@ -129,7 +130,7 @@ export default function SettingsPage() {
     );
   }
 
-  const initials = (profile?.username ?? "K").slice(0, 2).toUpperCase();
+  const initials = profile ? userInitials(profile) : "K";
 
   return (
     <div className="max-w-[760px] px-8 pb-15 pt-7">

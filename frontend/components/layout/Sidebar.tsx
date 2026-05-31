@@ -44,6 +44,7 @@ function buildSocial(pendingBetsCount: number): NavItem[] {
       icon: "ticket",
       badge: pendingBetsCount > 0 ? String(pendingBetsCount) : undefined,
     },
+    { href: "/friends", label: "Amis", icon: "user" },
     { href: "/leagues", label: "Ligues", icon: "league" },
     { href: "/leaderboard", label: "Classement", icon: "trophy" },
     { href: "/challenges", label: "Défis", icon: "flame", badgeMuted: "3" },

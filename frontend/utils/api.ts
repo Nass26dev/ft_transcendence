@@ -36,15 +36,9 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        // Tente de rafraîchir le token (utilisateur connecté, access expiré).
         await refreshToken();
         return api(originalRequest);
       } catch {
-        // Refresh impossible (refresh_token absent/expiré) : session morte.
-        // On signale l'expiration pour que l'app purge les cookies périmés et
-        // repasse proprement en mode invité, sans boucler sur des 401.
-        // Pas de redirection forcée -> un visiteur anonyme reste libre de
-        // consulter les cotes/matchs publics.
         if (typeof window !== 'undefined') {
           window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT));
         }

@@ -4,6 +4,8 @@ import React from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
+import { userInitials } from "@/utils/user";
+import { TopbarSearch } from "./TopbarSearch";
 
 export function Topbar() {
   const { profile, isAuthenticated, ready } = useProfile();
@@ -12,16 +14,7 @@ export function Topbar() {
   return (
     <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-border bg-bg px-8 py-3.5">
       {/* Search */}
-      <div className="flex max-w-[420px] flex-1 items-center gap-2.5 rounded-[10px] border border-border bg-surface-1 px-3 py-2.5">
-        <Icon name="search" size={16} stroke={1.8} />
-        <input
-          placeholder="Rechercher un match, un joueur, une ligue…"
-          className="flex-1 border-none bg-transparent text-[13.5px] outline-none placeholder:text-text-3"
-        />
-        <span className="rounded border border-border-strong px-1.5 py-0.5 font-mono text-[11px] text-text-3">
-          ⌘K
-        </span>
-      </div>
+      <TopbarSearch />
 
       <div className="flex-1" />
 
@@ -63,9 +56,10 @@ export function Topbar() {
           {/* Avatar */}
           <Link
             href="/profile"
+            title={profile ? `@${profile.username || profile.email}` : "Profil"}
             className="grid h-9 w-9 cursor-pointer place-items-center rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#C9184A] text-[13px] font-bold"
           >
-            YO
+            {profile ? userInitials(profile) : "?"}
           </Link>
         </>
       ) : (

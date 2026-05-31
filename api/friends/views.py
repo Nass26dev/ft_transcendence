@@ -1,13 +1,87 @@
 from django.shortcuts import render
+from django.db.models import Q
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 from .models import Friendship
-from .serializers import FriendshipSerializer
+from .serializers import FriendshipSerializer, UserSummarySerializer
 
 User = get_user_model()
+
+
+def _relationship_map(user):
+    """other_user_id -> (status, friendship_id) pour l'utilisateur courant.
+
+    status ∈ {friends, pending_sent, pending_received}.
+    """
+    rel = {}
+    qs = Friendship.objects.filter(Q(sender=user) | Q(receiver=user))
+    for f in qs:
+        other = f.receiver_id if f.sender_id == user.id else f.sender_id
+        if f.status == "accepted":
+            rel[other] = ("friends", f.id)
+        elif f.status == "pending":
+            rel[other] = (
+                ("pending_sent", f.id) if f.sender_id == user.id
+                else ("pending_received", f.id)
+            )
+    return rel
+
+
+class FriendListView(APIView):
+    """GET /api/friends/ — amis acceptés + demandes reçues/envoyées."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        qs = (
+            Friendship.objects
+            .filter(Q(sender=user) | Q(receiver=user))
+            .select_related("sender", "receiver")
+            .order_by("-created_at")
+        )
+        friends, incoming, outgoing = [], [], []
+        for f in qs:
+            if f.status == "accepted":
+                other = f.receiver if f.sender_id == user.id else f.sender
+                friends.append({"friendship_id": f.id, "user": UserSummarySerializer(other).data})
+            elif f.status == "pending":
+                if f.receiver_id == user.id:
+                    incoming.append({"friendship_id": f.id, "user": UserSummarySerializer(f.sender).data})
+                else:
+                    outgoing.append({"friendship_id": f.id, "user": UserSummarySerializer(f.receiver).data})
+        return Response({"friends": friends, "incoming": incoming, "outgoing": outgoing})
+
+
+class UserSearchView(APIView):
+    """GET /api/friends/search/?q= — cherche des joueurs (hors soi-même) et
+    annote chaque résultat avec le statut de la relation."""
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        q = request.query_params.get("q", "").strip()
+        if len(q) < 2:
+            return Response([])
+
+        users = (
+            User.objects
+            .filter(Q(username__icontains=q) | Q(email__icontains=q))
+            .exclude(id=request.user.id)
+            .order_by("username")[:20]
+        )
+        rel = _relationship_map(request.user)
+        data = []
+        for u in users:
+            rel_status, friendship_id = rel.get(u.id, ("none", None))
+            item = UserSummarySerializer(u).data
+            item["status"] = rel_status
+            item["friendship_id"] = friendship_id
+            data.append(item)
+        return Response(data)
 
 
 class SendFriendRequest(APIView):

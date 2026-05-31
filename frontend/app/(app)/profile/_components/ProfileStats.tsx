@@ -1,33 +1,51 @@
+"use client";
+
 import React from "react";
 import { StatCard } from "@/components/ui/StatCard";
+import { useBets } from "@/hooks/useBets";
 
 export function ProfileStats() {
+  const { bets } = useBets();
+
+  const won = bets.filter((b) => b.status === "won");
+  const lost = bets.filter((b) => b.status === "lost");
+  const settledCount = won.length + lost.length;
+
+  const winRate = settledCount ? Math.round((won.length / settledCount) * 100) : 0;
+  const biggestWin = won.reduce((m, b) => Math.max(m, b.payout), 0);
+
+  // Streak en cours : victoires consécutives parmi les paris réglés (du + récent).
+  let streak = 0;
+  for (const b of bets) {
+    if (b.status === "pending") continue;
+    if (b.status === "won") streak += 1;
+    else break;
+  }
+
   return (
     <div className="mb-6 grid grid-cols-4 gap-3.5">
       <StatCard
         label="Win rate"
-        value="54 %"
-        delta="+3 % cette sem."
-        deltaKind="up"
+        value={`${winRate} %`}
+        delta={`${settledCount} pari${settledCount > 1 ? "s" : ""} réglé${settledCount > 1 ? "s" : ""}`}
       />
       <StatCard
         label="Paris totaux"
-        value="147"
-        delta="22 cette sem."
-        deltaKind="muted"
-      />
-      <StatCard
-        label="Streak actuelle"
-        value="3 V"
-        delta="↑ Continue"
+        value={String(bets.length)}
+        delta={`${won.length} gagné${won.length > 1 ? "s" : ""}`}
         deltaKind="up"
       />
       <StatCard
+        label="Streak actuelle"
+        value={`${streak} V`}
+        delta={streak > 0 ? "↑ En cours" : "—"}
+        deltaKind={streak > 0 ? "up" : "muted"}
+      />
+      <StatCard
         label="Plus gros gain"
-        value="8 420"
+        value={biggestWin ? biggestWin.toLocaleString("fr-FR") : "—"}
         valueKind="green"
-        delta="×16.84 il y a 2 sem."
-        deltaKind="muted"
+        delta="Kops"
       />
     </div>
   );
