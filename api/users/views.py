@@ -89,6 +89,31 @@ class ProfileView(APIView):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
+
+DAILY_BONUS_AMOUNT = 500
+
+
+class DailyBonusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from django.db import transaction
+        from django.utils import timezone
+
+        today = timezone.localdate()
+        with transaction.atomic():
+            user = User.objects.select_for_update().get(pk=request.user.pk)
+            if user.last_daily_bonus == today:
+                return Response(
+                    {"detail": "Bonus déjà récupéré aujourd'hui."},
+                    status=400,
+                )
+            user.wallet += DAILY_BONUS_AMOUNT
+            user.last_daily_bonus = today
+            user.save(update_fields=["wallet", "last_daily_bonus"])
+
+        return Response(UserSerializer(user).data, status=200)
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
 

@@ -3,32 +3,15 @@
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
-import { buildMatchDetail } from "@/utils/matchDetail";
-import type { Match } from "@/utils/types";
+import { useMatchDetail } from "@/hooks/useMatchDetail";
+import { useBetSlipHandlers } from "../../_components/BetSlipProvider";
 import { MatchHero } from "./_components/MatchHero";
-import { MarketsGrid } from "./_components/MarketsGrid";
-import { MatchStats } from "./_components/MatchStats";
-import { FriendsProno } from "./_components/FriendsProno";
 
 export default function MatchDetailPage() {
-  const params = useParams<{ id: string }>();
+  const { id } = useParams<{ id: string }>();
   const router = useRouter();
-
-  const handlePick = (_match: Match, _k: string, _label?: string) => {
-    console.log("pick", _match.id, _k, _label);
-  };
-
-  const isPicked = (_mId: string, _k: string) => false;
-
-  const detail = buildMatchDetail(params.id);
-
-  if (!detail) {
-    return (
-      <div className="max-w-[1480px] px-8 pb-15 pt-7 text-text-3">
-        Match introuvable.
-      </div>
-    );
-  }
+  const { match } = useMatchDetail(id);
+  const handlers = useBetSlipHandlers();
 
   return (
     <div className="max-w-[1480px] px-8 pb-15 pt-7">
@@ -43,16 +26,11 @@ export default function MatchDetailPage() {
         Retour
       </button>
 
-      <MatchHero detail={detail} />
-
-      <div className="flex items-start gap-4">
-        <MarketsGrid detail={detail} onPick={handlePick} isPicked={isPicked} />
-
-        <aside className="flex w-[320px] flex-none flex-col gap-4">
-          <MatchStats />
-          <FriendsProno />
-        </aside>
-      </div>
+      {match ? (
+        <MatchHero match={match} {...handlers} />
+      ) : (
+        <div className="text-sm text-text-3">Chargement du match…</div>
+      )}
     </div>
   );
 }

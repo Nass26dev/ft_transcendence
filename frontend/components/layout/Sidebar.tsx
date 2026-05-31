@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { Kops } from "@/components/ui/Kops";
+import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 
 // ---------- Types ----------
 
@@ -79,6 +80,9 @@ function NavItemRow({ it }: { it: NavItem }) {
 // ---------- Component ----------
 
 export function Sidebar() {
+  const { profile, claimDailyBonus } = useProfile();
+  const available = profile?.daily_bonus_available ?? false;
+
   return (
     <aside className="sticky top-0 flex h-screen w-[232px] flex-col gap-7 border-r border-border bg-bg px-4 py-5">
       {/* Logo */}
@@ -120,8 +124,12 @@ export function Sidebar() {
         <div className="mb-2.5 flex items-center gap-2">
           <Kops amount={500} size={15} color="var(--green)" />
         </div>
-        <button className="w-full rounded-md bg-kop px-3 py-1.5 text-[12.5px] font-semibold text-white transition-all hover:bg-kop-bright hover:-translate-y-px hover:shadow-[0_6px_22px_-8px_var(--kop)]">
-          Récupérer
+        <button
+          onClick={() => claimDailyBonus()}
+          disabled={!available}
+          className="w-full rounded-md bg-kop px-3 py-1.5 text-[12.5px] font-semibold text-white transition-all hover:bg-kop-bright hover:-translate-y-px hover:shadow-[0_6px_22px_-8px_var(--kop)] disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-text-3 disabled:transform-none disabled:shadow-none"
+        >
+          {available ? "Récupérer" : "Déjà récupéré"}
         </button>
       </div>
     </aside>

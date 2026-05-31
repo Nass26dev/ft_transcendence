@@ -32,6 +32,10 @@ class Bet(models.Model):
 
     stake = models.DecimalField(max_digits=10, decimal_places=2)
 
+    # Cote figée au moment du pari (les cotes sont recalculées en continu,
+    # le gain doit utiliser la valeur prise à la création, pas la valeur actuelle).
+    odd_value = models.DecimalField(max_digits=6, decimal_places=2)
+
     status = models.CharField(
         max_length=20,
         choices=STATUS,
@@ -40,10 +44,6 @@ class Bet(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     settled_at = models.DateTimeField(null=True, blank=True)
-
-    def save(self, *args, **kwargs):
-        self.potential_win = self.stake
-        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.user} — {self.match}"

@@ -17,12 +17,14 @@ api.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        console.log('refresh')
+        // Tente de rafraîchir le token (utilisateur connecté, access expiré).
         await axios.post('/api/refresh-token', {}, { withCredentials: true });
         return api(originalRequest);
-      } catch (refreshError) {
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
+      } catch {
+        // Refresh impossible : on laisse l'appelant gérer le 401.
+        // Pas de redirection forcée -> un visiteur anonyme peut consulter
+        // les cotes/matchs publics sans être éjecté vers /login.
+        return Promise.reject(error);
       }
     }
 

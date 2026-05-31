@@ -9,7 +9,9 @@ class BetViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Bet.objects.filter(user=self.request.user)
-
-    def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        return (
+            Bet.objects
+            .filter(user=self.request.user)
+            .select_related("match__home_team", "match__away_team", "odd")
+            .order_by("-created_at")
+        )
