@@ -5,6 +5,7 @@ from .views import (
     ProfileView,
     RegisterView,
     DailyBonusView,
+    OnboardingCompleteView,
 )
 
 urlpatterns = [
@@ -13,4 +14,5 @@ urlpatterns = [
     path('login/verify/', LoginStep2View.as_view(), name='login-step2'),
     path('profile/', ProfileView.as_view(), name='profile'),
     path('daily-bonus/', DailyBonusView.as_view(), name='daily-bonus'),
+    path('onboarding/complete/', OnboardingCompleteView.as_view(), name='onboarding-complete'),
 ]

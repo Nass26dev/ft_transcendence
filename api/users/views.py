@@ -114,6 +114,17 @@ class DailyBonusView(APIView):
 
         return Response(UserSerializer(user).data, status=200)
 
+class OnboardingCompleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if not user.onboarding_completed:
+            user.onboarding_completed = True
+            user.save(update_fields=["onboarding_completed"])
+        return Response(UserSerializer(user).data, status=200)
+
+
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
 

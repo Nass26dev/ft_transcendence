@@ -10,6 +10,7 @@ export interface Profile {
   email: string;
   wallet: number;
   daily_bonus_available: boolean;
+  onboarding_completed: boolean;
 }
 
 interface ProfileContextValue {
@@ -22,6 +23,8 @@ interface ProfileContextValue {
   refreshProfile: () => Promise<void>;
   /** Récupère le bonus quotidien. Renvoie true si crédité. */
   claimDailyBonus: () => Promise<boolean>;
+  /** Marque l'onboarding comme terminé (flag backend, ne se réaffiche plus). */
+  completeOnboarding: () => Promise<void>;
 }
 
 const ProfileContext = React.createContext<ProfileContextValue | null>(null);
@@ -74,6 +77,19 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const completeOnboarding = React.useCallback(async (): Promise<void> => {
+    // Optimiste : on masque l'onboarding tout de suite, puis on persiste le flag.
+    setProfile((prev) =>
+      prev ? { ...prev, onboarding_completed: true } : prev,
+    );
+    try {
+      const res = await api.post("/api/onboarding/complete/");
+      setProfile(normalize(res.data));
+    } catch (err) {
+      console.error("Erreur fin onboarding:", err);
+    }
+  }, []);
+
   return (
     <ProfileContext.Provider
       value={{
@@ -82,6 +98,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         ready,
         refreshProfile,
         claimDailyBonus,
+        completeOnboarding,
       }}
     >
       {children}

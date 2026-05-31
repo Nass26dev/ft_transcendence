@@ -46,6 +46,7 @@ class UserSerializer(serializers.ModelSerializer):
             'avatar',
             'wallet',
             'daily_bonus_available',
+            'onboarding_completed',
             'date_joined',
         ]
 
