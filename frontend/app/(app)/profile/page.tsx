@@ -13,7 +13,7 @@ export default function ProfilePage() {
       <ProfileStats />
 
       <div className="flex items-start gap-4">
-        <CompetitionsCard />
+        {/* <CompetitionsCard /> */}
         <BadgesCard />
       </div>
     </div>

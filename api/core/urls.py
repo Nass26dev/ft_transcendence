@@ -36,4 +36,7 @@ urlpatterns = [
     #  Betting
     path("api/", include("betting.urls")),
 
+    #  Défis & badges
+    path("api/", include("challenges.urls")),
+
 ]

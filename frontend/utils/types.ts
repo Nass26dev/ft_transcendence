@@ -172,6 +172,30 @@ export interface Badge {
   locked?: boolean;
 }
 
+/** Défi renvoyé par GET /api/challenges/. */
+export interface ApiChallenge {
+  code: string;
+  kind: "daily" | "season";
+  icon: string;
+  title: string;
+  description: string;
+  reward: number;
+  progress: number;
+  target: number;
+  completed: boolean;
+  claimed: boolean;
+}
+
+/** Badge renvoyé par GET /api/badges/. */
+export interface ApiBadge {
+  code: string;
+  emoji: string;
+  name: string;
+  description: string;
+  unlocked: boolean;
+  unlocked_at: string | null;
+}
+
 export interface LeagueCardData {
   n: string;
   d: number;

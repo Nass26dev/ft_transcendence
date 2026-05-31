@@ -50,7 +50,8 @@ INSTALLED_APPS = [
     'chat',
     'league',
     'sports',
-    'betting'
+    'betting',
+    'challenges',
 ]
 
 SITE_ID = 1
