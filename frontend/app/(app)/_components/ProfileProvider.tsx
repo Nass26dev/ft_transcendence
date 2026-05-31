@@ -2,7 +2,7 @@
 
 import React from "react";
 import axios from "axios";
-import api from "@/utils/api";
+import api, { AUTH_EXPIRED_EVENT } from "@/utils/api";
 
 export interface Profile {
   id: number;
@@ -25,6 +25,8 @@ interface ProfileContextValue {
   claimDailyBonus: () => Promise<boolean>;
   /** Marque l'onboarding comme terminé (flag backend, ne se réaffiche plus). */
   completeOnboarding: () => Promise<void>;
+  /** Déconnecte l'utilisateur : purge les cookies et repasse en mode invité. */
+  logout: () => Promise<void>;
 }
 
 const ProfileContext = React.createContext<ProfileContextValue | null>(null);
@@ -90,6 +92,31 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const logout = React.useCallback(async (): Promise<void> => {
+    try {
+      await axios.post("/api/logout", {}, { withCredentials: true });
+    } catch (err) {
+      console.error("Erreur déconnexion:", err);
+    } finally {
+      setProfile(null);
+    }
+  }, []);
+
+  // Session morte (refresh impossible) : on purge les cookies périmés une seule
+  // fois et on repasse en invité, ce qui stoppe la boucle de 401.
+  const loggingOut = React.useRef(false);
+  React.useEffect(() => {
+    const onExpired = () => {
+      if (loggingOut.current) return;
+      loggingOut.current = true;
+      logout().finally(() => {
+        loggingOut.current = false;
+      });
+    };
+    window.addEventListener(AUTH_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(AUTH_EXPIRED_EVENT, onExpired);
+  }, [logout]);
+
   return (
     <ProfileContext.Provider
       value={{
@@ -99,6 +126,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         refreshProfile,
         claimDailyBonus,
         completeOnboarding,
+        logout,
       }}
     >
       {children}

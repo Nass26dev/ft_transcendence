@@ -1,5 +1,6 @@
 # sports/views.py
 from datetime import date, timedelta
+from django.db.models import Count, Q
 from django.utils import timezone
 from rest_framework.response import Response
 from rest_framework.decorators import action
@@ -29,6 +30,15 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
     serializer_class = MatchListSerializer
     filter_backends = [filters.DjangoFilterBackend]
     filterset_class = MatchFilter
+
+    def get_queryset(self):
+        # Répartition des paris par sélection 1N2 (Confiance des Kopistes).
+        # Count(filter=...) génère un seul JOIN via FILTER, sans multiplier les lignes.
+        return super().get_queryset().annotate(
+            bets_home=Count("bets", filter=Q(bets__odd__selection="home")),
+            bets_draw=Count("bets", filter=Q(bets__odd__selection="draw")),
+            bets_away=Count("bets", filter=Q(bets__odd__selection="away")),
+        )
 
     def upcoming(self, request):
         now = timezone.now()

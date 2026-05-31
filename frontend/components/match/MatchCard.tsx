@@ -20,7 +20,8 @@ function formatKickoff(iso: string): string {
 }
 
 export function MatchCard({ match, onPick, isPicked, onOpen }: MatchCardProps) {
-  const conf = match.conf ?? { "1": 33, X: 34, "2": 33 };
+  const conf = match.conf ?? { "1": 0, X: 0, "2": 0 };
+  const hasBets = (match.bets_total ?? 0) > 0;
 
   const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!(e.target as HTMLElement).closest("[data-odd-pill]")) {
@@ -64,29 +65,39 @@ export function MatchCard({ match, onPick, isPicked, onOpen }: MatchCardProps) {
       <div className="mt-3.5">
         <div className="mb-1 flex justify-between text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
           <span>Confiance des Kopistes</span>
-          <span>
-            {(conf["1"] + conf["X"] + conf["2"]).toFixed(0)} % distribués
-          </span>
+          {hasBets && (
+            <span>
+              {match.bets_total} pari{(match.bets_total ?? 0) > 1 ? "s" : ""}
+            </span>
+          )}
         </div>
-        <div className="flex h-1.5 overflow-hidden rounded-[3px] bg-surface-3">
-          <div
-            className="h-full bg-kop transition-[width] duration-300"
-            style={{ width: `${conf["1"]}%` }}
-          />
-          <div
-            className="h-full bg-text-4 transition-[width] duration-300"
-            style={{ width: `${conf["X"]}%` }}
-          />
-          <div
-            className="h-full bg-blue transition-[width] duration-300"
-            style={{ width: `${conf["2"]}%` }}
-          />
-        </div>
-        <div className="mt-1.5 flex justify-between text-[10.5px] font-semibold text-text-3">
-          <span>{conf["1"]} % · {match.home_team}</span>
-          <span>{conf["X"]} % · Nul</span>
-          <span>{conf["2"]} % · {match.away_team}</span>
-        </div>
+        {hasBets ? (
+          <>
+            <div className="flex h-1.5 overflow-hidden rounded-[3px] bg-surface-3">
+              <div
+                className="h-full bg-kop transition-[width] duration-300"
+                style={{ width: `${conf["1"]}%` }}
+              />
+              <div
+                className="h-full bg-text-4 transition-[width] duration-300"
+                style={{ width: `${conf["X"]}%` }}
+              />
+              <div
+                className="h-full bg-blue transition-[width] duration-300"
+                style={{ width: `${conf["2"]}%` }}
+              />
+            </div>
+            <div className="mt-1.5 flex justify-between text-[10.5px] font-semibold text-text-3">
+              <span>{conf["1"]} % · {match.home_team}</span>
+              <span>{conf["X"]} % · Nul</span>
+              <span>{conf["2"]} % · {match.away_team}</span>
+            </div>
+          </>
+        ) : (
+          <div className="rounded-[3px] bg-surface-2 px-2.5 py-2 text-[11px] font-medium text-text-3">
+            Aucun pari pour l&apos;instant — sois le premier Kopiste à te lancer.
+          </div>
+        )}
       </div>
     </div>
   );

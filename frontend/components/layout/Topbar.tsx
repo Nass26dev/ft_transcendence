@@ -52,12 +52,13 @@ export function Topbar() {
           >
             <Icon name="bell" size={18} stroke={1.8} />
           </button>
-          <button
+          <Link
+            href="/settings"
             title="Réglages"
             className="rounded-lg p-2 text-text-2 transition-colors hover:bg-surface-1 hover:text-text"
           >
             <Icon name="settings" size={18} stroke={1.6} />
-          </button>
+          </Link>
 
           {/* Avatar */}
           <Link

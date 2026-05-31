@@ -42,7 +42,7 @@ class Bet(models.Model):
         default="pending"
     )
 
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     settled_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):

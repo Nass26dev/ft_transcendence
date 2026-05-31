@@ -1,6 +1,7 @@
 from pathlib import Path
 from dotenv import load_dotenv
 import os
+from datetime import timedelta
 from celery.schedules import crontab
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -79,11 +80,22 @@ REST_FRAMEWORK = {
     )
 }
 
+# Durées des tokens JWT. La durée du refresh doit couvrir celle du cookie
+# refresh_token (7 jours) côté login, sinon le token meurt avant le cookie.
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
+}
+
 REST_AUTH = {
     'USE_JWT': True,
     'JWT_AUTH_COOKIE': 'access_token',
-    'JWT_AUTH_REFRESH_COOKIE': 'refresh_token', 
-    'JWT_AUTH_HTTPONLY': True,              
+    'JWT_AUTH_REFRESH_COOKIE': 'refresh_token',
+    'JWT_AUTH_HTTPONLY': True,
+    # Cohérent avec le login custom : pas de Secure en dev (http localhost),
+    # SameSite=Lax pour que les cookies passent en cross-origin same-site.
+    'JWT_AUTH_SECURE': not DEBUG,
+    'JWT_AUTH_SAMESITE': 'Lax',
     'REGISTER_SERIALIZER': 'users.serializers.RegisterSerializer',
 }
 

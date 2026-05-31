@@ -55,26 +55,30 @@ class LoginStep2View(APIView):
             refresh = RefreshToken.for_user(user)
             cache.delete(f"otp_{user_id}")
             
-            is_production = True  
-            
+            from django.conf import settings
+            # En dev (DEBUG=True, http://localhost), un cookie Secure n'est pas
+            # renvoyé par le navigateur -> le refresh_token serait perdu. On
+            # n'active Secure qu'en prod (HTTPS).
+            secure_cookies = not settings.DEBUG
+
             response = Response({
                 "user": UserSerializer(user).data
             }, status=200)
-            
+
             response.set_cookie(
                 key="access_token",
                 value=str(refresh.access_token),
                 httponly=True,
-                secure=is_production,
-                samesite="Strict",
+                secure=secure_cookies,
+                samesite="Lax",
                 max_age=60 * 5,
             )
             response.set_cookie(
                 key="refresh_token",
                 value=str(refresh),
                 httponly=True,
-                secure=is_production,
-                samesite="Strict",
+                secure=secure_cookies,
+                samesite="Lax",
                 max_age=60 * 60 * 24 * 7,
             )
             

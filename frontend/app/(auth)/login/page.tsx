@@ -61,11 +61,17 @@ function LoginContent() {
         const res = await api.post('/api/auth/social/google/', {
           access_token: tokenResponse.access_token,
         });
-        await fetch('/api/set-token', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ access: res.data.access, refresh: res.data.refresh }),
-        });
+        // En mode JWT_AUTH_HTTPONLY, dj_rest_auth pose lui-même les cookies JWT
+        // et ne renvoie PAS les tokens dans le body. On n'appelle set-token que
+        // s'ils sont réellement présents, sinon on écraserait les bons cookies
+        // avec des valeurs "undefined".
+        if (res.data?.access && res.data?.refresh) {
+          await fetch('/api/set-token', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ access: res.data.access, refresh: res.data.refresh }),
+          });
+        }
         router.push('/');
       } catch (err) {
         setError({ detail: "Erreur lors de la connexion Google" });
