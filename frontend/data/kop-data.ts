@@ -6,7 +6,12 @@ import type {
   FriendBet,
   LeagueBoardEntry,
   Challenge,
+  SeasonChallenge,
   Trending,
+  LeagueCardData,
+  PublicLeague,
+  CompetitionStat,
+  Badge,
 } from "@/utils/types";
 
 export const TEAMS: Record<string, Team> = {
@@ -145,4 +150,59 @@ export const TRENDING: Trending[] = [
   { tag: "PSG vainqueur", vol: "24 % des Kopistes", odd: 1.45 },
   { tag: "Real - Bayern : +2.5 buts", vol: "18 %", odd: 1.90 },
   { tag: "Arsenal & Liverpool BTTS", vol: "14 %", odd: 1.75 },
+];
+
+export const SEASON_CHALLENGES: SeasonChallenge[] = [
+  {
+    ttl: "Premier combiné gagnant",
+    desc: "Termine un combiné x3 ou plus",
+    progress: 0,
+    total: 1,
+    reward: 5000,
+  },
+  {
+    ttl: "Streak hot",
+    desc: "10 paris gagnants d'affilée",
+    progress: 4,
+    total: 10,
+    reward: 10000,
+  },
+  {
+    ttl: "Roi de la Ligue 1",
+    desc: "Top 3 d'une ligue privée 4 sem.",
+    progress: 1,
+    total: 4,
+    reward: 25000,
+  },
+];
+
+export const MY_LEAGUES: LeagueCardData[] = [
+  { n: "Les Kopistes du Mardi", d: 12, w: "S 23", emoji: "🍻", mine: true },
+  { n: "Bureau FC", d: 8, w: "S 18", emoji: "💼" },
+  { n: "Famille Benkiri", d: 7, w: "S 9", emoji: "👨‍👩‍👧" },
+];
+
+export const TOP_LEAGUES: PublicLeague[] = [
+  { n: "Ligue 1 Nation", members: 8420, emoji: "🇫🇷", desc: "La plus grande ligue francophone" },
+  { n: "C1 Predictors", members: 5210, emoji: "⭐", desc: "Spé Champions League" },
+  { n: "Premier League FR", members: 3840, emoji: "🇬🇧", desc: "Pour les fans de la PL" },
+  { n: "Le Classique Club", members: 2150, emoji: "🔥", desc: "PSG vs OM, rien d'autre" },
+  { n: "Tipsters Pro", members: 1890, emoji: "🎯", desc: "Réservée aux gros win rate" },
+  { n: "Lyon Bets", members: 1240, emoji: "🦁", desc: "Communauté lyonnaise" },
+];
+
+export const COMPETITIONS: CompetitionStat[] = [
+  { lg: "Ligue 1", flag: "🇫🇷", bets: 64, wr: 58, roi: "+18.2 %" },
+  { lg: "Champions League", flag: "⭐", bets: 31, wr: 52, roi: "+8.4 %" },
+  { lg: "Premier League", flag: "🇬🇧", bets: 28, wr: 46, roi: "−4.1 %" },
+  { lg: "La Liga", flag: "🇪🇸", bets: 24, wr: 54, roi: "+12.0 %" },
+];
+
+export const BADGES: Badge[] = [
+  { e: "🎯", n: "Sniper", d: "10 paris simples gagnés" },
+  { e: "🔥", n: "En feu", d: "Streak de 5" },
+  { e: "⭐", n: "C1 expert", d: "20 paris UCL" },
+  { e: "🍻", n: "Mardi soir", d: "Top 3 ligue privée" },
+  { e: "🦅", n: "Lyon city", d: "Supporter local" },
+  { e: "🔒", n: "???", d: "À débloquer", locked: true },
 ];

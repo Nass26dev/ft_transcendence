@@ -41,6 +41,17 @@ export interface Match {
   minute?: number;
   scoreH?: number;
   scoreA?: number;
+
+  // ---- Champs renvoyés par l'API backend (snake_case) ----
+  // Présents en plus de la forme courte ci-dessus, le temps de finir la
+  // migration mock -> API. À nettoyer/unifier plus tard.
+  competition?: string;
+  home_team?: string;
+  away_team?: string;
+  home_score?: number;
+  away_score?: number;
+  current_minute?: number;
+  kickoff_at?: string;
 }
 
 // ---------- Betting ----------
@@ -116,10 +127,48 @@ export interface Challenge {
   reward: number;
 }
 
+export interface SeasonChallenge {
+  ttl: string;
+  desc: string;
+  progress: number;
+  total: number;
+  reward: number;
+}
+
 export interface Trending {
   tag: string;
   vol: string;
   odd: number;
+}
+
+export interface CompetitionStat {
+  lg: string;
+  flag: string;
+  bets: number;
+  wr: number;
+  roi: string;
+}
+
+export interface Badge {
+  e: string;
+  n: string;
+  d: string;
+  locked?: boolean;
+}
+
+export interface LeagueCardData {
+  n: string;
+  d: number;
+  w: string;
+  emoji: string;
+  mine?: boolean;
+}
+
+export interface PublicLeague {
+  n: string;
+  members: number;
+  emoji: string;
+  desc: string;
 }
 
 // ---------- UI ----------
@@ -132,6 +181,9 @@ export interface MatchHandlers {
   isPicked: (matchId: string, k: string) => boolean;
   onOpen: (id: string) => void;
 }
+
+// Alias historique (anciennement utilisé par les cards et HomeScreen)
+export type PickHandlers = MatchHandlers;
 
 // ---------- Toast ----------
 

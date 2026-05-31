@@ -1,0 +1,93 @@
+"use client";
+
+import React from "react";
+import type { Match, PickHandlers } from "@/utils/types";
+import { OddPill } from "@/components/ui/OddPill";
+
+interface MatchCardProps extends PickHandlers {
+  match: Match;
+}
+
+function formatKickoff(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleString("fr-FR", {
+    weekday: "short",
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+export function MatchCard({ match, onPick, isPicked, onOpen }: MatchCardProps) {
+  const conf = match.conf ?? { "1": 33, X: 34, "2": 33 };
+
+  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!(e.target as HTMLElement).closest("[data-odd-pill]")) {
+      onOpen(match.id);
+    }
+  };
+
+  return (
+    <div
+      onClick={handleClick}
+      className="cursor-pointer rounded-[10px] border border-border bg-surface-1 px-4.5 py-4 transition-all hover:-translate-y-px hover:border-border-strong"
+    >
+      {/* Meta */}
+      <div className="mb-3.5 flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-3">
+        <span className="text-text-2">{match.competition}</span>
+        <span className="text-text-4">•</span>
+        <span>{formatKickoff(match.kickoff_at ?? "")}</span>
+      </div>
+
+      {/* Teams + odds */}
+      <div className="grid grid-cols-[1fr_auto] items-center gap-3.5">
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-semibold">{match.home_team}</span>
+          <span className="text-sm font-semibold">{match.away_team}</span>
+        </div>
+        <div className="flex gap-1.5">
+          {(["1", "X", "2"] as const).map((k) => (
+            <OddPill
+              key={k}
+              label={k}
+              value={match.odds?.[k]}
+              selected={isPicked(match.id, k)}
+              trend={match.trend?.[k] as "up" | "down" | undefined}
+              onClick={() => onPick(match, k)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Confidence */}
+      <div className="mt-3.5">
+        <div className="mb-1 flex justify-between text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
+          <span>Confiance des Kopistes</span>
+          <span>
+            {(conf["1"] + conf["X"] + conf["2"]).toFixed(0)} % distribués
+          </span>
+        </div>
+        <div className="flex h-1.5 overflow-hidden rounded-[3px] bg-surface-3">
+          <div
+            className="h-full bg-kop transition-[width] duration-300"
+            style={{ width: `${conf["1"]}%` }}
+          />
+          <div
+            className="h-full bg-text-4 transition-[width] duration-300"
+            style={{ width: `${conf["X"]}%` }}
+          />
+          <div
+            className="h-full bg-blue transition-[width] duration-300"
+            style={{ width: `${conf["2"]}%` }}
+          />
+        </div>
+        <div className="mt-1.5 flex justify-between text-[10.5px] font-semibold text-text-3">
+          <span>{conf["1"]} % · {match.home_team}</span>
+          <span>{conf["X"]} % · Nul</span>
+          <span>{conf["2"]} % · {match.away_team}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
