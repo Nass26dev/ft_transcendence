@@ -1,11 +1,13 @@
 from datetime import timedelta
 
-from django.db.models import Count
+from django.db.models import Count, Sum, F, Q, Case, When, Value, DecimalField
 from django.utils import timezone
 from rest_framework import viewsets, permissions
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from friends.models import Friendship
 
 from .models import Bet
 from .serializers import BetSerializer
@@ -89,3 +91,108 @@ class TrendingBetsView(APIView):
             for r in rows[:TRENDING_LIMIT]
         ]
         return Response(data)
+
+
+# Nombre max d'entrées renvoyées dans le classement.
+LEADERBOARD_LIMIT = 50
+
+# Fenêtre temporelle par période. "season" est mappé sur tout l'historique
+# (pas de notion de saison côté backend pour l'instant).
+PERIOD_DELTAS = {
+    "week": timedelta(days=7),
+    "month": timedelta(days=30),
+    "season": None,
+    "all": None,
+}
+
+
+def _profit_expr():
+    """Bénéfice net d'un pari : gain net si gagné, mise perdue si perdu."""
+    return Case(
+        When(status="won", then=F("stake") * (F("odd_value") - Value(1))),
+        When(status="lost", then=-F("stake")),
+        default=Value(0),
+        output_field=DecimalField(max_digits=14, decimal_places=2),
+    )
+
+
+class LeaderboardView(APIView):
+    """Classement des joueurs par gains nets, filtrable par période et portée.
+
+    - period : week | month | season | all (season = tous temps).
+    - scope  : world (tous les joueurs) | friends (amis acceptés + soi-même).
+
+    Le score est le bénéfice net (gains des paris gagnés − mises perdues) sur
+    la période. Seuls les paris réglés (won/lost) comptent. Public.
+    """
+
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        period = request.query_params.get("period", "week")
+        scope = request.query_params.get("scope", "world")
+        now = timezone.now()
+        me_id = request.user.id if request.user.is_authenticated else None
+
+        # Portée "amis" : impossible sans être connecté.
+        friend_ids = None
+        if scope == "friends":
+            if not me_id:
+                return Response({"period": period, "scope": scope, "entries": []})
+            friend_ids = {me_id}
+            pairs = (
+                Friendship.objects.filter(status="accepted")
+                .filter(Q(sender_id=me_id) | Q(receiver_id=me_id))
+                .values_list("sender_id", "receiver_id")
+            )
+            for s_id, r_id in pairs:
+                friend_ids.add(s_id)
+                friend_ids.add(r_id)
+
+        def scoped(qs):
+            return qs.filter(user_id__in=friend_ids) if friend_ids is not None else qs
+
+        # Classement sur la période demandée.
+        qs = scoped(Bet.objects.filter(status__in=["won", "lost"]))
+        delta = PERIOD_DELTAS.get(period)
+        if delta is not None:
+            qs = qs.filter(created_at__gte=now - delta)
+
+        rows = list(
+            qs.values("user_id", "user__username")
+            .annotate(
+                net=Sum(_profit_expr()),
+                won=Count("id", filter=Q(status="won")),
+                settled=Count("id"),
+            )
+            .order_by("-net")[:LEADERBOARD_LIMIT]
+        )
+
+        # Variation sur 7 jours glissants (même portée), pour la colonne "cette sem.".
+        week_qs = scoped(
+            Bet.objects.filter(
+                status__in=["won", "lost"], created_at__gte=now - timedelta(days=7)
+            )
+        )
+        week_net = {
+            r["user_id"]: r["net"]
+            for r in week_qs.values("user_id").annotate(net=Sum(_profit_expr()))
+        }
+
+        entries = []
+        for i, r in enumerate(rows, start=1):
+            settled = r["settled"] or 0
+            entries.append(
+                {
+                    "rank": i,
+                    "user_id": r["user_id"],
+                    "username": r["user__username"],
+                    "net": round(float(r["net"] or 0), 2),
+                    "week_net": round(float(week_net.get(r["user_id"], 0) or 0), 2),
+                    "win_rate": round(r["won"] / settled * 100) if settled else 0,
+                    "bets": settled,
+                    "me": r["user_id"] == me_id,
+                }
+            )
+
+        return Response({"period": period, "scope": scope, "entries": entries})

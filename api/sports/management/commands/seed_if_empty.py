@@ -5,8 +5,8 @@ from sports.models import Match
 
 class Command(BaseCommand):
     help = (
-        "Si la base ne contient aucun match, enfile les tâches de scraping "
-        "historique (J-180→J-1) et à venir (J+1→J+7) dans Celery. "
+        "Si la base ne contient aucun match, enchaîne les tâches de scraping "
+        "historique (J-1000→J-1) puis à venir (J+1→J+7) dans Celery. "
         "À appeler au démarrage du conteneur : la base fraîche se peuple seule."
     )
 
@@ -16,15 +16,18 @@ class Command(BaseCommand):
             return
 
         # Import tardif : évite de charger Celery si la base n'est pas vide.
+        from celery import chain
         from sports.tasks import scrape_history, scrape_upcoming
 
         try:
-            # .delay() pousse les messages dans Redis ; le celery_worker traite
-            # en arrière-plan. On enfile d'abord scrape_upcoming (rapide, ~20s :
-            # c'est le contenu principal de l'app), puis scrape_history (long,
-            # ~6 min) — ainsi les matchs à venir apparaissent vite.
-            scrape_upcoming.delay()
-            scrape_history.delay()
+            # On enchaîne history PUIS upcoming. scrape_upcoming calcule les cotes
+            # des matchs à venir à partir de la « forme » (les 10 derniers matchs
+            # terminés de chaque équipe). Il faut donc que TOUT l'historique soit
+            # chargé avant, sinon les équipes sont vues comme inconnues (force
+            # neutre) et les cotes sortent génériques. chain() ne lance upcoming
+            # que si history s'est terminé sans erreur ; .si() (signature
+            # immuable) évite que upcoming reçoive le retour de history.
+            chain(scrape_history.s(), scrape_upcoming.si())()
         except Exception as exc:  # broker indisponible : on ne casse pas le boot
             self.stderr.write(
                 self.style.WARNING(
@@ -36,6 +39,7 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                "Base vide → scrape_history et scrape_upcoming enfilées dans Celery."
+                "Base vide → scrape_history puis scrape_upcoming enchaînées dans Celery "
+                "(upcoming attend la fin de history pour des cotes correctes)."
             )
         )

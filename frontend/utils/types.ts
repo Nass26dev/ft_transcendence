@@ -211,6 +211,41 @@ export interface PublicLeague {
   desc: string;
 }
 
+/** Ligue renvoyée par l'API backend (GET /api/league/list|all-league). */
+export interface ApiLeague {
+  id: number;
+  name: string;
+  description: string;
+  /** Pseudo du créateur. */
+  creator: string;
+  members_count: number;
+}
+
+/** Entrée de classement renvoyée par GET /api/leaderboard/. */
+export interface ApiLeaderboardEntry {
+  rank: number;
+  user_id: number;
+  username: string;
+  /** Gains nets sur la période (bénéfice). */
+  net: number;
+  /** Gains nets sur les 7 derniers jours. */
+  week_net: number;
+  /** Taux de réussite en % (paris gagnés / paris réglés). */
+  win_rate: number;
+  /** Nombre de paris réglés sur la période. */
+  bets: number;
+  me: boolean;
+}
+
+/** Invitation reçue, renvoyée par GET /api/league/invitations/. */
+export interface ApiLeagueInvitation {
+  id: number;
+  /** Pseudo de l'expéditeur. */
+  sender: string;
+  /** Nom de la ligue. */
+  league: string;
+}
+
 // ---------- UI ----------
 
 export type TagKind = "default" | "live" | "soon" | "green";

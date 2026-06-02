@@ -2,12 +2,10 @@
 
 import React from "react";
 
-export type ScopeKey = "world" | "france" | "lyon" | "friends";
+export type ScopeKey = "world" | "friends";
 
 const SCOPES: { id: ScopeKey; label: string }[] = [
   { id: "world", label: "🌍 Monde" },
-  { id: "france", label: "🇫🇷 France" },
-  { id: "lyon", label: "🦁 Lyon" },
   { id: "friends", label: "👥 Amis" },
 ];
 
