@@ -39,4 +39,7 @@ urlpatterns = [
     #  Défis & badges
     path("api/", include("challenges.urls")),
 
+    #League
+    path("api/league/", include("league.urls")),
+
 ]
