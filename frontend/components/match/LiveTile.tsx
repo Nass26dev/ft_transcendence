@@ -34,14 +34,14 @@ export function LiveTile({ match, onPick, isPicked, onOpen }: LiveTileProps) {
 
       {/* Score */}
       <div className="my-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">{match.home_team}</span>
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <span className="truncate text-sm font-semibold">{match.home_team}</span>
         </div>
-        <div className="font-display tnum text-2xl font-bold tracking-[-0.02em]">
+        <div className="flex-none px-2 font-display tnum text-2xl font-bold tracking-[-0.02em]">
           {match.home_score ?? 0} − {match.away_score ?? 0}
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold">{match.away_team}</span>
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+          <span className="truncate text-sm font-semibold">{match.away_team}</span>
         </div>
       </div>
 

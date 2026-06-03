@@ -20,7 +20,7 @@ export function HomeRail({ friendsOn, onNav }: HomeRailProps) {
   const primaryLeague = myLeagues[0] ?? null;
   const { board } = useLeagueBoard(primaryLeague?.id ?? null);
   return (
-    <aside className="flex w-[320px] flex-none flex-col gap-[18px]">
+    <aside className="flex w-full flex-col gap-[18px] lg:w-[320px] lg:flex-none">
       <div className="rounded-[10px] border border-border bg-surface-1 p-4">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="font-display text-base">Défis du jour</h3>

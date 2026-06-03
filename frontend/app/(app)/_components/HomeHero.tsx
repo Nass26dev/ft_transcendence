@@ -26,15 +26,15 @@ export function HomeHero({ onOpen, onNav }: HomeHeroProps) {
   const { trending } = useTrending();
 
   return (
-    <div className="relative mb-7 overflow-hidden rounded-[14px] border border-border bg-gradient-to-br from-[#1A0606] to-bg px-9 py-8">
+    <div className="relative mb-7 overflow-hidden rounded-[14px] border border-border bg-gradient-to-br from-[#1A0606] to-bg px-5 py-7 sm:px-9 sm:py-8">
       <div className="pointer-events-none absolute -right-20 -top-20 h-[360px] w-[360px] rounded-full bg-[radial-gradient(circle,var(--kop)_0%,transparent_70%)] opacity-[0.18]" />
-      <div className="relative grid grid-cols-[1fr_auto] items-center gap-8">
+      <div className="relative grid grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_auto]">
         <div>
           <div className="mb-3.5 inline-flex gap-2">
             <Tag kind="green">Saison 2025/26</Tag>
             <Tag>Choc du week-end</Tag>
           </div>
-          <h1 className="mb-2.5 font-display text-[38px] font-bold leading-none tracking-[-0.03em]">
+          <h1 className="mb-2.5 font-display text-[28px] font-bold leading-none tracking-[-0.03em] sm:text-[38px]">
             Le Classique. <em className="not-italic text-kop-bright">Tes pronos.</em>
             <br />
             Aucune limite.
@@ -59,7 +59,7 @@ export function HomeHero({ onOpen, onNav }: HomeHeroProps) {
           </div>
         </div>
 
-        <div className="flex min-w-[280px] flex-col gap-2.5">
+        <div className="flex w-full flex-col gap-2.5 lg:min-w-[280px]">
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
             Tendances Kop
           </div>

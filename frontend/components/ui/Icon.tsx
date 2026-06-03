@@ -15,6 +15,11 @@ const PATHS: Record<string, React.ReactNode> = {
       <path d="M5 10v10h14V10" />
     </>
   ),
+  menu: (
+    <>
+      <path d="M4 6h16M4 12h16M4 18h16" />
+    </>
+  ),
   live: (
     <>
       <circle cx="12" cy="12" r="3" />
@@ -100,6 +105,11 @@ const PATHS: Record<string, React.ReactNode> = {
   chevronD: (
     <>
       <path d="m6 9 6 6 6-6" />
+    </>
+  ),
+  chevronL: (
+    <>
+      <path d="m15 18-6-6 6-6" />
     </>
   ),
   check: (

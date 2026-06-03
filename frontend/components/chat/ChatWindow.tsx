@@ -56,9 +56,12 @@ function MessageRow({
 export function ChatWindow({
   room,
   currentUserId,
+  onBack,
 }: {
   room: ActiveRoom;
   currentUserId: number;
+  /** Retour à la liste (mobile). */
+  onBack?: () => void;
 }) {
   const wsPath =
     room.kind === "dm" ? `ws/dm/${room.id}/` : `ws/chat/${room.id}/`;
@@ -86,6 +89,15 @@ export function ChatWindow({
     <div className="flex h-full min-h-0 flex-col">
       {/* En-tête */}
       <div className="flex items-center gap-3 border-b border-border px-5 py-3.5">
+        {onBack && (
+          <button
+            onClick={onBack}
+            title="Retour"
+            className="-ml-1 rounded-lg p-1.5 text-text-2 transition-colors hover:bg-surface-1 hover:text-text lg:hidden"
+          >
+            <Icon name="chevronL" size={18} stroke={2} />
+          </button>
+        )}
         <div
           className={[
             "grid h-9 w-9 flex-none place-items-center rounded-full text-[13px] font-bold text-white",

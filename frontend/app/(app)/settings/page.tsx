@@ -111,7 +111,7 @@ export default function SettingsPage() {
 
   if (ready && !isAuthenticated) {
     return (
-      <div className="max-w-[760px] px-8 pb-15 pt-7">
+      <div className="max-w-[760px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
         <h1 className="mb-2 font-display text-[28px] font-bold tracking-[-0.02em]">
           Réglages
         </h1>
@@ -133,7 +133,7 @@ export default function SettingsPage() {
   const initials = profile ? userInitials(profile) : "K";
 
   return (
-    <div className="max-w-[760px] px-8 pb-15 pt-7">
+    <div className="max-w-[760px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
       <h1 className="font-display text-[28px] font-bold tracking-[-0.02em]">
         Réglages
       </h1>

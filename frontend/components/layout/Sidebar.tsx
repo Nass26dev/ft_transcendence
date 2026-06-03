@@ -105,7 +105,13 @@ function NavItemRow({ it }: { it: NavItem }) {
 
 // ---------- Component ----------
 
-export function Sidebar() {
+interface SidebarProps {
+  /** Drawer ouvert (mobile uniquement). */
+  open?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ open = false, onClose }: SidebarProps) {
   const { profile, isAuthenticated, claimDailyBonus } = useProfile();
   const available = profile?.daily_bonus_available ?? false;
 
@@ -119,7 +125,24 @@ export function Sidebar() {
   const social = buildSocial(pendingBetsCount, isAuthenticated);
 
   return (
-    <aside className="sticky top-0 flex h-screen w-[232px] flex-col gap-7 border-r border-border bg-bg px-4 py-5">
+    <>
+      {/* Fond semi-opaque (mobile) */}
+      <div
+        onClick={onClose}
+        className={[
+          "fixed inset-0 z-40 bg-black/60 lg:hidden",
+          open ? "block" : "hidden",
+        ].join(" ")}
+      />
+
+      <aside
+        onClick={onClose}
+        className={[
+          "fixed inset-y-0 left-0 z-50 flex h-screen w-[232px] flex-col gap-7 overflow-y-auto border-r border-border bg-bg px-4 py-5 transition-transform duration-200",
+          "lg:sticky lg:top-0 lg:z-auto lg:translate-x-0",
+          open ? "translate-x-0" : "-translate-x-full",
+        ].join(" ")}
+      >
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2.5 px-2">
         <img src="/logo-clear.png" alt="Kop" className="h-7 w-auto" />
@@ -170,6 +193,7 @@ export function Sidebar() {
           </button>
         </div>
       )}
-    </aside>
+      </aside>
+    </>
   );
 }

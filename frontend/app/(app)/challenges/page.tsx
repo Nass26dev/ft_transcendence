@@ -25,7 +25,7 @@ export default function ChallengesPage() {
 
   if (ready && !isAuthenticated) {
     return (
-      <div className="max-w-[1480px] px-8 pb-15 pt-7">
+      <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
         <h1 className="mb-2 font-display text-[28px] font-bold tracking-[-0.02em]">Défis</h1>
         <div className="mt-6 rounded-[10px] border border-border bg-surface-1 p-8 text-center">
           <p className="text-[14px] text-text-2">Connecte-toi pour relever des défis et gagner des Kops.</p>
@@ -41,7 +41,7 @@ export default function ChallengesPage() {
   }
 
   return (
-    <div className="max-w-[1480px] px-8 pb-15 pt-7">
+    <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
       {/* ============= DAILY ============= */}
       <div className="mb-3.5">
         <h2 className="font-display text-[22px] font-bold tracking-[-0.02em]">Défis du jour</h2>
@@ -67,7 +67,7 @@ export default function ChallengesPage() {
         <div className="mt-0.5 text-[13px] text-text-3">Récompenses long terme</div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3.5">
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
         {season.map((c) => (
           <SeasonChallengeCard
             key={c.code}

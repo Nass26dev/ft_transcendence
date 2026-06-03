@@ -125,7 +125,7 @@ export default function FriendsPage() {
 
   if (ready && !isAuthenticated) {
     return (
-      <div className="max-w-[760px] px-8 pb-15 pt-7">
+      <div className="max-w-[760px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
         <h1 className="mb-2 font-display text-[28px] font-bold tracking-[-0.02em]">Amis</h1>
         <div className="mt-6 rounded-[10px] border border-border bg-surface-1 p-8 text-center">
           <p className="text-[14px] text-text-2">Connecte-toi pour gérer tes amis.</p>
@@ -163,7 +163,7 @@ export default function FriendsPage() {
   }
 
   return (
-    <div className="max-w-[760px] px-8 pb-15 pt-7">
+    <div className="max-w-[760px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
       <h1 className="font-display text-[28px] font-bold tracking-[-0.02em]">Amis</h1>
       <p className="mt-1 text-[13.5px] text-text-3">Recherche des joueurs et défie tes potes.</p>
 

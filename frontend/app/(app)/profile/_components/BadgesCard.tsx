@@ -28,7 +28,7 @@ export function BadgesCard() {
       {badges.length === 0 ? (
         <div className="text-[13px] text-text-3">Aucun badge pour l&apos;instant.</div>
       ) : (
-        <div className="grid grid-cols-3 gap-2.5">
+        <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3">
           {badges.map((b) => (
             <BadgeCard key={b.code} b={b} />
           ))}

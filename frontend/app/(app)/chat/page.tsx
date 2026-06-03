@@ -113,7 +113,7 @@ export default function ChatPage() {
 
   if (ready && !isAuthenticated) {
     return (
-      <div className="max-w-[760px] px-8 pb-15 pt-7">
+      <div className="max-w-[760px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
         <h1 className="mb-2 font-display text-[28px] font-bold tracking-[-0.02em]">Messages</h1>
         <div className="mt-6 rounded-[10px] border border-border bg-surface-1 p-8 text-center">
           <p className="text-[14px] text-text-2">Connecte-toi pour accéder au chat.</p>
@@ -131,7 +131,12 @@ export default function ChatPage() {
   return (
     <div className="flex h-[calc(100vh-3.5rem)] min-h-0">
       {/* ── Colonne gauche : listes ─────────────────────────────────── */}
-      <div className="flex w-[300px] flex-none flex-col border-r border-border">
+      <div
+        className={[
+          "w-full flex-none flex-col border-r border-border lg:flex lg:w-[300px]",
+          active ? "hidden lg:flex" : "flex",
+        ].join(" ")}
+      >
         {/* Onglets */}
         <div className="flex gap-1 border-b border-border p-2">
           {(["dm", "league"] as Tab[]).map((t) => (
@@ -216,9 +221,14 @@ export default function ChatPage() {
       </div>
 
       {/* ── Colonne droite : fenêtre de chat ───────────────────────── */}
-      <div className="min-w-0 flex-1">
+      <div className={["min-w-0 flex-1", active ? "block" : "hidden lg:block"].join(" ")}>
         {active && profile ? (
-          <ChatWindow key={`${active.kind}-${active.id}`} room={active} currentUserId={profile.id} />
+          <ChatWindow
+            key={`${active.kind}-${active.id}`}
+            room={active}
+            currentUserId={profile.id}
+            onBack={() => setActive(null)}
+          />
         ) : (
           <div className="grid h-full place-items-center text-center">
             <div>

@@ -36,10 +36,10 @@ export default function HomePage() {
   const showOnboarding = profile !== null && !profile.onboarding_completed;
 
   return (
-    <div className="max-w-[1480px] px-8 pb-15 pt-7">
+    <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
       <HomeHero onOpen={handlers.onOpen} onNav={onNav} />
 
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1">
           <LiveSection matches={live} {...handlers} onNav={onNav} />
           <UpcomingSection matches={upcoming} {...handlers} onNav={onNav} />

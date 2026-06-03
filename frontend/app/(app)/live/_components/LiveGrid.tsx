@@ -25,7 +25,7 @@ export function LiveGrid({ matches, onPick, isPicked, onOpen }: LiveGridProps) {
       </div>
 
       {/* Live tiles */}
-      <div className="mb-6 grid grid-cols-2 gap-4">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         {matches.map((m) => (
           <LiveTile
             key={m.id}

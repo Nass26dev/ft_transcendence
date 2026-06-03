@@ -28,16 +28,16 @@ export function CompactRow({ match, onPick, isPicked, onOpen }: CompactRowProps)
   return (
     <div
       onClick={handleClick}
-      className="grid grid-cols-[88px_1fr_auto] cursor-pointer items-center gap-4 border-b border-border px-4 py-3.5 transition-colors last:border-b-0 hover:bg-surface-2"
+      className="flex cursor-pointer flex-col gap-3 border-b border-border px-4 py-3.5 transition-colors last:border-b-0 hover:bg-surface-2 sm:grid sm:grid-cols-[88px_1fr_auto] sm:items-center sm:gap-4"
     >
       {/* Heure */}
-      <div className="font-mono text-xs font-semibold text-text-3">
-        <span className="block text-text-2">{day}</span>
+      <div className="flex items-baseline gap-1.5 font-mono text-xs font-semibold text-text-3 sm:block">
+        <span className="text-text-2 sm:block">{day}</span>
         {time}
       </div>
 
       {/* Compétition + équipes */}
-      <div>
+      <div className="min-w-0">
         <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-3">
           {match.competition}
         </div>
@@ -48,7 +48,7 @@ export function CompactRow({ match, onPick, isPicked, onOpen }: CompactRowProps)
       </div>
 
       {/* Odds */}
-      <div className="flex gap-1.5">
+      <div className="flex gap-1.5 [&>*]:flex-1 sm:[&>*]:flex-none">
         {(["1", "X", "2"] as const).map((k) => (
           <OddPill
             key={k}

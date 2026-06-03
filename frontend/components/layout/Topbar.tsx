@@ -8,12 +8,26 @@ import { userInitials } from "@/utils/user";
 import { TopbarSearch } from "./TopbarSearch";
 import { NotificationBell } from "./NotificationBell";
 
-export function Topbar() {
+interface TopbarProps {
+  /** Ouvre le menu latéral (mobile). */
+  onMenu?: () => void;
+}
+
+export function Topbar({ onMenu }: TopbarProps) {
   const { profile, isAuthenticated, ready } = useProfile();
   const balance = profile?.wallet ?? 0;
 
   return (
-    <div className="sticky top-0 z-10 flex items-center gap-4 border-b border-border bg-bg px-8 py-3.5">
+    <div className="sticky top-0 z-10 flex items-center gap-2.5 border-b border-border bg-bg px-4 py-3.5 sm:gap-4 lg:px-8">
+      {/* Menu mobile */}
+      <button
+        onClick={onMenu}
+        title="Menu"
+        className="rounded-lg p-2 text-text-2 transition-colors hover:bg-surface-1 hover:text-text lg:hidden"
+      >
+        <Icon name="menu" size={20} stroke={1.8} />
+      </button>
+
       {/* Search */}
       <TopbarSearch />
 
@@ -33,7 +47,7 @@ export function Topbar() {
               <div className="tnum text-[15px] font-bold tracking-[-0.01em]">
                 {balance.toLocaleString("fr-FR")}
               </div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
+              <div className="hidden text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3 sm:block">
                 Solde Kops
               </div>
             </div>
@@ -44,7 +58,7 @@ export function Topbar() {
           <Link
             href="/settings"
             title="Réglages"
-            className="rounded-lg p-2 text-text-2 transition-colors hover:bg-surface-1 hover:text-text"
+            className="hidden rounded-lg p-2 text-text-2 transition-colors hover:bg-surface-1 hover:text-text sm:block"
           >
             <Icon name="settings" size={18} stroke={1.6} />
           </Link>

@@ -13,8 +13,8 @@ export default function LivePage() {
   const handlers = useBetSlipHandlers();
 
   return (
-    <div className="max-w-[1480px] px-8 pb-15 pt-7">
-      <div className="flex items-start gap-4">
+    <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1">
           <LiveGrid matches={live} {...handlers} />
           <UpcomingList matches={upcoming} {...handlers} />

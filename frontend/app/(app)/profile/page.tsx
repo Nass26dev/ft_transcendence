@@ -13,7 +13,7 @@ export default function ProfilePage() {
 
   if (ready && !isAuthenticated) {
     return (
-      <div className="max-w-[1480px] px-8 pb-15 pt-7">
+      <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
         <h1 className="mb-2 font-display text-[28px] font-bold tracking-[-0.02em]">Profil</h1>
         <div className="mt-6 rounded-[10px] border border-border bg-surface-1 p-8 text-center">
           <p className="text-[14px] text-text-2">Connecte-toi pour voir ton profil.</p>
@@ -29,11 +29,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="max-w-[1480px] px-8 pb-15 pt-7">
+    <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
       <ProfileHero />
       <ProfileStats />
 
-      <div className="flex items-start gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         {/* <CompetitionsCard /> */}
         <BadgesCard />
       </div>

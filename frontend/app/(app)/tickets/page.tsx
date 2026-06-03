@@ -14,7 +14,7 @@ export default function TicketsPage() {
     tab === "all" ? bets : bets.filter((b) => b.status === tab);
 
   return (
-    <div className="max-w-[1480px] px-8 pb-15 pt-7">
+    <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="mb-3.5">
         <h2 className="font-display text-[22px] font-bold tracking-[-0.02em]">

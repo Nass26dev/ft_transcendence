@@ -82,7 +82,7 @@ function LeaguesContent() {
 
   if (ready && !isAuthenticated) {
     return (
-      <div className="max-w-[1480px] px-8 pb-15 pt-7">
+      <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
         <div className="rounded-[10px] border border-border bg-surface-1 p-8 text-center text-text-3">
           Connecte-toi pour voir et gérer tes ligues.
         </div>
@@ -91,7 +91,7 @@ function LeaguesContent() {
   }
 
   return (
-    <div className="max-w-[1480px] px-8 pb-15 pt-7">
+    <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
       <Toast toast={toast} />
 
       {/* ============= MES LIGUES ============= */}
@@ -121,7 +121,7 @@ function LeaguesContent() {
           Tu n&apos;as encore aucune ligue. Crée-en une pour défier tes amis.
         </div>
       ) : (
-        <div className="mb-8 grid grid-cols-3 gap-3.5">
+        <div className="mb-8 grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-3">
           {myLeagues.map((l) => (
             <MyLeagueCard
               key={l.id}

@@ -38,7 +38,7 @@ export function BetSlip({
   if (picks.length === 0) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-[100] flex max-h-[calc(100vh-100px)] w-[360px] flex-col overflow-hidden rounded-[14px] border border-border-strong bg-surface-1 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+    <div className="fixed inset-x-3 bottom-3 z-[100] flex max-h-[calc(100vh-100px)] flex-col overflow-hidden rounded-[14px] border border-border-strong bg-surface-1 shadow-[0_20px_60px_rgba(0,0,0,0.6)] sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[360px]">
       {/* Head */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3.5">
         <h3 className="font-display text-base font-bold">
