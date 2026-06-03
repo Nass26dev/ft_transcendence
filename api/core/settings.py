@@ -26,6 +26,7 @@ CORS_ALLOW_CREDENTIALS = True
 AUTH_USER_MODEL = 'users.User'
 
 INSTALLED_APPS = [
+    'daphne',
     'users',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -52,10 +53,19 @@ INSTALLED_APPS = [
     'sports',
     'betting',
     'challenges',
+    'channels',
 ]
 
 SITE_ID = 1
-
+ASGI_APPLICATION = "core.asgi.application"
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis", 6379)],
+        },
+    },
+}
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',

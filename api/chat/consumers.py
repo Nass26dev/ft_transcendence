@@ -10,6 +10,11 @@ User = get_user_model()
 class ChatConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
+        print("--- DEBUG WEBSOCKET ---")
+        print(f"User connecté : {self.scope['user']}")
+        print(f"Est anonyme ? : {self.scope['user'].is_anonymous}")
+        self.league_id = self.scope['url_route']['kwargs']['league_id']
+        print(f"League ID demandé : {self.league_id}")
         self.league_id = self.scope['url_route']['kwargs']['league_id']
         self.room_group_name = f'chat_{self.league_id}'
         user = self.scope['user']
