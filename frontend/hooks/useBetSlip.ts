@@ -57,20 +57,23 @@ export function useBetSlip(onPlaced?: () => void) {
   const clearPicks = () => setPicks([]);
 
   const handlePlace = async ({ stake, payout }: PlacePayload) => {
-    const pick = picks[0];
-    if (!pick) return;
+    if (picks.length === 0) return;
+    const isCombo = picks.length > 1;
 
     try {
+      // Toutes les sélections forment un seul ticket (simple ou combiné).
       await api.post("/api/betting/", {
-        match: Number(pick.matchId),
-        selection: pick.k,
+        selections: picks.map((p) => ({
+          match: Number(p.matchId),
+          selection: p.k,
+        })),
         stake,
       });
       setPicks([]);
       onPlaced?.();
       showToast({
         type: "ok",
-        msg: `Pari placé · ${stake.toLocaleString("fr-FR")} K en jeu, ${payout.toLocaleString("fr-FR")} K potentiels`,
+        msg: `${isCombo ? "Combiné" : "Pari"} placé · ${stake.toLocaleString("fr-FR")} K en jeu, ${payout.toLocaleString("fr-FR")} K potentiels`,
       });
     } catch (err: unknown) {
       const response =

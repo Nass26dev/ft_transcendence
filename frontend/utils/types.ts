@@ -246,6 +246,40 @@ export interface ApiLeagueInvitation {
   league: string;
 }
 
+/** Entrée du feed d'activité des amis, renvoyée par GET /api/friends/feed/. */
+export interface ApiFriendFeedItem {
+  id: number;
+  /** Pseudo de l'ami. */
+  user: string;
+  /** URL d'avatar, ou null (le front génère alors une pastille colorée). */
+  avatar: string | null;
+  /** Durée écoulée, ex. « 14 min », « hier ». */
+  when: string;
+  /** Phrase d'action, ex. « a parié 500 K sur ». */
+  desc: string;
+  /** Détail du pari, ex. « PSG vainqueur @ 1.45 ». */
+  pick: string;
+  kind: "won" | "lost" | "simple" | "combo";
+}
+
+/** Membre classé d'une ligue, renvoyé par GET /api/league/<id>/leaderboard/. */
+export interface ApiLeagueBoardEntry {
+  rank: number;
+  user_id: number;
+  username: string;
+  /** Solde Kops courant. */
+  kops: number;
+  me: boolean;
+}
+
+/** Réponse de GET /api/league/<id>/leaderboard/. */
+export interface ApiLeagueBoard {
+  id: number;
+  name: string;
+  members_count: number;
+  entries: ApiLeagueBoardEntry[];
+}
+
 // ---------- UI ----------
 
 export type TagKind = "default" | "live" | "soon" | "green";

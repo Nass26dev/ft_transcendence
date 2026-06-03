@@ -33,11 +33,12 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
 
     def get_queryset(self):
         # Répartition des paris par sélection 1N2 (Confiance des Kopistes).
-        # Count(filter=...) génère un seul JOIN via FILTER, sans multiplier les lignes.
+        # On compte les jambes (bet_selections) : un combiné compte pour chacun
+        # de ses matchs. Count(filter=...) génère un seul JOIN via FILTER.
         return super().get_queryset().annotate(
-            bets_home=Count("bets", filter=Q(bets__odd__selection="home")),
-            bets_draw=Count("bets", filter=Q(bets__odd__selection="draw")),
-            bets_away=Count("bets", filter=Q(bets__odd__selection="away")),
+            bets_home=Count("bet_selections", filter=Q(bet_selections__odd__selection="home")),
+            bets_draw=Count("bet_selections", filter=Q(bet_selections__odd__selection="draw")),
+            bets_away=Count("bet_selections", filter=Q(bet_selections__odd__selection="away")),
         )
 
     def upcoming(self, request):

@@ -10,6 +10,7 @@ from .serializers import (
     LeagueInvitationSerializer,
     UserMiniSerializer
 )
+from notifications.services import notify
 
 User = get_user_model()
 
@@ -140,9 +141,17 @@ class SendLeagueRequest(APIView):
                 status=status.HTTP_400_BAD_REQUEST)
 
         LeagueInvitation.objects.create(league=league, sender=request.user, receiver=receiver)
+        notify(
+            receiver.id,
+            "league_invite",
+            f"{request.user.username} t'a invité dans la ligue « {league.name} ».",
+            url="/leagues",
+            actor=request.user,
+            data={"league_id": league.id},
+        )
 
         return Response(
-            {"message": "Invitation envoyée"}, 
+            {"message": "Invitation envoyée"},
             status=status.HTTP_201_CREATED)
 
 
@@ -280,4 +289,41 @@ class AllLeague(APIView):
         leagues = League.objects.all()
         serializer = LeagueSerializer(leagues,many=True)
         return Response(serializer.data)
+
+
+class LeagueLeaderboard(APIView):
+    """GET /api/league/<id>/leaderboard/ — membres de la ligue classés par Kops.
+
+    Le score est le solde Kops courant (wallet) de chaque membre, du plus riche
+    au moins riche. Renvoie nom de ligue, effectif et classement.
+    """
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, league_id):
+        try:
+            league = League.objects.get(id=league_id)
+        except League.DoesNotExist:
+            return Response(
+                {"error": "League introuvable"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        members = league.members.all().order_by("-wallet", "username")
+        entries = [
+            {
+                "rank": i,
+                "user_id": m.id,
+                "username": m.username,
+                "kops": int(m.wallet),
+                "me": m.id == request.user.id,
+            }
+            for i, m in enumerate(members, start=1)
+        ]
+        return Response({
+            "id": league.id,
+            "name": league.name,
+            "members_count": len(entries),
+            "entries": entries,
+        })
 

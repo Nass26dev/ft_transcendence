@@ -6,6 +6,7 @@ import { Icon } from "@/components/ui/Icon";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 import { userInitials } from "@/utils/user";
 import { TopbarSearch } from "./TopbarSearch";
+import { NotificationBell } from "./NotificationBell";
 
 export function Topbar() {
   const { profile, isAuthenticated, ready } = useProfile();
@@ -39,12 +40,7 @@ export function Topbar() {
           </div>
 
           {/* Notif / Settings */}
-          <button
-            title="Notifications"
-            className="rounded-lg p-2 text-text-2 transition-colors hover:bg-surface-1 hover:text-text"
-          >
-            <Icon name="bell" size={18} stroke={1.8} />
-          </button>
+          <NotificationBell />
           <Link
             href="/settings"
             title="Réglages"

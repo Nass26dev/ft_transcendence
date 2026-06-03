@@ -1,59 +1,92 @@
+from decimal import Decimal
+
 from django.db import transaction
 from rest_framework import serializers
 
 from sports.models import Match, Odds
-from .models import Bet
+from .models import Bet, BetSelection
 
 # Mapping front (1 / X / 2) -> sélection Odds en base (market 1N2)
 SELECTION_MAP = {"1": "home", "X": "draw", "2": "away"}
 
 
-class BetSerializer(serializers.ModelSerializer):
-    # En écriture : le front envoie le match, la sélection (1/X/2) et la mise.
+def _pick_label(odd):
+    """Libellé lisible d'une jambe à partir de sa cote."""
+    match = odd.match
+    return {
+        "home": f"{match.home_team} vainqueur",
+        "draw": "Match nul",
+        "away": f"{match.away_team} vainqueur",
+    }.get(odd.selection, odd.selection)
+
+
+class SelectionInputSerializer(serializers.Serializer):
+    """Une jambe en écriture : match + sélection (1/X/2)."""
+
     match = serializers.PrimaryKeyRelatedField(queryset=Match.objects.all())
+    selection = serializers.ChoiceField(choices=list(SELECTION_MAP.keys()))
+
+
+class BetSerializer(serializers.ModelSerializer):
+    # Écriture : soit `selections` (liste, pour les combinés), soit le couple
+    # `match` + `selection` (pari simple, rétro-compat).
+    selections = SelectionInputSerializer(many=True, write_only=True, required=False)
+    match = serializers.PrimaryKeyRelatedField(
+        queryset=Match.objects.all(), write_only=True, required=False
+    )
     selection = serializers.ChoiceField(
-        choices=list(SELECTION_MAP.keys()), write_only=True
+        choices=list(SELECTION_MAP.keys()), write_only=True, required=False
     )
 
-    # En lecture : on expose la cote figée, le gain potentiel et un libellé.
+    # Lecture : cote totale, gain potentiel, libellé du type et détail des jambes.
     odd_value = serializers.DecimalField(
-        max_digits=6, decimal_places=2, read_only=True
+        max_digits=10, decimal_places=2, read_only=True
     )
     potential_win = serializers.SerializerMethodField()
-    pick = serializers.SerializerMethodField()
-    home_team = serializers.StringRelatedField(source="match.home_team", read_only=True)
-    away_team = serializers.StringRelatedField(source="match.away_team", read_only=True)
+    kind = serializers.SerializerMethodField()
+    picks = serializers.SerializerMethodField()
 
     class Meta:
         model = Bet
         fields = [
             "id",
+            "selections",
             "match",
             "selection",
             "stake",
-            "odd",
             "odd_value",
             "potential_win",
-            "pick",
-            "home_team",
-            "away_team",
+            "kind",
+            "picks",
             "status",
             "created_at",
             "settled_at",
         ]
-        read_only_fields = ("odd", "status", "created_at", "settled_at")
+        read_only_fields = ("status", "created_at", "settled_at")
+
+    # ---------- Lecture ----------
 
     def get_potential_win(self, obj):
         return round(obj.stake * obj.odd_value, 2)
 
-    def get_pick(self, obj):
-        # Libellé lisible de la sélection à partir de la cote prise.
-        labels = {
-            "home": f"{obj.match.home_team} vainqueur",
-            "draw": "Match nul",
-            "away": f"{obj.match.away_team} vainqueur",
-        }
-        return labels.get(obj.odd.selection, obj.odd.selection)
+    def get_kind(self, obj):
+        n = obj.selections.count()
+        return "Simple" if n <= 1 else f"Combiné x{n}"
+
+    def get_picks(self, obj):
+        out = []
+        for leg in obj.selections.select_related(
+            "odd", "match__home_team", "match__away_team"
+        ):
+            out.append({
+                "match": f"{leg.match.home_team} vs {leg.match.away_team}",
+                "pick": _pick_label(leg.odd),
+                "odd": float(leg.odd_value),
+                "status": leg.status,
+            })
+        return out
+
+    # ---------- Validation ----------
 
     def validate_stake(self, value):
         if value <= 0:
@@ -61,27 +94,52 @@ class BetSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        match = attrs["match"]
-        if match.status != "scheduled":
+        # Normalise l'entrée en une liste de jambes {match, selection}.
+        raw = attrs.get("selections")
+        if not raw:
+            if attrs.get("match") is None or attrs.get("selection") is None:
+                raise serializers.ValidationError(
+                    "Fournis 'selections' (combiné) ou 'match' + 'selection' (simple)."
+                )
+            raw = [{"match": attrs["match"], "selection": attrs["selection"]}]
+
+        match_ids = [leg["match"].id for leg in raw]
+        if len(match_ids) != len(set(match_ids)):
             raise serializers.ValidationError(
-                "Les paris sont fermés pour ce match."
+                "Un combiné ne peut pas contenir deux fois le même match."
             )
-        selection = SELECTION_MAP[attrs["selection"]]
-        try:
-            odd = match.odds.get(market="1N2", selection=selection)
-        except Odds.DoesNotExist:
-            raise serializers.ValidationError(
-                "Cote indisponible pour cette sélection."
-            )
-        attrs["odd"] = odd
-        attrs["odd_value"] = odd.value  # fige la cote au moment du pari
+
+        legs = []
+        total_odd = Decimal("1")
+        for leg in raw:
+            match = leg["match"]
+            # On parie sur les matchs à venir ET en cours ; fermé une fois
+            # le match terminé ou annulé.
+            if match.status not in ("scheduled", "live"):
+                raise serializers.ValidationError(
+                    f"Les paris sont fermés pour {match}."
+                )
+            sel = SELECTION_MAP[leg["selection"]]
+            try:
+                odd = match.odds.get(market="1N2", selection=sel)
+            except Odds.DoesNotExist:
+                raise serializers.ValidationError(
+                    f"Cote indisponible pour {match}."
+                )
+            legs.append((odd, odd.value))
+            total_odd *= odd.value
+
+        attrs["_legs"] = legs
+        attrs["odd_value"] = round(total_odd, 2)  # cote totale figée
         return attrs
 
+    # ---------- Création ----------
+
     def create(self, validated_data):
-        validated_data.pop("selection", None)
-        # user peut venir de perform_create (save(user=...)) ou du contexte.
-        user = validated_data.pop("user", None) or self.context["request"].user
+        legs = validated_data["_legs"]
+        odd_value = validated_data["odd_value"]
         stake = validated_data["stake"]
+        user = validated_data.pop("user", None) or self.context["request"].user
 
         with transaction.atomic():
             locked = type(user).objects.select_for_update().get(pk=user.pk)
@@ -89,6 +147,11 @@ class BetSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({"stake": "Solde insuffisant."})
             locked.wallet -= stake
             locked.save(update_fields=["wallet"])
-            bet = Bet.objects.create(user=user, **validated_data)
+
+            bet = Bet.objects.create(user=user, stake=stake, odd_value=odd_value)
+            BetSelection.objects.bulk_create([
+                BetSelection(bet=bet, match=odd.match, odd=odd, odd_value=value)
+                for odd, value in legs
+            ])
 
         return bet

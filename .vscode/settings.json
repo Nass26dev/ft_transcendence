@@ -11,5 +11,6 @@
             "username": "transcendence"
         }
     ],
-    "typescript.validate.enable": false
+    "typescript.validate.enable": false,
+    "python-envs.defaultEnvManager": "ms-python.python:system"
 }

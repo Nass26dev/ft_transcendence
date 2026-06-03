@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.db.models import Q
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,8 +8,25 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 from .models import Friendship
 from .serializers import FriendshipSerializer, UserSummarySerializer
+from betting.models import Bet
+from notifications.services import notify
 
 User = get_user_model()
+
+
+def _relative_fr(dt, now):
+    """Durée écoulée en français compact : « à l'instant », « 14 min », « 2 h », « hier », « 3 j »."""
+    secs = (now - dt).total_seconds()
+    if secs < 60:
+        return "à l'instant"
+    mins = int(secs // 60)
+    if mins < 60:
+        return f"{mins} min"
+    hours = mins // 60
+    if hours < 24:
+        return f"{hours} h"
+    days = hours // 24
+    return "hier" if days == 1 else f"{days} j"
 
 
 def _relationship_map(user):
@@ -102,6 +120,13 @@ class SendFriendRequest(APIView):
             return Response({'error': 'Demande déjà envoyée'}, status=status.HTTP_400_BAD_REQUEST)
 
         friendship = Friendship.objects.create(sender=request.user, receiver=receiver)
+        notify(
+            receiver.id,
+            "friend_request",
+            f"{request.user.username} t'a envoyé une demande d'ami.",
+            url="/friends",
+            actor=request.user,
+        )
         serializer = FriendshipSerializer(friendship)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
@@ -165,5 +190,99 @@ class DeleteFriend(APIView):
 
         friendship.delete()
         return Response({'message': 'Ami supprimé'}, status=status.HTTP_200_OK)
+
+
+class FriendsFeedView(APIView):
+    """GET /api/friends/feed/ — activité récente des amis (paris placés / gagnés / perdus).
+
+    Renvoie le flux du « feed des potes » : les derniers paris des amis acceptés
+    (hors soi-même), du plus récent au plus ancien.
+    """
+
+    permission_classes = [IsAuthenticated]
+    LIMIT = 15
+
+    def get(self, request):
+        user = request.user
+
+        # Amis acceptés uniquement (l'autre extrémité de chaque relation).
+        friend_ids = set()
+        pairs = (
+            Friendship.objects.filter(status="accepted")
+            .filter(Q(sender_id=user.id) | Q(receiver_id=user.id))
+            .values_list("sender_id", "receiver_id")
+        )
+        for s_id, r_id in pairs:
+            friend_ids.add(r_id if s_id == user.id else s_id)
+
+        if not friend_ids:
+            return Response([])
+
+        bets = (
+            Bet.objects.filter(user_id__in=friend_ids)
+            .exclude(status="cancelled")
+            .select_related("user")
+            .prefetch_related(
+                "selections__odd",
+                "selections__match__home_team",
+                "selections__match__away_team",
+            )
+            .order_by("-created_at")[: self.LIMIT]
+        )
+
+        now = timezone.now()
+        items = [self._serialize_bet(b, now, request) for b in bets if b.selections.all()]
+        return Response(items)
+
+    @staticmethod
+    def _leg_short(leg):
+        """Nom de l'équipe choisie pour une jambe, ou « match nul »."""
+        sel = leg.odd.selection
+        return {
+            "home": str(leg.match.home_team),
+            "away": str(leg.match.away_team),
+        }.get(sel, "match nul")
+
+    @staticmethod
+    def _leg_label(leg):
+        sel = leg.odd.selection
+        return {
+            "home": f"{leg.match.home_team} vainqueur",
+            "away": f"{leg.match.away_team} vainqueur",
+        }.get(sel, "Match nul")
+
+    def _serialize_bet(self, bet, now, request):
+        legs = list(bet.selections.all())
+        n = len(legs)
+        is_combo = n > 1
+        potential = int(bet.stake * bet.odd_value)
+
+        if bet.status == "won":
+            kind, desc = "won", "a gagné"
+            pick = f"{potential} K" if is_combo else f"{potential} K sur {self._leg_short(legs[0])}"
+        elif bet.status == "lost":
+            kind, desc = "lost", "a perdu"
+            pick = f"son combiné x{n}" if is_combo else self._leg_label(legs[0])
+        elif is_combo:
+            kind, desc = "combo", f"a fait un combiné x{n}"
+            pick = f"{int(bet.stake)} K → {potential} K potentiels"
+        else:
+            kind, desc = "simple", f"a parié {int(bet.stake)} K sur"
+            pick = f"{self._leg_label(legs[0])} @ {legs[0].odd_value}"
+
+        avatar = (
+            request.build_absolute_uri(bet.user.avatar.url)
+            if getattr(bet.user, "avatar", None)
+            else None
+        )
+        return {
+            "id": bet.id,
+            "user": bet.user.username,
+            "avatar": avatar,
+            "when": _relative_fr(bet.created_at, now),
+            "desc": desc,
+            "pick": pick,
+            "kind": kind,
+        }
 
 

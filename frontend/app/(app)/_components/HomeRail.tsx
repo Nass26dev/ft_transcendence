@@ -2,8 +2,9 @@
 
 import React from "react";
 import { Kops } from "@/components/ui/Kops";
-import { LEAGUE_BOARD } from "@/data/kop-data";
 import { useChallenges } from "@/hooks/useChallenges";
+import { useLeagues } from "@/hooks/useLeagues";
+import { useLeagueBoard } from "@/hooks/useLeagueBoard";
 import { GhostBtn } from "./GhostBtn";
 import { RailFriendsFeed } from "./RailFriendsFeed";
 
@@ -14,6 +15,10 @@ interface HomeRailProps {
 
 export function HomeRail({ friendsOn, onNav }: HomeRailProps) {
   const { daily } = useChallenges();
+  const { myLeagues } = useLeagues();
+  // Ligue principale = première ligue de l'utilisateur.
+  const primaryLeague = myLeagues[0] ?? null;
+  const { board } = useLeagueBoard(primaryLeague?.id ?? null);
   return (
     <aside className="flex w-[320px] flex-none flex-col gap-[18px]">
       <div className="rounded-[10px] border border-border bg-surface-1 p-4">
@@ -58,39 +63,56 @@ export function HomeRail({ friendsOn, onNav }: HomeRailProps) {
           <h3 className="font-display text-base">Ta ligue</h3>
           <GhostBtn onClick={() => onNav?.("leagues")}>Ouvrir</GhostBtn>
         </div>
-        <div className="mb-2.5 text-[12px] text-text-3">
-          Les Kopistes du Mardi · 12 joueurs
-        </div>
-        {LEAGUE_BOARD.slice(0, 4).map((r) => (
-          <div
-            key={r.rank}
-            className="flex items-center gap-2.5 border-b border-border py-2 text-[13px] last:border-b-0"
-          >
-            <span
-              className={[
-                "w-[22px] font-display text-sm font-bold",
-                r.rank === 1
-                  ? "text-yellow"
-                  : r.rank === 2
-                    ? "text-[#C5C9D1]"
-                    : r.rank === 3
-                      ? "text-[#D88B5C]"
-                      : "text-text-2",
-              ].join(" ")}
+        {primaryLeague == null ? (
+          <div className="rounded-lg bg-surface-2 p-3">
+            <div className="mb-2.5 text-[12px] text-text-3">
+              Tu n'as pas encore de ligue. Crée-en une pour défier tes amis.
+            </div>
+            <button
+              onClick={() => onNav?.("leagues-create")}
+              className="w-full rounded-md bg-kop px-3 py-2 text-[12.5px] font-semibold text-white transition-all hover:-translate-y-px hover:bg-kop-bright hover:shadow-[0_6px_22px_-8px_var(--kop)]"
             >
-              {r.rank}
-            </span>
-            <span
-              className={[
-                "flex-1",
-                r.me ? "font-bold text-kop-bright" : "font-medium",
-              ].join(" ")}
-            >
-              {r.user}
-            </span>
-            <Kops amount={r.kops} size={12} />
+              Créer une ligue
+            </button>
           </div>
-        ))}
+        ) : (
+          <>
+            <div className="mb-2.5 text-[12px] text-text-3">
+              {primaryLeague.name} · {primaryLeague.members_count} joueur
+              {primaryLeague.members_count > 1 ? "s" : ""}
+            </div>
+            {(board?.entries ?? []).slice(0, 4).map((r) => (
+              <div
+                key={r.user_id}
+                className="flex items-center gap-2.5 border-b border-border py-2 text-[13px] last:border-b-0"
+              >
+                <span
+                  className={[
+                    "w-[22px] font-display text-sm font-bold",
+                    r.rank === 1
+                      ? "text-yellow"
+                      : r.rank === 2
+                        ? "text-[#C5C9D1]"
+                        : r.rank === 3
+                          ? "text-[#D88B5C]"
+                          : "text-text-2",
+                  ].join(" ")}
+                >
+                  {r.rank}
+                </span>
+                <span
+                  className={[
+                    "flex-1",
+                    r.me ? "font-bold text-kop-bright" : "font-medium",
+                  ].join(" ")}
+                >
+                  {r.username}
+                </span>
+                <Kops amount={r.kops} size={12} />
+              </div>
+            ))}
+          </>
+        )}
       </div>
     </aside>
   );

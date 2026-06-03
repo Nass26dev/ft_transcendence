@@ -46,6 +46,7 @@ function buildSocial(pendingBetsCount: number, isAuthenticated: boolean): NavIte
           icon: "ticket",
           badge: pendingBetsCount > 0 ? String(pendingBetsCount) : undefined,
         },
+        { href: "/chat", label: "Messages", icon: "chat" },
         { href: "/friends", label: "Amis", icon: "user" },
       ]
     : [];

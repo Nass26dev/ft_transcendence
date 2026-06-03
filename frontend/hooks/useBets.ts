@@ -5,16 +5,22 @@ import api from "@/utils/api";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 import type { Bet } from "@/utils/types";
 
+/** Une jambe renvoyée par l'API. */
+interface ApiPick {
+  match: string;
+  pick: string;
+  odd: number;
+  status: "pending" | "won" | "lost" | "cancelled";
+}
+
 /** Forme brute renvoyée par GET /api/betting/. */
 interface ApiBet {
   id: number;
-  match: number;
   stake: string;
   odd_value: string;
   potential_win: string;
-  pick: string;
-  home_team: string;
-  away_team: string;
+  kind: string;
+  picks: ApiPick[];
   status: "pending" | "won" | "lost" | "cancelled";
   created_at: string;
 }
@@ -28,26 +34,25 @@ function formatDate(iso: string): string {
   });
 }
 
+/** cancelled est affiché comme "lost" côté UI (pas de statut dédié). */
+const uiStatus = (s: ApiPick["status"]) => (s === "cancelled" ? "lost" : s);
+
 /** Mappe un pari API vers le view-model Bet utilisé par les TicketCard. */
 function toBet(b: ApiBet): Bet {
-  const odd = Number(b.odd_value);
-  const status = b.status === "cancelled" ? "lost" : b.status;
   return {
     id: String(b.id),
     date: formatDate(b.created_at),
-    kind: "Simple",
+    kind: b.kind,
     stake: Number(b.stake),
     payout: Number(b.potential_win),
-    odd,
-    status,
-    picks: [
-      {
-        match: `${b.home_team} vs ${b.away_team}`,
-        pick: b.pick,
-        odd,
-        status,
-      },
-    ],
+    odd: Number(b.odd_value),
+    status: uiStatus(b.status),
+    picks: b.picks.map((p) => ({
+      match: p.match,
+      pick: p.pick,
+      odd: p.odd,
+      status: uiStatus(p.status),
+    })),
   };
 }
 

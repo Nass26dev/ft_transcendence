@@ -11,6 +11,7 @@ from .views import (
     KickMember,
     LeagueDetail,
     AllLeague,
+    LeagueLeaderboard,
 )
 
 urlpatterns = [
@@ -21,6 +22,7 @@ urlpatterns = [
 
    
     path("<int:league_id>/members/", MemberInLeague.as_view()),
+    path("<int:league_id>/leaderboard/", LeagueLeaderboard.as_view()),
     path("<int:league_id>/leave/", LeaveLeague.as_view()),
     path("<int:league_id>/kick/<int:user_id>/", KickMember.as_view()),
 

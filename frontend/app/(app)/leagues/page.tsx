@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 import { useLeagues } from "@/hooks/useLeagues";
@@ -11,7 +12,7 @@ import { PublicLeagueRow } from "./_components/PublicLeagueRow";
 import { CreateLeagueModal } from "./_components/CreateLeagueModal";
 import { InviteModal } from "./_components/InviteModal";
 
-export default function LeaguesPage() {
+function LeaguesContent() {
   const { profile, isAuthenticated, ready } = useProfile();
   const {
     myLeagues,
@@ -25,9 +26,16 @@ export default function LeaguesPage() {
     declineInvitation,
   } = useLeagues();
 
+  const searchParams = useSearchParams();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [inviteLeague, setInviteLeague] = React.useState<ApiLeague | null>(null);
   const [toast, setToast] = React.useState<ToastData | null>(null);
+
+  // Ouvre directement la modale de création quand on arrive via ?create=1
+  // (ex. depuis le bouton « Créer une ligue » de l'accueil).
+  React.useEffect(() => {
+    if (searchParams.get("create") === "1") setModalOpen(true);
+  }, [searchParams]);
 
   const showToast = React.useCallback((t: ToastData) => {
     setToast(t);
@@ -211,5 +219,14 @@ export default function LeaguesPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function LeaguesPage() {
+  // Suspense requis car LeaguesContent lit useSearchParams (?create=1).
+  return (
+    <React.Suspense fallback={null}>
+      <LeaguesContent />
+    </React.Suspense>
   );
 }

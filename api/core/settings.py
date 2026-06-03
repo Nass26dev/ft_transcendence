@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'sports',
     'betting',
     'challenges',
+    'notifications',
     'channels',
 ]
 

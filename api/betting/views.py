@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 
 from friends.models import Friendship
 
-from .models import Bet
+from .models import Bet, BetSelection
 from .serializers import BetSerializer
 
 
@@ -22,7 +22,11 @@ class BetViewSet(viewsets.ModelViewSet):
         return (
             Bet.objects
             .filter(user=self.request.user)
-            .select_related("match__home_team", "match__away_team", "odd")
+            .prefetch_related(
+                "selections__odd",
+                "selections__match__home_team",
+                "selections__match__away_team",
+            )
             .order_by("-created_at")
         )
 
@@ -55,11 +59,12 @@ class TrendingBetsView(APIView):
         now = timezone.now()
         windows = [("1h", timedelta(hours=1)), ("24h", timedelta(hours=24)), ("all", None)]
 
+        # On compte les tendances par jambe (BetSelection), combinés inclus.
         chosen, rows, total = "all", [], 0
         for label, delta in windows:
-            qs = Bet.objects.all()
+            qs = BetSelection.objects.all()
             if delta is not None:
-                qs = qs.filter(created_at__gte=now - delta)
+                qs = qs.filter(bet__created_at__gte=now - delta)
             rows = list(
                 qs.values(
                     "odd__selection", "odd__value", "match",
