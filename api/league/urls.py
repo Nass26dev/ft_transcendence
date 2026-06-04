@@ -19,7 +19,6 @@ urlpatterns = [
     path("create/", CreateLeague.as_view()),
     path("list/", LeagueList.as_view()),
     path("<int:league_id>/", LeagueDetail.as_view()),
-
    
     path("<int:league_id>/members/", MemberInLeague.as_view()),
     path("<int:league_id>/leaderboard/", LeagueLeaderboard.as_view()),

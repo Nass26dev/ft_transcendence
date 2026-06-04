@@ -11,6 +11,7 @@ import { MyLeagueCard } from "./_components/MyLeagueCard";
 import { PublicLeagueRow } from "./_components/PublicLeagueRow";
 import { CreateLeagueModal } from "./_components/CreateLeagueModal";
 import { InviteModal } from "./_components/InviteModal";
+import { LeagueDetailModal } from "./_components/LeagueDetailModal";
 
 function LeaguesContent() {
   const { profile, isAuthenticated, ready } = useProfile();
@@ -29,10 +30,9 @@ function LeaguesContent() {
   const searchParams = useSearchParams();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [inviteLeague, setInviteLeague] = React.useState<ApiLeague | null>(null);
+  const [selectedLeague, setSelectedLeague] = React.useState<ApiLeague | null>(null);
   const [toast, setToast] = React.useState<ToastData | null>(null);
 
-  // Ouvre directement la modale de création quand on arrive via ?create=1
-  // (ex. depuis le bouton « Créer une ligue » de l'accueil).
   React.useEffect(() => {
     if (searchParams.get("create") === "1") setModalOpen(true);
   }, [searchParams]);
@@ -48,6 +48,7 @@ function LeaguesContent() {
     try {
       await leaveLeague(id);
       showToast({ type: "ok", msg: "Tu as quitté la ligue." });
+      setSelectedLeague(null);
     } catch {
       showToast({ type: "err", msg: "Impossible de quitter la ligue." });
     }
@@ -71,8 +72,15 @@ function LeaguesContent() {
     }
   }
 
-  // Rejoindre une ligue se fait uniquement sur invitation du créateur côté
-  // backend : pas d'endpoint d'adhésion libre. On informe l'utilisateur.
+  async function handleKick(leagueId: number, userId: number) {
+    try {
+      await api.post(`/api/league/${leagueId}/kick/${userId}/`);
+      showToast({ type: "ok", msg: "Membre exclu." });
+    } catch {
+      showToast({ type: "err", msg: "Impossible d'exclure ce membre." });
+    }
+  }
+
   function handleJoin(_league: ApiLeague) {
     showToast({
       type: "err",
@@ -129,6 +137,7 @@ function LeaguesContent() {
               isOwner={l.creator === profile?.username}
               onLeave={handleLeave}
               onInvite={setInviteLeague}
+              onClick={setSelectedLeague}
             />
           ))}
         </div>
@@ -201,6 +210,7 @@ function LeaguesContent() {
         </div>
       )}
 
+      {/* ============= MODALES ============= */}
       {modalOpen && (
         <CreateLeagueModal
           onClose={() => setModalOpen(false)}
@@ -218,12 +228,23 @@ function LeaguesContent() {
           onInvite={(receiverId) => sendInvite(inviteLeague.id, receiverId)}
         />
       )}
+
+      {selectedLeague && (
+        <LeagueDetailModal
+          league={selectedLeague}
+          isOwner={selectedLeague.creator === profile?.username}
+          currentUserId={profile?.id}
+          onClose={() => setSelectedLeague(null)}
+          onLeave={handleLeave}
+          onInvite={(league) => { setInviteLeague(league); setSelectedLeague(null); }}
+          onKick={handleKick}
+        />
+      )}
     </div>
   );
 }
 
 export default function LeaguesPage() {
-  // Suspense requis car LeaguesContent lit useSearchParams (?create=1).
   return (
     <React.Suspense fallback={null}>
       <LeaguesContent />

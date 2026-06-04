@@ -10,19 +10,23 @@ export function MyLeagueCard({
   isOwner,
   onLeave,
   onInvite,
+  onClick,
 }: {
   league: ApiLeague;
   isOwner: boolean;
   onLeave: (id: number) => void;
   onInvite: (league: ApiLeague) => void;
+  onClick?: (league: ApiLeague) => void;
 }) {
   const count = league.members_count;
 
   return (
     <div
+      onClick={() => onClick?.(league)}
       className={[
         "flex flex-col rounded-[10px] border bg-surface-1 p-4.5",
         isOwner ? "border-kop" : "border-border",
+        onClick ? "cursor-pointer" : "",
       ].join(" ")}
     >
       <div className="mb-2.5 flex items-start justify-between">
@@ -57,14 +61,14 @@ export function MyLeagueCard({
         </div>
         {isOwner ? (
           <button
-            onClick={() => onInvite(league)}
+            onClick={(e) => { e.stopPropagation(); onInvite(league); }}
             className="inline-flex items-center gap-1 rounded-md border border-border-strong bg-transparent px-2.5 py-1 text-[12px] font-semibold text-text-2 transition-colors hover:border-kop hover:text-kop"
           >
             <Icon name="plus" size={12} /> Inviter
           </button>
         ) : (
           <button
-            onClick={() => onLeave(league.id)}
+            onClick={(e) => { e.stopPropagation(); onLeave(league.id); }}
             className="rounded-md border border-border-strong bg-transparent px-2.5 py-1 text-[12px] font-semibold text-text-3 transition-colors hover:border-kop hover:text-kop"
           >
             Quitter
