@@ -131,6 +131,7 @@ export default function SettingsPage() {
   }
 
   const initials = profile ? userInitials(profile) : "K";
+  const canAccessAdmin = profile?.status === "admin" || profile?.status === "owner";
 
   return (
     <div className="max-w-[760px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
@@ -201,7 +202,28 @@ export default function SettingsPage() {
 
         {/* Session */}
         <Card title="Session">
-          <div className="flex items-center justify-between">
+          {canAccessAdmin && (
+            <div className="flex items-center justify-between border-b border-border py-3.5">
+              <div className="min-w-0 pr-4">
+                <div className="text-[13.5px] font-medium text-text">
+                  Administration
+                </div>
+                <div className="text-[12px] text-text-3">
+                  Accéder au panneau d'administration.
+                </div>
+              </div>
+
+              <Link
+                href="/settings/administration"
+                className="flex flex-none items-center gap-2 rounded-[10px] border border-kop/40 bg-kop/10 px-4 py-2 text-[13px] font-semibold text-kop-bright transition-colors hover:bg-kop/20"
+              >
+                <Icon name="shield" size={15} stroke={2} />
+                Admin Panel
+              </Link>
+            </div>
+          )}
+
+          <div className="flex items-center justify-between pt-3.5">
             <div className="min-w-0 pr-4">
               <div className="text-[13.5px] font-medium text-text">
                 Déconnexion
@@ -210,6 +232,7 @@ export default function SettingsPage() {
                 Termine ta session sur cet appareil.
               </div>
             </div>
+
             <button
               onClick={handleLogout}
               className="flex flex-none items-center gap-2 rounded-[10px] border border-kop/40 bg-kop/10 px-4 py-2 text-[13px] font-semibold text-kop-bright transition-colors hover:bg-kop/20"

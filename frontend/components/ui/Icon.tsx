@@ -155,6 +155,12 @@ const PATHS: Record<string, React.ReactNode> = {
       <path d="M5 12h14M13 5l7 7-7 7" />
     </>
   ),
+  shield: (
+  <>
+    <path d="M12 3 5 6v6c0 5 3.5 8 7 9 3.5-1 7-4 7-9V6l-7-3z" />
+    <path d="M12 8v6" />
+    <path d="M12 17h.01" />  </>
+  ),
 };
 
 export function Icon({ name, size = 18, stroke = 2 }: IconProps) {

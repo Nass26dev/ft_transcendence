@@ -48,6 +48,7 @@ class UserSerializer(serializers.ModelSerializer):
             'daily_bonus_available',
             'onboarding_completed',
             'date_joined',
+            'status',
         ]
 
     def get_daily_bonus_available(self, obj):
