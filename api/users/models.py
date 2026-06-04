@@ -7,6 +7,8 @@ class User(AbstractUser):
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['username']
 
+    Status = [("admin", "admin"), ("owner", "owner"), ("user", "user")]
+    status = models.CharField (max_length=10, choices=Status, default="user")
     wallet = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
