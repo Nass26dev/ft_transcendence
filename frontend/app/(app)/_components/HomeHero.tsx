@@ -5,6 +5,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Tag } from "@/components/ui/Tag";
 import { useTrending } from "@/hooks/useTrending";
 import type { TrendingBet } from "@/utils/types";
+import Link from "next/link";
 
 interface HomeHeroProps {
   onOpen: (id: string) => void;
@@ -45,17 +46,17 @@ export function HomeHero({ onOpen, onNav }: HomeHeroProps) {
           </p>
           <div className="mt-5 flex gap-2.5">
             <button
-              onClick={() => onOpen("m1")}
+              onClick={() => onOpen("")}
               className="inline-flex items-center gap-2 rounded-md bg-kop px-5 py-3.5 text-[15px] font-semibold text-white transition-all hover:-translate-y-px hover:bg-kop-bright hover:shadow-[0_6px_22px_-8px_var(--kop)]"
             >
               Voir les cotes <Icon name="arrow" size={14} stroke={2.4} />
             </button>
-            <button
-              onClick={() => onNav?.("leagues")}
-              className="rounded-md border border-border-strong bg-transparent px-5 py-3.5 text-[15px] font-semibold text-text transition-colors hover:bg-surface-1"
-            >
-              Créer une ligue
-            </button>
+            <Link
+            href="/leagues"
+            className="rounded-md border border-border-strong bg-transparent px-5 py-3.5 text-[15px] font-semibold text-text transition-colors hover:bg-surface-1"
+          >
+            Créer une ligue
+          </Link>
           </div>
         </div>
 

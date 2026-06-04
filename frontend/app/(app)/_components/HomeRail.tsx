@@ -7,6 +7,7 @@ import { useLeagues } from "@/hooks/useLeagues";
 import { useLeagueBoard } from "@/hooks/useLeagueBoard";
 import { GhostBtn } from "./GhostBtn";
 import { RailFriendsFeed } from "./RailFriendsFeed";
+import Link from "next/link";
 
 interface HomeRailProps {
   friendsOn: boolean;
@@ -68,12 +69,12 @@ export function HomeRail({ friendsOn, onNav }: HomeRailProps) {
             <div className="mb-2.5 text-[12px] text-text-3">
               Tu n'as pas encore de ligue. Crée-en une pour défier tes amis.
             </div>
-            <button
-              onClick={() => onNav?.("leagues-create")}
-              className="w-full rounded-md bg-kop px-3 py-2 text-[12.5px] font-semibold text-white transition-all hover:-translate-y-px hover:bg-kop-bright hover:shadow-[0_6px_22px_-8px_var(--kop)]"
-            >
-              Créer une ligue
-            </button>
+            <Link
+            href="/leagues"
+            className="w-full rounded-md bg-kop px-3 py-2 text-[12.5px] font-semibold text-white transition-all hover:-translate-y-px hover:bg-kop-bright hover:shadow-[0_6px_22px_-8px_var(--kop)]"
+          >
+            Créer une ligue
+          </Link>
           </div>
         ) : (
           <>
