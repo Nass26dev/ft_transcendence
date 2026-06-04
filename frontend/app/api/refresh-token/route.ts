@@ -12,7 +12,7 @@ export async function POST() {
   // Cette route s'exécute côté serveur (conteneur frontend) : on doit joindre
   // le backend par son URL interne Docker (API_URL), pas l'URL navigateur
   // (NEXT_PUBLIC_API_URL = localhost, qui pointerait sur le frontend lui-même).
-  const backendUrl = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
+  const backendUrl = (process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 
   try {
     const { data } = await axios.post(
