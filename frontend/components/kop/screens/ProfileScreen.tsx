@@ -37,6 +37,26 @@ const BADGES: Badge[] = [
   { e: "🔒", n: "???", d: "À débloquer", locked: true },
 ];
 
+interface UserIdentity {
+  firstname: string;
+  lastname: string;
+  username: string;
+  avatar: string;
+  memberSince: string;
+  level: number;
+  role: string;
+  location: string;
+  leaguesCount?: number;
+  credits: number;
+  winRate?: number;
+  winRateWeekDelta?: number;
+  numBets?: number;
+  numBetsWeek?: number;
+  currentStreak?: string;
+  biggestWin?: number;
+  biggestWinOdds?: number;
+}
+
 // ---------- Sub-components ----------
 
 function CompetitionRow({
@@ -98,28 +118,50 @@ function BadgeCard({ b }: { b: Badge }) {
 // ---------- Component ----------
 
 export function ProfileScreen() {
+
+  const USERID : UserIdentity = {
+    firstname: "Joseph",
+    lastname: "Oller",
+    username: "PMU_Creator",
+    avatar: "/def_pp.webp",
+    memberSince: "sept. 2025",
+    level: 21,
+    role: "Pronostiqueur", // d'autres roles possibles ?
+    location: "Lyon, FR",
+    leaguesCount: 3,
+    credits : 42000,
+    winRate: 69,
+    winRateWeekDelta: 12, // delta vs semaine précédente autre nom ?
+    totBets: 1000,
+    totBetsWeek: 58, // delta vs semaine précédente autre nom ?
+    currentStreak: "3 V", // ou nombre entier ? ou "3V-1D" ? à voir
+    biggestWin: 20420,
+    biggestWinOdds: 120.5,
+  };
+
+  // const load = async () => {
   return (
     <div className="max-w-[1480px] px-8 pb-15 pt-7">
       {/* ============= HERO ============= */}
       <div className="mb-6 rounded-[10px] border border-border bg-gradient-to-br from-[#1A0808] to-surface-1 p-7">
         <div className="flex items-center gap-5">
           {/* Avatar */}
-          <div className="grid h-20 w-20 flex-none place-items-center rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#C9184A] text-[28px] font-bold">
-            YO
+          <div className="grid h-20 w-20 flex-none place-items-center rounded-full">   {/* initial bg : bg-gradient-to-br from-[#FF6B6B] to-[#C9184A] text-[28px] font-bold */}
+            <img src={USERID.avatar} alt="avatar" className="h-full w-full rounded-full" />
           </div>
 
           {/* Identity */}
           <div className="min-w-0 flex-1">
             <h1 className="font-display text-[32px] font-bold tracking-[-0.02em]">
-              Yohann Lefèvre
+              {USERID.firstname} {USERID.lastname}
             </h1>
             <div className="mt-1 text-[13px] text-text-3">
-              @you · Membre depuis sept. 2025
+              @{USERID.username} · Membre depuis {USERID.memberSince}
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              <Tag kind="green">Niveau 12 · Pronostiqueur</Tag>
-              <Tag>Lyon, FR</Tag>
-              <Tag>3 ligues</Tag>
+              <Tag kind="green">Niveau {USERID.level} · {USERID.role}</Tag>
+              <Tag>{USERID.location}</Tag>
+              <Tag>{USERID.leaguesCount} ligues</Tag>
             </div>
           </div>
 
@@ -129,7 +171,7 @@ export function ProfileScreen() {
               Solde
             </div>
             <div className="font-display tnum text-4xl font-bold text-kop-bright">
-              52 300
+              {USERID.credits}
             </div>
             <div className="text-xs text-text-3">Kops</div>
           </div>
@@ -140,27 +182,27 @@ export function ProfileScreen() {
       <div className="mb-6 grid grid-cols-4 gap-3.5">
         <StatCard
           label="Win rate"
-          value="54 %"
-          delta="+3 % cette sem."
+          value={`${USERID.winRate} %`}
+          delta={`+${USERID.winRateWeekDelta} % cette sem.`}
           deltaKind="up"
         />
         <StatCard
           label="Paris totaux"
-          value="147"
-          delta="22 cette sem."
+          value={`${USERID.totBets}`}
+          delta={`${USERID.totBetsWeek} cette sem.`}
           deltaKind="muted"
         />
         <StatCard
           label="Streak actuelle"
-          value="3 V"
+          value={USERID.currentStreak}
           delta="↑ Continue"
           deltaKind="up"
         />
         <StatCard
           label="Plus gros gain"
-          value="8 420"
+          value={`${USERID.biggestWin}`}
           valueKind="green"
-          delta="×16.84 il y a 2 sem."
+          delta={`×${USERID.biggestWinOdds} il y a 2 sem.`}
           deltaKind="muted"
         />
       </div>
