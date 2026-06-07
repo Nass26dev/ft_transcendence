@@ -1,6 +1,7 @@
 # ─────────────────────────────────────────────────────────────────────
-# DEV — chargé automatiquement par `docker compose up`.
-# Hot-reload (code monté en volume), serveurs de dev, ports exposés.
+# DEV — appliqué automatiquement par `docker compose up` par-dessus
+# docker-compose.yml (prod). Hot-reload, serveurs de dev, ports exposés.
+# Ne PAS passer ce fichier en prod (utiliser -f docker-compose.yml --profile prod).
 # ─────────────────────────────────────────────────────────────────────
 services:
   db:
@@ -20,6 +21,7 @@ services:
       - ./api:/app
 
   backend:
+    restart: "no"
     environment:
       DJANGO_DEBUG: "True"
     volumes:
@@ -33,6 +35,7 @@ services:
              python3 manage.py runserver 0.0.0.0:8000"
 
   frontend:
+    restart: "no"
     build:
       target: dev
     volumes:

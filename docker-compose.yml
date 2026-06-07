@@ -1,9 +1,9 @@
 # ─────────────────────────────────────────────────────────────────────
-# Base commune dev + prod.
-#   • Dev  : `docker compose up`            (override.yml chargé automatiquement)
-#   • Prod : `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d`
-# Les différences (command, volumes, ports, DEBUG) vivent dans les fichiers
-# docker-compose.override.yml (dev) et docker-compose.prod.yml (prod).
+# Définition canonique = PROD.
+#   • Dev  : `docker compose up`                          (override.yml appliqué automatiquement)
+#   • Prod : `docker compose -f docker-compose.yml --profile prod up -d --build`
+# docker-compose.override.yml ramène les réglages dev par-dessus ce fichier.
+# nginx est sous le profil "prod" : il ne démarre qu'en prod.
 # ─────────────────────────────────────────────────────────────────────
 services:
   db:
@@ -36,6 +36,8 @@ services:
              celery -A core worker -l info"
     restart: on-failure
     env_file: .env
+    environment:
+      DJANGO_DEBUG: "False"
     depends_on:
       - redis
       - db
@@ -50,6 +52,8 @@ services:
              celery -A core beat -l info"
     restart: on-failure
     env_file: .env
+    environment:
+      DJANGO_DEBUG: "False"
     depends_on:
       - redis
       - db
@@ -59,7 +63,17 @@ services:
   backend:
     build: ./api
     container_name: t_backend
+    restart: always
     env_file: .env
+    environment:
+      DJANGO_DEBUG: "False"
+    # ASGI (daphne) car l'app utilise des websockets (chat + notifications).
+    command: >
+      sh -c "python3 manage.py migrate &&
+             python3 manage.py collectstatic --noinput &&
+             daphne -b 0.0.0.0 -p 8000 core.asgi:application"
+    expose:
+      - "8000"
     depends_on:
       - db
       - redis
@@ -69,9 +83,38 @@ services:
   frontend:
     build:
       context: ./frontend
+      target: runner
+      # NEXT_PUBLIC_* sont inlinées au build. En prod le navigateur passe par
+      # nginx (443) : pointer l'API sur https://localhost (surchargeable via .env).
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL_PROD:-https://localhost}
+        NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
     container_name: t_frontend
+    restart: always
     env_file: .env
+    expose:
+      - "3000"
     depends_on:
+      - backend
+    networks:
+      - t_networks
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: dockerfile
+    container_name: t_nginx
+    restart: always
+    # Profil "prod" : ignoré par `docker compose up` (dev), démarré avec --profile prod.
+    profiles:
+      - prod
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/certs:/etc/nginx/certs:ro
+    depends_on:
+      - frontend
       - backend
     networks:
       - t_networks
