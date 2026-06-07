@@ -1,0 +1,43 @@
+# ─────────────────────────────────────────────────────────────────────
+# DEV — chargé automatiquement par `docker compose up`.
+# Hot-reload (code monté en volume), serveurs de dev, ports exposés.
+# ─────────────────────────────────────────────────────────────────────
+services:
+  db:
+    ports:
+      - "5432:5432"
+
+  celery_worker:
+    environment:
+      DJANGO_DEBUG: "True"
+    volumes:
+      - ./api:/app
+
+  celery_beat:
+    environment:
+      DJANGO_DEBUG: "True"
+    volumes:
+      - ./api:/app
+
+  backend:
+    environment:
+      DJANGO_DEBUG: "True"
+    volumes:
+      - ./api:/app
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "python3 manage.py makemigrations &&
+             python3 manage.py migrate &&
+             python3 manage.py seed_if_empty &&
+             python3 manage.py runserver 0.0.0.0:8000"
+
+  frontend:
+    build:
+      target: dev
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "3000:3000"
+    command: npm run dev

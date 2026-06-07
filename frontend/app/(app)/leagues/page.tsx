@@ -4,6 +4,7 @@ import React from "react";
 import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
+import api from "@/utils/api";
 import { useLeagues } from "@/hooks/useLeagues";
 import { Toast } from "@/app/(app)/_components/Toast";
 import type { ApiLeague, Toast as ToastData } from "@/utils/types";
@@ -233,7 +234,7 @@ function LeaguesContent() {
         <LeagueDetailModal
           league={selectedLeague}
           isOwner={selectedLeague.creator === profile?.username}
-          currentUserId={profile?.id}
+          currentUserId={profile?.id ?? 0}
           onClose={() => setSelectedLeague(null)}
           onLeave={handleLeave}
           onInvite={(league) => { setInviteLeague(league); setSelectedLeague(null); }}

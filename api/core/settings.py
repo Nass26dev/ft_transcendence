@@ -10,7 +10,8 @@ load_dotenv()
 
 SECRET_KEY = os.getenv('SECRET_KEY_DJANGO')
 
-DEBUG = True
+# Piloté par compose : True en dev, False en prod (défaut True si non défini).
+DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = [
     'localhost', 
@@ -72,6 +73,8 @@ CHANNEL_LAYERS = {
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    # Sert les fichiers statiques en prod (inerte en dev quand DEBUG=True).
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -181,6 +184,9 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+
+# Destination de `collectstatic` en prod (servi par WhiteNoise).
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

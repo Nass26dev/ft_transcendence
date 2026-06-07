@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Build prod autonome (image runner légère : node server.js).
+  output: "standalone",
 };
 
 export default nextConfig;
