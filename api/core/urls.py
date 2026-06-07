@@ -48,4 +48,7 @@ urlpatterns = [
     #Notifications
     path("api/notifications/", include("notifications.urls")),
 
+    # Administration (owner / admin)
+    path("api/admin/", include("users.admin_urls")),
+
 ]

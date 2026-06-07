@@ -14,6 +14,7 @@ export interface Profile {
   wallet: number;
   daily_bonus_available: boolean;
   onboarding_completed: boolean;
+  status?: "owner" | "admin" | "user";
 }
 
 interface ProfileContextValue {
