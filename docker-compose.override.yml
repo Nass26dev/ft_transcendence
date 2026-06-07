@@ -24,6 +24,10 @@ services:
     restart: "no"
     environment:
       DJANGO_DEBUG: "True"
+      # Remet les valeurs dev (la base = prod = kop.life).
+      DJANGO_ALLOWED_HOSTS: "*"
+      DJANGO_CSRF_TRUSTED_ORIGINS: ""
+      DJANGO_CORS_ALLOWED_ORIGINS: "http://localhost:3000"
     volumes:
       - ./api:/app
     ports:

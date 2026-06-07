@@ -13,16 +13,25 @@ SECRET_KEY = os.getenv('SECRET_KEY_DJANGO')
 # Piloté par compose : True en dev, False en prod (défaut True si non défini).
 DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = [
-    'localhost', 
-    '127.0.0.1',
-    "*",
-    '10.13.200.237'
+# Pilotés par l'environnement (compose). En dev (DEBUG) on reste permissif ;
+# en prod, docker-compose.yml fournit le domaine (kop.life).
+ALLOWED_HOSTS = os.getenv(
+    "DJANGO_ALLOWED_HOSTS",
+    "*" if DEBUG else "localhost,127.0.0.1",
+).split(",")
+
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if o.strip()
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://10.13.200.237:3000",
+    o.strip()
+    for o in os.getenv(
+        "DJANGO_CORS_ALLOWED_ORIGINS", "http://localhost:3000"
+    ).split(",")
+    if o.strip()
 ]
 CORS_ALLOW_CREDENTIALS = True
 

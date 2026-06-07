@@ -67,6 +67,9 @@ services:
     env_file: .env
     environment:
       DJANGO_DEBUG: "False"
+      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-kop.life,www.kop.life}
+      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-https://kop.life,https://www.kop.life}
+      DJANGO_CORS_ALLOWED_ORIGINS: ${DJANGO_CORS_ALLOWED_ORIGINS:-https://kop.life,https://www.kop.life}
     # ASGI (daphne) car l'app utilise des websockets (chat + notifications).
     command: >
       sh -c "python3 manage.py migrate &&
@@ -100,19 +103,23 @@ services:
       - t_networks
 
   nginx:
-    build:
-      context: ./nginx
-      dockerfile: dockerfile
+    # Image nginx + certbot : obtient et renouvelle le cert Let's Encrypt
+    # automatiquement au lancement (à partir des domaines de nginx.prod.conf).
+    image: jonasal/nginx-certbot:5-alpine
     container_name: t_nginx
     restart: always
     # Profil "prod" : ignoré par `docker compose up` (dev), démarré avec --profile prod.
     profiles:
       - prod
+    environment:
+      # Email d'enregistrement Let's Encrypt (à définir dans .env).
+      CERTBOT_EMAIL: ${CERTBOT_EMAIL}
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./nginx/nginx.prod.conf:/etc/nginx/user_conf.d/kop.conf:ro
+      - letsencrypt:/etc/letsencrypt
     depends_on:
       - frontend
       - backend
@@ -121,6 +128,7 @@ services:
 
 volumes:
   postgres_data:
+  letsencrypt:
 
 networks:
   t_networks:
