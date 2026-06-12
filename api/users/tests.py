@@ -4,6 +4,7 @@ from django.db import IntegrityError
 from sib_api_v3_sdk.rest import ApiException
 from unittest.mock import MagicMock, patch
 from users.services import send_2fa_email
+from rest_framework.test import APIClient
 
 User = get_user_model()
 
@@ -65,10 +66,8 @@ def test_send_2fa_email_returns_true_on_success():
 			assert send_2fa_email("test@example.com", "123456") == True
 
 def test_send_2fa_email_returns_false_when_no_api_key():
-	with patch("users.services.sib_api_v3_sdk.TransactionalEmailsApi") as mock_api:
-		mock_instance = mock_api.return_value
-		with patch.dict("os.environ", {}, clear=True):
-			assert send_2fa_email("test@example.com", "123456") == False
+	with patch.dict("os.environ", {}, clear=True):
+		assert send_2fa_email("test@example.com", "123456") == False
 
 
 
@@ -78,3 +77,15 @@ def test_send_2fa_email_returns_false_on_api_exception():
 		mock_instance.send_transac_email.side_effect = ApiException()
 		with patch.dict("os.environ", {"BREVO_API_KEY" : "fake-key"}):
 			assert send_2fa_email("test@example.com", "123456") == False
+
+@pytest.mark.django_db
+def test_register_returns_201_on_valid_data():
+	client = APIClient()
+	response = client.post("/api/register/", {
+		"email": "test2@example.com",
+		"username": "testuser",
+		"password1": "Testpassword123",
+		"password2": "Testpassword123"
+	})
+	assert User.objects.filter(email="test2@example.com").exists()
+	assert response.status_code == 201
