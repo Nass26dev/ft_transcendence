@@ -1,7 +1,9 @@
 import pytest
-from django.contrib.auth import get_user_model
-from django.contrib.auth import authenticate
-from django.db import IntegrityError 
+from django.contrib.auth import get_user_model, authenticate
+from django.db import IntegrityError
+from sib_api_v3_sdk.rest import ApiException
+from unittest.mock import MagicMock, patch
+from users.services import send_2fa_email
 
 User = get_user_model()
 
@@ -55,3 +57,24 @@ def test_user_password_stored_as_hash(basic_user):
 	assert basic_user.password != "Testpassword123"
 	assert basic_user.check_password("Testpassword123") == True
 
+def test_send_2fa_email_returns_true_on_success():
+	with patch("users.services.sib_api_v3_sdk.TransactionalEmailsApi") as mock_api:
+		mock_instance = mock_api.return_value
+		mock_instance.send_transac_email.return_value = True
+		with patch.dict("os.environ", {"BREVO_API_KEY" : "fake-key"}):
+			assert send_2fa_email("test@example.com", "123456") == True
+
+def test_send_2fa_email_returns_false_when_no_api_key():
+	with patch("users.services.sib_api_v3_sdk.TransactionalEmailsApi") as mock_api:
+		mock_instance = mock_api.return_value
+		with patch.dict("os.environ", {}, clear=True):
+			assert send_2fa_email("test@example.com", "123456") == False
+
+
+
+def test_send_2fa_email_returns_false_on_api_exception():
+	with patch("users.services.sib_api_v3_sdk.TransactionalEmailsApi") as mock_api:
+		mock_instance = mock_api.return_value
+		mock_instance.send_transac_email.side_effect = ApiException()
+		with patch.dict("os.environ", {"BREVO_API_KEY" : "fake-key"}):
+			assert send_2fa_email("test@example.com", "123456") == False
