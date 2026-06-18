@@ -87,3 +87,13 @@ button {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+/* Animations réduites (préférence utilisateur, réglages).
+   Coupe transitions/animations quand la classe est posée sur <html>. */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}

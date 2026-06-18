@@ -14,6 +14,8 @@ class User(AbstractUser):
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     last_daily_bonus = models.DateField(null=True, blank=True)
     onboarding_completed = models.BooleanField(default=False)
+    # Profil public : apparaît dans les classements et le feed des amis.
+    is_public = models.BooleanField(default=True)
 
     def __str__(self):
         return self.email

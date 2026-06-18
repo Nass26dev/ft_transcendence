@@ -46,7 +46,8 @@ class ConversationSerializer(serializers.ModelSerializer):
         return self.context['request'].user
 
     def get_peer(self, obj):
-        return ChatUserSerializer(obj.other_user(self._me())).data
+        # Propage le contexte (request) pour que l'URL de l'avatar soit absolue.
+        return ChatUserSerializer(obj.other_user(self._me()), context=self.context).data
 
     def get_last_message(self, obj):
         last = obj.messages.order_by('-created_at').first()

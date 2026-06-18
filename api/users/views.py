@@ -8,7 +8,7 @@ from .serializers import UserSerializer
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from .models import User
-from .serializers import UserSerializer, RegisterSerializer
+from .serializers import UserSerializer, RegisterSerializer, ProfileUpdateSerializer
 import secrets
 from .services import send_2fa_email
 from django.core.cache import cache
@@ -98,20 +98,26 @@ class ProfileView(APIView):
         return Response(serializer.data)
 
     def patch(self, request):
-        """Met à jour la photo de profil (champ `avatar`, multipart)."""
-        avatar = request.FILES.get("avatar")
-        if avatar is None:
-            return Response({"detail": "Aucun fichier 'avatar' fourni."}, status=400)
-        if not (avatar.content_type or "").startswith("image/"):
-            return Response({"detail": "Le fichier doit être une image."}, status=400)
-        if avatar.size > self.MAX_AVATAR_SIZE:
-            return Response({"detail": "Image trop lourde (max 5 Mo)."}, status=400)
-
+        """Met à jour le profil : photo (multipart, champ `avatar`) OU champs
+        texte (prénom, nom, pseudo, bio, profil public) en JSON."""
         user = request.user
-        user.avatar = avatar
-        user.save(update_fields=["avatar"])
-        serializer = UserSerializer(user, context={"request": request})
-        return Response(serializer.data, status=200)
+        avatar = request.FILES.get("avatar")
+
+        # Cas 1 : upload de la photo de profil.
+        if avatar is not None:
+            if not (avatar.content_type or "").startswith("image/"):
+                return Response({"detail": "Le fichier doit être une image."}, status=400)
+            if avatar.size > self.MAX_AVATAR_SIZE:
+                return Response({"detail": "Image trop lourde (max 5 Mo)."}, status=400)
+            user.avatar = avatar
+            user.save(update_fields=["avatar"])
+            return Response(UserSerializer(user, context={"request": request}).data, status=200)
+
+        # Cas 2 : mise à jour des champs texte.
+        serializer = ProfileUpdateSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(UserSerializer(user, context={"request": request}).data, status=200)
 
 
 DAILY_BONUS_AMOUNT = 500

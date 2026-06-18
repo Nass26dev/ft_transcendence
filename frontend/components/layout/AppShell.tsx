@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Topbar } from "@/components/layout/Topbar";
 import { BetSlipProvider } from "@/app/(app)/_components/BetSlipProvider";
+import { applyReduceMotion, getPref } from "@/utils/prefs";
 
 /** Coquille de l'app : sidebar (colonne fixe sur desktop, drawer sur mobile),
  *  topbar et contenu. Gère l'ouverture du menu mobile. */
@@ -16,6 +17,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     setNavOpen(false);
   }, [pathname]);
+
+  // Applique la préférence « animations réduites » au chargement de l'app.
+  React.useEffect(() => {
+    applyReduceMotion(getPref("reduceMotion", false));
+  }, []);
 
   return (
     <div className="lg:grid lg:min-h-screen lg:grid-cols-[232px_1fr]">

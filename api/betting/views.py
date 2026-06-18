@@ -155,6 +155,8 @@ class LeaderboardView(APIView):
                 friend_ids.add(r_id)
 
         def scoped(qs):
+            # Seuls les profils publics apparaissent dans les classements.
+            qs = qs.filter(user__is_public=True)
             return qs.filter(user_id__in=friend_ids) if friend_ids is not None else qs
 
         # Classement sur la période demandée.

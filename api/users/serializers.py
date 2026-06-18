@@ -47,6 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
             'wallet',
             'daily_bonus_available',
             'onboarding_completed',
+            'is_public',
             'date_joined',
             'status',
         ]
@@ -54,3 +55,26 @@ class UserSerializer(serializers.ModelSerializer):
     def get_daily_bonus_available(self, obj):
         from django.utils import timezone
         return obj.last_daily_bonus != timezone.localdate()
+
+
+class ProfileUpdateSerializer(serializers.ModelSerializer):
+    """Champs que l'utilisateur peut modifier lui-même depuis les réglages."""
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'username', 'bio', 'is_public']
+        extra_kwargs = {
+            'first_name': {'required': False},
+            'last_name': {'required': False},
+            'username': {'required': False},
+            'bio': {'required': False},
+            'is_public': {'required': False},
+        }
+
+    def validate_username(self, value):
+        value = (value or '').strip()
+        if not value:
+            raise serializers.ValidationError("Le nom d'utilisateur ne peut pas être vide.")
+        if User.objects.filter(username=value).exclude(pk=self.instance.pk).exists():
+            raise serializers.ValidationError("Ce nom d'utilisateur est déjà pris.")
+        return value

@@ -221,6 +221,7 @@ class FriendsFeedView(APIView):
 
         bets = (
             Bet.objects.filter(user_id__in=friend_ids)
+            .filter(user__is_public=True)  # seuls les profils publics dans le feed
             .exclude(status="cancelled")
             .select_related("user")
             .prefetch_related(
