@@ -61,16 +61,17 @@ class FriendListView(APIView):
             .select_related("sender", "receiver")
             .order_by("-created_at")
         )
+        ctx = {"request": request}
         friends, incoming, outgoing = [], [], []
         for f in qs:
             if f.status == "accepted":
                 other = f.receiver if f.sender_id == user.id else f.sender
-                friends.append({"friendship_id": f.id, "user": UserSummarySerializer(other).data})
+                friends.append({"friendship_id": f.id, "user": UserSummarySerializer(other, context=ctx).data})
             elif f.status == "pending":
                 if f.receiver_id == user.id:
-                    incoming.append({"friendship_id": f.id, "user": UserSummarySerializer(f.sender).data})
+                    incoming.append({"friendship_id": f.id, "user": UserSummarySerializer(f.sender, context=ctx).data})
                 else:
-                    outgoing.append({"friendship_id": f.id, "user": UserSummarySerializer(f.receiver).data})
+                    outgoing.append({"friendship_id": f.id, "user": UserSummarySerializer(f.receiver, context=ctx).data})
         return Response({"friends": friends, "incoming": incoming, "outgoing": outgoing})
 
 
@@ -95,7 +96,7 @@ class UserSearchView(APIView):
         data = []
         for u in users:
             rel_status, friendship_id = rel.get(u.id, ("none", None))
-            item = UserSummarySerializer(u).data
+            item = UserSummarySerializer(u, context={"request": request}).data
             item["status"] = rel_status
             item["friendship_id"] = friendship_id
             data.append(item)

@@ -11,16 +11,9 @@ import {
   type SearchUser,
 } from "@/hooks/useFriends";
 import { userInitials } from "@/utils/user";
+import { Avatar } from "@/components/ui/Avatar";
 
 // ---------- Sous-composants ----------
-
-function Avatar({ user }: { user: FriendUser }) {
-  return (
-    <div className="grid h-10 w-10 flex-none place-items-center rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#C9184A] text-[13px] font-bold">
-      {userInitials(user)}
-    </div>
-  );
-}
 
 function PlayerRow({
   user,
@@ -31,7 +24,11 @@ function PlayerRow({
 }) {
   return (
     <div className="flex items-center gap-3 border-b border-border py-3 last:border-b-0">
-      <Avatar user={user} />
+      <Avatar
+        src={user.avatar}
+        initials={userInitials(user)}
+        className="h-10 w-10 text-[13px]"
+      />
       <div className="min-w-0 flex-1">
         <div className="truncate text-[14px] font-semibold">{user.username || user.email}</div>
         <div className="truncate text-[12px] text-text-3">{user.email}</div>

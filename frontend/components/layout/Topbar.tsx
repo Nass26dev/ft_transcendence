@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
+import { Avatar } from "@/components/ui/Avatar";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 import { userInitials } from "@/utils/user";
 import { TopbarSearch } from "./TopbarSearch";
@@ -67,9 +68,13 @@ export function Topbar({ onMenu }: TopbarProps) {
           <Link
             href="/profile"
             title={profile ? `@${profile.username || profile.email}` : "Profil"}
-            className="grid h-9 w-9 cursor-pointer place-items-center rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#C9184A] text-[13px] font-bold"
+            className="flex-none"
           >
-            {profile ? userInitials(profile) : "?"}
+            <Avatar
+              src={profile?.avatar}
+              initials={profile ? userInitials(profile) : "?"}
+              className="h-9 w-9 cursor-pointer text-[13px]"
+            />
           </Link>
         </>
       ) : (

@@ -3,6 +3,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import UserSerializer
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
@@ -85,10 +86,32 @@ class LoginStep2View(APIView):
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
+    # Accepte le multipart pour l'upload de la photo de profil.
+    parser_classes = [MultiPartParser, FormParser]
+
+    # Taille max de l'avatar : 5 Mo.
+    MAX_AVATAR_SIZE = 5 * 1024 * 1024
 
     def get(self, request):
-        serializer = UserSerializer(request.user)
+        # `context={"request"}` → l'URL de l'avatar est renvoyée en absolu.
+        serializer = UserSerializer(request.user, context={"request": request})
         return Response(serializer.data)
+
+    def patch(self, request):
+        """Met à jour la photo de profil (champ `avatar`, multipart)."""
+        avatar = request.FILES.get("avatar")
+        if avatar is None:
+            return Response({"detail": "Aucun fichier 'avatar' fourni."}, status=400)
+        if not (avatar.content_type or "").startswith("image/"):
+            return Response({"detail": "Le fichier doit être une image."}, status=400)
+        if avatar.size > self.MAX_AVATAR_SIZE:
+            return Response({"detail": "Image trop lourde (max 5 Mo)."}, status=400)
+
+        user = request.user
+        user.avatar = avatar
+        user.save(update_fields=["avatar"])
+        serializer = UserSerializer(user, context={"request": request})
+        return Response(serializer.data, status=200)
 
 
 DAILY_BONUS_AMOUNT = 500

@@ -4,6 +4,8 @@ core/urls.py  — version complète avec endpoints matches
 
 from django.urls import include, path
 from django.contrib import admin
+from django.conf import settings
+from django.conf.urls.static import static
 
 from users.views import ProfileView, RegisterView, LoginStep1View, LoginStep2View
 from dj_rest_auth.registration.views import SocialLoginView
@@ -52,3 +54,8 @@ urlpatterns = [
     path("api/admin/", include("users.admin_urls")),
 
 ]
+
+# En dev, Django sert les fichiers médias uploadés (photos de profil).
+# En prod, c'est nginx qui s'en charge via un bloc `location /media/`.
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

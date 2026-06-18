@@ -10,6 +10,8 @@ export interface Profile {
   email: string;
   first_name?: string;
   last_name?: string;
+  /** URL de la photo de profil, ou null/absent (→ initiales). */
+  avatar?: string | null;
   date_joined?: string;
   wallet: number;
   daily_bonus_available: boolean;

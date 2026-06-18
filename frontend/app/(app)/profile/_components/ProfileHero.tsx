@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Tag } from "@/components/ui/Tag";
+import { Avatar } from "@/components/ui/Avatar";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 import { userInitials, displayName } from "@/utils/user";
 
@@ -25,9 +26,11 @@ export function ProfileHero() {
     <div className="mb-6 rounded-[10px] border border-border bg-gradient-to-br from-[#1A0808] to-surface-1 p-7">
       <div className="flex items-center gap-5">
         {/* Avatar */}
-        <div className="grid h-20 w-20 flex-none place-items-center rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#C9184A] text-[28px] font-bold">
-          {userInitials(profile)}
-        </div>
+        <Avatar
+          src={profile.avatar}
+          initials={userInitials(profile)}
+          className="h-20 w-20 text-[28px]"
+        />
 
         {/* Identity */}
         <div className="min-w-0 flex-1">

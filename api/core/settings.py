@@ -197,6 +197,12 @@ STATIC_URL = 'static/'
 # Destination de `collectstatic` en prod (servi par WhiteNoise).
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# Médias uploadés par les utilisateurs (photos de profil).
+# En dev, servis par Django (cf. core/urls.py). En prod, par nginx
+# (bloc `location /media/` + volume partagé — voir doc déploiement).
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CELERY_BROKER_URL = "redis://redis:6379/0"

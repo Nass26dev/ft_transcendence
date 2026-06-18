@@ -3,6 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
+import { Avatar as UiAvatar } from "@/components/ui/Avatar";
 import { useProfile } from "../_components/ProfileProvider";
 import { useConversations } from "@/hooks/useConversations";
 import { useLeagues } from "@/hooks/useLeagues";
@@ -14,18 +15,29 @@ type Tab = "dm" | "league";
 
 // ---------- Sous-composants ----------
 
-function Avatar({ label, league }: { label: string; league?: boolean }) {
+function Avatar({
+  label,
+  league,
+  src,
+}: {
+  label: string;
+  league?: boolean;
+  src?: string | null;
+}) {
+  // Une ligue a une tuile dédiée (icône) ; un joueur a sa photo ou ses initiales.
+  if (league) {
+    return (
+      <div className="grid h-9 w-9 flex-none place-items-center rounded-full bg-gradient-to-br from-[#3A86FF] to-[#1D3F6B] text-white">
+        <Icon name="league" size={17} stroke={1.8} />
+      </div>
+    );
+  }
   return (
-    <div
-      className={[
-        "grid h-9 w-9 flex-none place-items-center rounded-full text-[12.5px] font-bold text-white",
-        league
-          ? "bg-gradient-to-br from-[#3A86FF] to-[#1D3F6B]"
-          : "bg-gradient-to-br from-[#FF6B6B] to-[#C9184A]",
-      ].join(" ")}
-    >
-      {league ? <Icon name="league" size={17} stroke={1.8} /> : label.slice(0, 2).toUpperCase()}
-    </div>
+    <UiAvatar
+      src={src}
+      initials={label.slice(0, 2).toUpperCase()}
+      className="h-9 w-9 text-[12.5px]"
+    />
   );
 }
 
@@ -35,12 +47,14 @@ function ListRow({
   label,
   sub,
   league,
+  avatar,
 }: {
   active: boolean;
   onClick: () => void;
   label: string;
   sub?: string;
   league?: boolean;
+  avatar?: string | null;
 }) {
   return (
     <button
@@ -50,7 +64,7 @@ function ListRow({
         active ? "bg-surface-2" : "hover:bg-surface-1",
       ].join(" ")}
     >
-      <Avatar label={label} league={league} />
+      <Avatar label={label} league={league} src={avatar} />
       <div className="min-w-0 flex-1">
         <div className="truncate text-[13.5px] font-semibold">{label}</div>
         {sub && <div className="truncate text-[11.5px] text-text-3">{sub}</div>}
@@ -176,6 +190,7 @@ export default function ChatPage() {
                       onClick={() => openDm(u)}
                       label={u.username}
                       sub={u.email}
+                      avatar={u.avatar}
                     />
                   ))}
                 </div>
@@ -193,6 +208,7 @@ export default function ChatPage() {
                     onClick={() => selectConversation(c)}
                     label={c.peer.username}
                     sub={c.last_message ?? "Démarrer la discussion"}
+                    avatar={c.peer.avatar}
                   />
                 ))
               )}

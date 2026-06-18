@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { useProfile } from "../_components/ProfileProvider";
 import { userInitials } from "@/utils/user";
+import { Avatar } from "@/components/ui/Avatar";
+import api from "@/utils/api";
 
 // ---------- Préférence persistée (localStorage) ----------
 
@@ -96,13 +98,47 @@ function ToggleRow({
 // ---------- Page ----------
 
 export default function SettingsPage() {
-  const { profile, isAuthenticated, ready, logout } = useProfile();
+  const { profile, isAuthenticated, ready, logout, refreshProfile } = useProfile();
   const router = useRouter();
 
   const [emailNotif, setEmailNotif] = usePref("emailNotif", true);
   const [sounds, setSounds] = usePref("sounds", true);
   const [reduceMotion, setReduceMotion] = usePref("reduceMotion", false);
   const [publicProfile, setPublicProfile] = usePref("publicProfile", true);
+
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = React.useState(false);
+  const [avatarError, setAvatarError] = React.useState<string | null>(null);
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // permet de re-sélectionner le même fichier ensuite
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setAvatarError("Le fichier doit être une image.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setAvatarError("Image trop lourde (max 5 Mo).");
+      return;
+    }
+    setAvatarError(null);
+    setUploading(true);
+    try {
+      const form = new FormData();
+      form.append("avatar", file);
+      // Override le Content-Type JSON par défaut : axios pose le bon
+      // multipart/form-data (avec boundary) pour un FormData.
+      await api.patch("/api/profile/", form, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      await refreshProfile();
+    } catch {
+      setAvatarError("Échec de l'envoi. Réessaie.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -146,9 +182,35 @@ export default function SettingsPage() {
         {/* Compte */}
         <Card title="Compte">
           <div className="mb-4 flex items-center gap-4">
-            <div className="grid h-14 w-14 flex-none place-items-center rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#C9184A] text-[18px] font-bold">
-              {initials}
-            </div>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              title="Changer la photo"
+              className="group relative flex-none rounded-full disabled:opacity-60"
+            >
+              <Avatar
+                src={profile?.avatar}
+                initials={initials}
+                className="h-14 w-14 text-[18px]"
+              />
+              {/* Surcouche au survol */}
+              <span
+                className={[
+                  "absolute inset-0 grid place-items-center rounded-full bg-black/45 transition-opacity",
+                  uploading ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+                ].join(" ")}
+              >
+                <Icon name="camera" size={18} stroke={1.8} />
+              </span>
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleAvatarChange}
+              className="hidden"
+            />
             <div className="min-w-0">
               <div className="text-[15px] font-semibold">
                 {profile?.username ?? "—"}
@@ -156,6 +218,17 @@ export default function SettingsPage() {
               <div className="truncate text-[12.5px] text-text-3">
                 {profile?.email ?? ""}
               </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className="mt-1 text-[12px] font-semibold text-kop-bright hover:underline disabled:opacity-60"
+              >
+                {uploading ? "Envoi…" : "Changer la photo"}
+              </button>
+              {avatarError && (
+                <div className="mt-0.5 text-[11.5px] text-red-500">{avatarError}</div>
+              )}
             </div>
             <Link
               href="/profile"

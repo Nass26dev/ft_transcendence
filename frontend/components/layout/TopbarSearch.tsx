@@ -3,6 +3,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
+import { Avatar } from "@/components/ui/Avatar";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 import { searchUsers, type SearchUser } from "@/hooks/useFriends";
 import { userInitials } from "@/utils/user";
@@ -76,9 +77,11 @@ export function TopbarSearch() {
                 onClick={() => goToFriends(u.username || u.email)}
                 className="flex w-full items-center gap-2.5 border-b border-border px-3 py-2.5 text-left transition-colors last:border-b-0 hover:bg-surface-2"
               >
-                <div className="grid h-8 w-8 flex-none place-items-center rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#C9184A] text-[12px] font-bold">
-                  {userInitials(u)}
-                </div>
+                <Avatar
+                  src={u.avatar}
+                  initials={userInitials(u)}
+                  className="h-8 w-8 text-[12px]"
+                />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-[13px] font-semibold">{u.username || u.email}</div>
                   <div className="truncate text-[11px] text-text-3">{u.email}</div>
