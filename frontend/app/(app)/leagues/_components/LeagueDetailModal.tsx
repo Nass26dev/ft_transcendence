@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
 import type { ApiLeague } from "@/utils/types";
 import { leagueEmoji } from "@/utils/league";
@@ -156,12 +157,13 @@ export function LeagueDetailModal({
               <Icon name="plus" size={17} /> Inviter un ami
             </button>
           )}
-          <button
-            onClick={() => {/* navigation vers /leagues/[id]/leaderboard */}}
+          <Link
+            href="/leaderboard"
+            onClick={onClose}
             className="flex w-full items-center gap-2 rounded-xl border border-border px-4 py-2.5 text-sm hover:bg-surface-2"
           >
             <Icon name="trophy" size={17} /> Voir le classement
-          </button>
+          </Link>
           {!isOwner && (
             <button
               onClick={() => onLeave(league.id)}

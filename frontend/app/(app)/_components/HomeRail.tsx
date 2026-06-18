@@ -11,10 +11,9 @@ import Link from "next/link";
 
 interface HomeRailProps {
   friendsOn: boolean;
-  onNav?: (route: string) => void;
 }
 
-export function HomeRail({ friendsOn, onNav }: HomeRailProps) {
+export function HomeRail({ friendsOn }: HomeRailProps) {
   const { daily } = useChallenges();
   const { myLeagues } = useLeagues();
   // Ligue principale = première ligue de l'utilisateur.
@@ -25,7 +24,7 @@ export function HomeRail({ friendsOn, onNav }: HomeRailProps) {
       <div className="rounded-[10px] border border-border bg-surface-1 p-4">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="font-display text-base">Défis du jour</h3>
-          <GhostBtn onClick={() => onNav?.("challenges")}>Voir tout</GhostBtn>
+          <GhostBtn href="/challenges">Voir tout</GhostBtn>
         </div>
         <div className="flex flex-col gap-2.5">
           {daily.length === 0 ? (
@@ -62,7 +61,7 @@ export function HomeRail({ friendsOn, onNav }: HomeRailProps) {
       <div className="rounded-[10px] border border-border bg-surface-1 p-4">
         <div className="mb-3 flex items-center justify-between">
           <h3 className="font-display text-base">Ta ligue</h3>
-          <GhostBtn onClick={() => onNav?.("leagues")}>Ouvrir</GhostBtn>
+          <GhostBtn href="/leagues">Ouvrir</GhostBtn>
         </div>
         {primaryLeague == null ? (
           <div className="rounded-lg bg-surface-2 p-3">

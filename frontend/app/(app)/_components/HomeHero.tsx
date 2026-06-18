@@ -9,7 +9,6 @@ import Link from "next/link";
 
 interface HomeHeroProps {
   onOpen: (id: string) => void;
-  onNav?: (route: string) => void;
 }
 
 /** Libellé de volume selon la fenêtre réellement utilisée par l'API. */
@@ -23,7 +22,7 @@ function volLabel(t: TrendingBet): string {
   return `${t.share}% des Kopistes · ${w}`;
 }
 
-export function HomeHero({ onOpen, onNav }: HomeHeroProps) {
+export function HomeHero({ onOpen }: HomeHeroProps) {
   const { trending } = useTrending();
 
   return (
@@ -45,12 +44,12 @@ export function HomeHero({ onOpen, onNav }: HomeHeroProps) {
             sorti, mais toute l&apos;adrénaline d&apos;un vrai stade.
           </p>
           <div className="mt-5 flex gap-2.5">
-            <button
-              onClick={() => onOpen("")}
+            <Link
+              href="/matches"
               className="inline-flex items-center gap-2 rounded-md bg-kop px-5 py-3.5 text-[15px] font-semibold text-white transition-all hover:-translate-y-px hover:bg-kop-bright hover:shadow-[0_6px_22px_-8px_var(--kop)]"
             >
               Voir les cotes <Icon name="arrow" size={14} stroke={2.4} />
-            </button>
+            </Link>
             <Link
             href="/leagues"
             className="rounded-md border border-border-strong bg-transparent px-5 py-3.5 text-[15px] font-semibold text-text transition-colors hover:bg-surface-1"

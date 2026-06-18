@@ -9,7 +9,6 @@ import type { Match, MatchHandlers } from "@/utils/types";
 
 interface UpcomingSectionProps extends MatchHandlers {
   matches: Match[];
-  onNav?: (route: string) => void;
 }
 
 export function UpcomingSection({
@@ -17,7 +16,6 @@ export function UpcomingSection({
   onPick,
   isPicked,
   onOpen,
-  onNav,
 }: UpcomingSectionProps) {
   return (
     <>
@@ -25,7 +23,7 @@ export function UpcomingSection({
         title="Les prochains gros matchs"
         sub="Championnats majeurs · 7 prochains jours"
         action={
-          <GhostBtn onClick={() => onNav?.("sports")}>
+          <GhostBtn href="/matches">
             Tous les matchs <Icon name="chevron" size={12} />
           </GhostBtn>
         }

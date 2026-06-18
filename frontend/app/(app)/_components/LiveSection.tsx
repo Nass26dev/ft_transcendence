@@ -10,7 +10,6 @@ import type { Match, MatchHandlers } from "@/utils/types";
 
 interface LiveSectionProps extends MatchHandlers {
   matches: Match[];
-  onNav?: (route: string) => void;
 }
 
 export function LiveSection({
@@ -18,7 +17,6 @@ export function LiveSection({
   onPick,
   isPicked,
   onOpen,
-  onNav,
 }: LiveSectionProps) {
   return (
     <>
@@ -30,7 +28,7 @@ export function LiveSection({
         }
         sub="Cotes mises à jour en temps réel"
         action={
-          <GhostBtn onClick={() => onNav?.("live")}>
+          <GhostBtn href="/live">
             Tout voir <Icon name="chevron" size={12} />
           </GhostBtn>
         }
