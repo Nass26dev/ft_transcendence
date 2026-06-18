@@ -1,9 +1,11 @@
 "use client";
 
 import React from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { Avatar } from "@/components/ui/Avatar";
+import { dropdownVariants } from "@/components/ui/motion";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 import { searchUsers, type SearchUser } from "@/hooks/useFriends";
 import { userInitials } from "@/utils/user";
@@ -66,8 +68,15 @@ export function TopbarSearch() {
         />
       </div>
 
+      <AnimatePresence>
       {open && query.trim().length >= 2 && (
-        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-20 overflow-hidden rounded-[10px] border border-border bg-surface-1 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)]">
+        <motion.div
+          variants={dropdownVariants}
+          initial="hidden"
+          animate="show"
+          exit="exit"
+          style={{ transformOrigin: "top" }}
+          className="absolute left-0 right-0 top-[calc(100%+6px)] z-20 overflow-hidden rounded-[10px] border border-border bg-surface-1 shadow-[0_20px_50px_-15px_rgba(0,0,0,0.7)]">
           {results.length === 0 ? (
             <div className="px-3 py-3 text-[13px] text-text-3">Aucun joueur trouvé.</div>
           ) : (
@@ -95,8 +104,9 @@ export function TopbarSearch() {
               </button>
             ))
           )}
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Icon } from "@/components/ui/Icon";
+import { Modal } from "@/components/ui/Modal";
 
 export function CreateLeagueModal({
   onClose,
@@ -36,15 +37,11 @@ export function CreateLeagueModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[200] grid place-items-center bg-black/60 p-4"
-      onClick={onClose}
+    <Modal
+      onClose={onClose}
+      className="w-full max-w-[420px] rounded-[14px] border border-border bg-surface-1 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
     >
-      <form
-        onClick={(e) => e.stopPropagation()}
-        onSubmit={handleSubmit}
-        className="w-full max-w-[420px] rounded-[14px] border border-border bg-surface-1 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
-      >
+      <form onSubmit={handleSubmit}>
         <div className="mb-4 flex items-center justify-between">
           <h3 className="font-display text-lg font-bold">Créer une ligue</h3>
           <button
@@ -103,6 +100,6 @@ export function CreateLeagueModal({
           </button>
         </div>
       </form>
-    </div>
+    </Modal>
   );
 }

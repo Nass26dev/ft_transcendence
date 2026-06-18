@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 
 import { useBetSlip } from "@/hooks/useBetSlip";
@@ -59,21 +60,25 @@ export function BetSlipProvider({ children }: { children: React.ReactNode }) {
       {children}
 
       {/* Bet slip */}
-      {slipOpen && picks.length > 0 && (
-        <BetSlip
-          picks={picks}
-          onRemove={removePick}
-          onClear={clearPicks}
-          onPlace={handlePlace}
-          onClose={() => setSlipOpen(false)}
-          balance={balance}
-        />
-      )}
+      <AnimatePresence>
+        {slipOpen && picks.length > 0 && (
+          <BetSlip
+            picks={picks}
+            onRemove={removePick}
+            onClear={clearPicks}
+            onPlace={handlePlace}
+            onClose={() => setSlipOpen(false)}
+            balance={balance}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Slip réduit (FAB) */}
-      {!slipOpen && picks.length > 0 && (
-        <SlipFab count={picks.length} onClick={() => setSlipOpen(true)} />
-      )}
+      <AnimatePresence>
+        {!slipOpen && picks.length > 0 && (
+          <SlipFab count={picks.length} onClick={() => setSlipOpen(true)} />
+        )}
+      </AnimatePresence>
 
       {/* Toast */}
       <Toast toast={toast} />

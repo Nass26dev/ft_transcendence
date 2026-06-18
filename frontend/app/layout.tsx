@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { MotionProvider } from "@/components/ui/motion";
 
 
 // Texte / UI — moderne, dense, lisible
@@ -43,7 +44,7 @@ export default function RootLayout({
       <body className="antialiased">
 
         <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
-          {children}
+          <MotionProvider>{children}</MotionProvider>
         </GoogleOAuthProvider>
       </body>
     </html>

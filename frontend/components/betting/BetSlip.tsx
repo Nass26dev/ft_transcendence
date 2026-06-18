@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+import { motion } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
 import { KCoin } from "@/components/ui/Kops";
+import { slideOverVariants } from "@/components/ui/motion";
 import type { SlipPick, PlacePayload } from "@/utils/types";
 
 
@@ -38,7 +40,12 @@ export function BetSlip({
   if (picks.length === 0) return null;
 
   return (
-    <div className="fixed inset-x-3 bottom-3 z-[100] flex max-h-[calc(100vh-100px)] flex-col overflow-hidden rounded-[14px] border border-border-strong bg-surface-1 shadow-[0_20px_60px_rgba(0,0,0,0.6)] sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[360px]">
+    <motion.div
+      variants={slideOverVariants}
+      initial="hidden"
+      animate="show"
+      exit="exit"
+      className="fixed inset-x-3 bottom-3 z-[100] flex max-h-[calc(100vh-100px)] flex-col overflow-hidden rounded-[14px] border border-border-strong bg-surface-1 shadow-[0_20px_60px_rgba(0,0,0,0.6)] sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[360px]">
       {/* Head */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3.5">
         <h3 className="font-display text-base font-bold">
@@ -166,6 +173,6 @@ export function BetSlip({
           Pas d&apos;argent réel. 100 % Kops, 100 % gloire.
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,5 +1,7 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { LeaderboardRow } from "./LeaderboardRow";
+import { staggerContainer, staggerItem } from "@/components/ui/motion";
 import type { LeagueBoardEntry } from "@/utils/types";
 
 const AVATAR_COLORS = [
@@ -26,13 +28,21 @@ export function LeaderboardTable({ entries }: { entries: LeagueBoardEntry[] }) {
             <span className="text-right">Total</span>
           </div>
 
-          {entries.map((r) => (
-            <LeaderboardRow
-              key={r.rank}
-              r={r}
-              avatarColor={AVATAR_COLORS[r.rank - 1] || "#5F1E92"}
-            />
-          ))}
+          <motion.div
+            key={entries.length}
+            variants={staggerContainer}
+            initial="hidden"
+            animate="show"
+          >
+            {entries.map((r) => (
+              <motion.div key={r.rank} variants={staggerItem}>
+                <LeaderboardRow
+                  r={r}
+                  avatarColor={AVATAR_COLORS[r.rank - 1] || "#5F1E92"}
+                />
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </div>
     </div>

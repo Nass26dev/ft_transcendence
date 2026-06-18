@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { Icon } from "@/components/ui/Icon";
 import { KCoin } from "@/components/ui/Kops";
+import { overlayVariants, modalPanelVariants, EASE } from "@/components/ui/motion";
 
 // ---------- Types ----------
 
@@ -131,21 +133,51 @@ export function Onboarding({ onClose }: OnboardingProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-[200] grid place-items-center p-8 bg-black/80 backdrop-blur-md">
-      <div className="w-full max-w-[540px] overflow-hidden rounded-[14px] border border-border-strong bg-surface-1 shadow-[0_30px_80px_rgba(0,0,0,0.7)]">
+    <motion.div
+      variants={overlayVariants}
+      initial="hidden"
+      animate="show"
+      exit="exit"
+      className="fixed inset-0 z-[200] grid place-items-center p-8 bg-black/80 backdrop-blur-md"
+    >
+      <motion.div
+        variants={modalPanelVariants}
+        className="w-full max-w-[540px] overflow-hidden rounded-[14px] border border-border-strong bg-surface-1 shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
+      >
         {/* Image / accent area */}
         <div className="relative h-[220px] overflow-hidden bg-gradient-to-br from-kop-deep to-[#2A0808]">
-          {renderArt()}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={cur.accent}
+              initial={{ opacity: 0, scale: 1.04 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3, ease: EASE }}
+              className="absolute inset-0"
+            >
+              {renderArt()}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         {/* Body */}
         <div className="px-8 py-7">
-          <h2 className="font-display text-[28px] font-bold tracking-[-0.02em] mb-2.5">
-            {cur.title}
-          </h2>
-          <p className="text-text-2 text-[14.5px] leading-[1.55] mb-4">
-            {cur.body}
-          </p>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={step}
+              initial={{ opacity: 0, x: 16 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -16 }}
+              transition={{ duration: 0.25, ease: EASE }}
+            >
+              <h2 className="font-display text-[28px] font-bold tracking-[-0.02em] mb-2.5">
+                {cur.title}
+              </h2>
+              <p className="text-text-2 text-[14.5px] leading-[1.55] mb-4">
+                {cur.body}
+              </p>
+            </motion.div>
+          </AnimatePresence>
 
           {/* Dots */}
           <div className="flex gap-1.5 justify-center my-4">
@@ -198,7 +230,7 @@ export function Onboarding({ onClose }: OnboardingProps) {
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

@@ -2,6 +2,7 @@
 
 import React from "react";
 import { Icon } from "@/components/ui/Icon";
+import { Modal } from "@/components/ui/Modal";
 import { useFriends } from "@/hooks/useFriends";
 import type { ApiLeague } from "@/utils/types";
 
@@ -38,15 +39,11 @@ export function InviteModal({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[200] grid place-items-center bg-black/60 p-4"
-      onClick={onClose}
+    <Modal
+      onClose={onClose}
+      className="flex max-h-[80vh] w-full max-w-[440px] flex-col rounded-[14px] border border-border bg-surface-1 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
     >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="flex max-h-[80vh] w-full max-w-[440px] flex-col rounded-[14px] border border-border bg-surface-1 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.6)]"
-      >
-        <div className="mb-1 flex items-center justify-between">
+      <div className="mb-1 flex items-center justify-between">
           <h3 className="font-display text-lg font-bold">Inviter dans la ligue</h3>
           <button
             onClick={onClose}
@@ -123,7 +120,6 @@ export function InviteModal({
             })
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

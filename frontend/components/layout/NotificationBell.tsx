@@ -1,8 +1,10 @@
 "use client";
 
 import React from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
+import { dropdownVariants } from "@/components/ui/motion";
 import {
   useNotifications,
   type AppNotification,
@@ -65,8 +67,15 @@ export function NotificationBell() {
         )}
       </button>
 
+      <AnimatePresence>
       {open && (
-        <div className="absolute right-0 top-[calc(100%+8px)] z-50 w-[340px] overflow-hidden rounded-[12px] border border-border-strong bg-surface-1 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+        <motion.div
+          variants={dropdownVariants}
+          initial="hidden"
+          animate="show"
+          exit="exit"
+          style={{ transformOrigin: "top right" }}
+          className="absolute right-0 top-[calc(100%+8px)] z-50 w-[340px] overflow-hidden rounded-[12px] border border-border-strong bg-surface-1 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h3 className="font-display text-[15px] font-bold">Notifications</h3>
             {unread > 0 && (
@@ -112,8 +121,9 @@ export function NotificationBell() {
               ))
             )}
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }

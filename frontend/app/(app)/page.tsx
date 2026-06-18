@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { AnimatePresence } from "framer-motion";
 
 import { useHomeMatches } from "@/hooks/useHomeMatches";
 import { useBetSlipHandlers } from "./_components/BetSlipProvider";
@@ -32,7 +33,9 @@ export default function HomePage() {
         <HomeRail friendsOn />
       </div>
 
-      {showOnboarding && <Onboarding onClose={completeOnboarding} />}
+      <AnimatePresence>
+        {showOnboarding && <Onboarding onClose={completeOnboarding} />}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Icon } from "@/components/ui/Icon";
+import { Modal } from "@/components/ui/Modal";
 import type { ApiLeague } from "@/utils/types";
 import { leagueEmoji } from "@/utils/league";
 import api from "@/utils/api";
@@ -52,18 +53,11 @@ export function LeagueDetailModal({
     fetchMembers();
     }, [league.id]);
 
-  // Fermer au clic sur l'overlay
-  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (e.target === e.currentTarget) onClose();
-  };
-
   return (
-    <div
-      onClick={handleOverlayClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    <Modal
+      onClose={onClose}
+      className="w-full max-w-[420px] rounded-2xl border border-border bg-surface-1 overflow-hidden"
     >
-      <div className="w-full max-w-[420px] rounded-2xl border border-border bg-surface-1 overflow-hidden">
-
         {/* Header */}
         <div className="p-5 pb-0">
           <div className="mb-1 flex items-start justify-between">
@@ -173,7 +167,6 @@ export function LeagueDetailModal({
             </button>
           )}
         </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

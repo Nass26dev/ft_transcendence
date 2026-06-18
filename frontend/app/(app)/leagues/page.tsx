@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import { Icon } from "@/components/ui/Icon";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
@@ -212,35 +213,41 @@ function LeaguesContent() {
       )}
 
       {/* ============= MODALES ============= */}
-      {modalOpen && (
-        <CreateLeagueModal
-          onClose={() => setModalOpen(false)}
-          onCreate={async (name, description) => {
-            await createLeague(name, description);
-            showToast({ type: "ok", msg: "Ligue créée !" });
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {modalOpen && (
+          <CreateLeagueModal
+            onClose={() => setModalOpen(false)}
+            onCreate={async (name, description) => {
+              await createLeague(name, description);
+              showToast({ type: "ok", msg: "Ligue créée !" });
+            }}
+          />
+        )}
+      </AnimatePresence>
 
-      {inviteLeague && (
-        <InviteModal
-          league={inviteLeague}
-          onClose={() => setInviteLeague(null)}
-          onInvite={(receiverId) => sendInvite(inviteLeague.id, receiverId)}
-        />
-      )}
+      <AnimatePresence>
+        {inviteLeague && (
+          <InviteModal
+            league={inviteLeague}
+            onClose={() => setInviteLeague(null)}
+            onInvite={(receiverId) => sendInvite(inviteLeague.id, receiverId)}
+          />
+        )}
+      </AnimatePresence>
 
-      {selectedLeague && (
-        <LeagueDetailModal
-          league={selectedLeague}
-          isOwner={selectedLeague.creator === profile?.username}
-          currentUserId={profile?.id ?? 0}
-          onClose={() => setSelectedLeague(null)}
-          onLeave={handleLeave}
-          onInvite={(league) => { setInviteLeague(league); setSelectedLeague(null); }}
-          onKick={handleKick}
-        />
-      )}
+      <AnimatePresence>
+        {selectedLeague && (
+          <LeagueDetailModal
+            league={selectedLeague}
+            isOwner={selectedLeague.creator === profile?.username}
+            currentUserId={profile?.id ?? 0}
+            onClose={() => setSelectedLeague(null)}
+            onLeave={handleLeave}
+            onInvite={(league) => { setInviteLeague(league); setSelectedLeague(null); }}
+            onKick={handleKick}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
