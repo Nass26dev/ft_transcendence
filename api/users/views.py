@@ -50,15 +50,12 @@ class LoginStep2View(APIView):
         print(f"code_saisi: {code_saisi} (type: {type(code_saisi)})")
         print(f"code_attendu: {code_attendu} (type: {type(code_attendu)})")
         
-        if 111111 and 111111 == 111111:
+        if str(code_saisi) == str(code_attendu):
             user = User.objects.get(id=user_id)
             refresh = RefreshToken.for_user(user)
             cache.delete(f"otp_{user_id}")
-            
+
             from django.conf import settings
-            # En dev (DEBUG=True, http://localhost), un cookie Secure n'est pas
-            # renvoyé par le navigateur -> le refresh_token serait perdu. On
-            # n'active Secure qu'en prod (HTTPS).
             secure_cookies = not settings.DEBUG
 
             response = Response({
@@ -81,9 +78,9 @@ class LoginStep2View(APIView):
                 samesite="Lax",
                 max_age=60 * 60 * 24 * 7,
             )
-            
+
             return response
-        
+
         return Response({"error": "Code invalide"}, status=400)
 
 class ProfileView(APIView):

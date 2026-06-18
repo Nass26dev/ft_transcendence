@@ -47,7 +47,7 @@ function LoginContent() {
   const handleVerifyOtp = async () => {
     setError(null);
     try {
-      await axios.post('/api/auth/login', { user_id: userId, code: otpCode });
+      await api.post('/api/auth/login/verify/', { user_id: userId, code: otpCode });
       router.push('/');
     } catch (err) {
       const data = axios.isAxiosError(err) ? err.response?.data : null;
