@@ -8,31 +8,30 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 load_dotenv()
 
-SECRET_KEY = os.getenv('SECRET_KEY_DJANGO')
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
-# Piloté par compose : True en dev, False en prod (défaut True si non défini).
-DEBUG = os.getenv('DJANGO_DEBUG', 'True') == 'True'
+# Seule variable d'environnement de bascule dev/prod (définie dans .env).
+# Défaut prod (False) si non défini → on échoue côté sûr.
+DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
-# Pilotés par l'environnement (compose). En dev (DEBUG) on reste permissif ;
-# en prod, docker-compose.yml fournit le domaine (kop.life).
-ALLOWED_HOSTS = os.getenv(
-    "DJANGO_ALLOWED_HOSTS",
-    "*" if DEBUG else "localhost,127.0.0.1",
-).split(",")
+# Hôtes et origines autorisés : définis ici, PAS via l'environnement.
+# Dev (DEBUG) = permissif / localhost ; prod = domaines kop.life.
+if DEBUG:
+    ALLOWED_HOSTS = ['*']
+    CSRF_TRUSTED_ORIGINS = []
+    CORS_ALLOWED_ORIGINS = ['http://localhost:3000']
+else:
+    ALLOWED_HOSTS = ['kop.life', 'www.kop.life', 'api.kop.life']
+    CSRF_TRUSTED_ORIGINS = [
+        'https://kop.life',
+        'https://www.kop.life',
+        'https://api.kop.life',
+    ]
+    CORS_ALLOWED_ORIGINS = [
+        'https://kop.life',
+        'https://www.kop.life',
+    ]
 
-CSRF_TRUSTED_ORIGINS = [
-    o.strip()
-    for o in os.getenv("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
-    if o.strip()
-]
-
-CORS_ALLOWED_ORIGINS = [
-    o.strip()
-    for o in os.getenv(
-        "DJANGO_CORS_ALLOWED_ORIGINS", "http://localhost:3000"
-    ).split(",")
-    if o.strip()
-]
 CORS_ALLOW_CREDENTIALS = True
 
 AUTH_USER_MODEL = 'users.User'

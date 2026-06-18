@@ -4,17 +4,19 @@
 #   • Prod : `docker compose -f docker-compose.yml --profile prod up -d --build`
 # docker-compose.override.yml ramène les réglages dev par-dessus ce fichier.
 # nginx est sous le profil "prod" : il ne démarre qu'en prod.
+#
+# Toute la conf applicative vit ailleurs, JAMAIS injectée ici :
+#   • variables d'environnement      → .env (env_file)
+#   • DEBUG (bascule dev/prod)        → DJANGO_DEBUG dans .env
+#   • hôtes / origines CORS-CSRF      → api/core/settings.py (selon DEBUG)
 # ─────────────────────────────────────────────────────────────────────
 services:
   db:
     image: postgres:16
     container_name: t_db
     restart: always
+    # POSTGRES_DB/USER/PASSWORD lus depuis .env par l'image postgres.
     env_file: .env
-    environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -36,8 +38,6 @@ services:
              celery -A core worker -l info"
     restart: on-failure
     env_file: .env
-    environment:
-      DJANGO_DEBUG: "True"
     depends_on:
       - redis
       - db
@@ -52,8 +52,6 @@ services:
              celery -A core beat -l info"
     restart: on-failure
     env_file: .env
-    environment:
-      DJANGO_DEBUG: "True"
     depends_on:
       - redis
       - db
@@ -65,16 +63,14 @@ services:
     container_name: t_backend
     restart: always
     env_file: .env
-    environment:
-      DJANGO_DEBUG: "True"
-      DJANGO_ALLOWED_HOSTS: ${DJANGO_ALLOWED_HOSTS:-kop.life,www.kop.life}
-      DJANGO_CSRF_TRUSTED_ORIGINS: ${DJANGO_CSRF_TRUSTED_ORIGINS:-https://kop.life,https://www.kop.life}
-      DJANGO_CORS_ALLOWED_ORIGINS: ${DJANGO_CORS_ALLOWED_ORIGINS:-https://kop.life,https://www.kop.life}
     # ASGI (daphne) car l'app utilise des websockets (chat + notifications).
     command: >
       sh -c "python3 manage.py migrate &&
              python3 manage.py collectstatic --noinput &&
              daphne -b 0.0.0.0 -p 8000 core.asgi:application"
+    volumes:
+      # Médias uploadés (avatars) écrits dans MEDIA_ROOT=/app/media ; servis par nginx en prod.
+      - media:/app/media
     expose:
       - "8000"
     depends_on:
@@ -90,7 +86,7 @@ services:
       # NEXT_PUBLIC_* sont inlinées au build. En prod le navigateur passe par
       # nginx (443) : pointer l'API sur https://localhost (surchargeable via .env).
       args:
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL_PROD:-https://localhost}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL_PROD:-https://kop.life}
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
     container_name: t_frontend
     restart: always
@@ -120,6 +116,8 @@ services:
     volumes:
       - ./nginx/nginx.prod.conf:/etc/nginx/user_conf.d/kop.conf:ro
       - letsencrypt:/etc/letsencrypt
+      # Médias uploadés (avatars) en lecture seule, servis via location /media/.
+      - media:/media:ro
     depends_on:
       - frontend
       - backend
@@ -129,6 +127,7 @@ services:
 volumes:
   postgres_data:
   letsencrypt:
+  media:
 
 networks:
   t_networks:

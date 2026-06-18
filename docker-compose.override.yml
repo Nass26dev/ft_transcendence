@@ -2,6 +2,10 @@
 # DEV — appliqué automatiquement par `docker compose up` par-dessus
 # docker-compose.yml (prod). Hot-reload, serveurs de dev, ports exposés.
 # Ne PAS passer ce fichier en prod (utiliser -f docker-compose.yml --profile prod).
+#
+# Ici on ne touche QUE l'infra dev (montages code, ports, commandes).
+# Le mode dev de Django (DEBUG, hôtes, CORS) se règle via DJANGO_DEBUG=True
+# dans .env — aucune variable d'app n'est injectée dans le compose.
 # ─────────────────────────────────────────────────────────────────────
 services:
   db:
@@ -9,25 +13,15 @@ services:
       - "5432:5432"
 
   celery_worker:
-    environment:
-      DJANGO_DEBUG: "True"
     volumes:
       - ./api:/app
 
   celery_beat:
-    environment:
-      DJANGO_DEBUG: "True"
     volumes:
       - ./api:/app
 
   backend:
     restart: "no"
-    environment:
-      DJANGO_DEBUG: "True"
-      # Remet les valeurs dev (la base = prod = kop.life).
-      DJANGO_ALLOWED_HOSTS: "*"
-      DJANGO_CSRF_TRUSTED_ORIGINS: ""
-      DJANGO_CORS_ALLOWED_ORIGINS: "http://localhost:3000"
     volumes:
       - ./api:/app
     ports:
