@@ -18,7 +18,10 @@ let refreshPromise: Promise<void> | null = null;
 function refreshToken(): Promise<void> {
   if (!refreshPromise) {
     refreshPromise = axios
-      .post('/api/refresh-token', {}, { withCredentials: true })
+      .post('/api/auth/token/refresh/', {}, {
+        baseURL: process.env.NEXT_PUBLIC_API_URL,
+        withCredentials: true,
+      })
       .then(() => undefined)
       .finally(() => {
         refreshPromise = null;
