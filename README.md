@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by [login1], [login2], [login3], [login4].*
+*This project has been created as part of the 42 curriculum by ynzue-es, engiusep, nyousfi, acancel.*
 
 # Kop
 
@@ -120,10 +120,10 @@ Conséquence : on n'utilise aucun module de la catégorie *Gaming and user exper
 
 | Membre | Rôle principal | Rôle technique |
 |---|---|---|
-| [login1] | **Tech Lead** | Backend / archi |
-| [login2] | **Project Manager** | Backend / DevOps |
-| [login3] | **Product Owner** | Frontend |
-| [login4] | **Developer** | Frontend |
+| ynzue-es | **Tech Lead** | Backend / archi |
+| engiusep | **Project Manager** | Backend / DevOps |
+| nyousfi | **Product Owner** | Frontend |
+| acancel | **Developer** | Frontend |
 
 ## Modules ft_transcendence (18 points, cible 14)
 
