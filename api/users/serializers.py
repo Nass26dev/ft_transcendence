@@ -33,6 +33,7 @@ from .models import User
 
 class UserSerializer(serializers.ModelSerializer):
     daily_bonus_available = serializers.SerializerMethodField()
+    wheel_available = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -46,6 +47,7 @@ class UserSerializer(serializers.ModelSerializer):
             'avatar',
             'wallet',
             'daily_bonus_available',
+            'wheel_available',
             'onboarding_completed',
             'is_public',
             'date_joined',
@@ -55,6 +57,10 @@ class UserSerializer(serializers.ModelSerializer):
     def get_daily_bonus_available(self, obj):
         from django.utils import timezone
         return obj.last_daily_bonus != timezone.localdate()
+
+    def get_wheel_available(self, obj):
+        from django.utils import timezone
+        return obj.last_wheel_spin != timezone.localdate()
 
 
 class ProfileUpdateSerializer(serializers.ModelSerializer):

@@ -21,6 +21,8 @@ class User(AbstractUser):
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     last_daily_bonus = models.DateField(null=True, blank=True)
+    # Dernier jour où l'utilisateur a tourné la roue de la chance (1×/jour).
+    last_wheel_spin = models.DateField(null=True, blank=True)
     onboarding_completed = models.BooleanField(default=False)
     # Profil public : apparaît dans les classements et le feed des amis.
     is_public = models.BooleanField(default=True)

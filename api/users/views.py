@@ -145,6 +145,61 @@ class DailyBonusView(APIView):
 
         return Response(UserSerializer(user).data, status=200)
 
+class WheelView(APIView):
+    """Configuration de la roue de la chance : cases + disponibilité du jour."""
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        from django.utils import timezone
+        from .wheel import public_segments
+
+        available = request.user.last_wheel_spin != timezone.localdate()
+        return Response(
+            {"segments": public_segments(), "available": available},
+            status=200,
+        )
+
+
+class WheelSpinView(APIView):
+    """Tourne la roue (1×/jour). Crédite ou débite le solde du gagnant."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        from decimal import Decimal
+        from django.db import transaction
+        from django.utils import timezone
+        from .wheel import spin
+
+        today = timezone.localdate()
+        index, segment = spin()
+        amount = Decimal(str(segment["amount"]))
+
+        with transaction.atomic():
+            user = User.objects.select_for_update().get(pk=request.user.pk)
+            if user.last_wheel_spin == today:
+                return Response(
+                    {"detail": "Tu as déjà tourné la roue aujourd'hui."},
+                    status=400,
+                )
+            before = user.wallet
+            # Le solde reste borné à [0, MAX_WALLET] : une grosse perte ne peut
+            # pas rendre le solde négatif.
+            user.wallet = max(Decimal("0"), min(user.wallet + amount, MAX_WALLET))
+            user.last_wheel_spin = today
+            user.save(update_fields=["wallet", "last_wheel_spin"])
+            delta = user.wallet - before
+
+        return Response(
+            {
+                "index": index,
+                "segment": segment,
+                "delta": delta,
+                "user": UserSerializer(user, context={"request": request}).data,
+            },
+            status=200,
+        )
+
+
 class OnboardingCompleteView(APIView):
     permission_classes = [IsAuthenticated]
 

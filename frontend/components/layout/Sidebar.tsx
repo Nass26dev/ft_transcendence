@@ -55,6 +55,7 @@ function buildSocial(pendingBetsCount: number, isAuthenticated: boolean): NavIte
     { href: "/leagues", label: "Ligues", icon: "league" },
     { href: "/leaderboard", label: "Classement", icon: "trophy" },
     { href: "/challenges", label: "Défis", icon: "flame" },
+    { href: "/wheel", label: "Roue", icon: "gift" },
   ];
 }
 

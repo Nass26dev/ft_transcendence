@@ -16,6 +16,8 @@ export interface Profile {
   date_joined?: string;
   wallet: number;
   daily_bonus_available: boolean;
+  /** La roue de la chance est-elle disponible aujourd'hui (1×/jour) ? */
+  wheel_available: boolean;
   onboarding_completed: boolean;
   /** Profil public : apparaît dans les classements et le feed des amis. */
   is_public?: boolean;
@@ -32,10 +34,26 @@ interface ProfileContextValue {
   refreshProfile: () => Promise<void>;
   /** Récupère le bonus quotidien. Renvoie true si crédité. */
   claimDailyBonus: () => Promise<boolean>;
+  /** Tourne la roue de la chance (1×/jour). Renvoie le résultat, ou null si échec. */
+  spinWheel: () => Promise<SpinResult | null>;
   /** Marque l'onboarding comme terminé (flag backend, ne se réaffiche plus). */
   completeOnboarding: () => Promise<void>;
   /** Déconnecte l'utilisateur : purge les cookies et repasse en mode invité. */
   logout: () => Promise<void>;
+}
+
+/** Une case de la roue de la chance. */
+export interface WheelSegment {
+  label: string;
+  amount: number;
+  kind: "jackpot" | "win" | "neutral" | "loss";
+}
+
+/** Résultat d'un tour de roue renvoyé par le backend. */
+export interface SpinResult {
+  index: number;
+  segment: WheelSegment;
+  delta: number;
 }
 
 const ProfileContext = React.createContext<ProfileContextValue | null>(null);
@@ -88,6 +106,21 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const spinWheel = React.useCallback(async (): Promise<SpinResult | null> => {
+    try {
+      const res = await api.post("/api/wheel/spin/");
+      setProfile(normalize(res.data.user));
+      return {
+        index: res.data.index,
+        segment: res.data.segment,
+        delta: Number(res.data.delta),
+      };
+    } catch (err) {
+      console.error("Erreur roue de la chance:", err);
+      return null;
+    }
+  }, []);
+
   const completeOnboarding = React.useCallback(async (): Promise<void> => {
     // Optimiste : on masque l'onboarding tout de suite, puis on persiste le flag.
     setProfile((prev) =>
@@ -134,6 +167,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
         ready,
         refreshProfile,
         claimDailyBonus,
+        spinWheel,
         completeOnboarding,
         logout,
       }}
