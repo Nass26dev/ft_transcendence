@@ -53,6 +53,16 @@ class Match(models.Model):
     external_id = models.CharField(max_length=200, unique=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    # ── Détails enrichis depuis la fiche foot-live ──
+    footlive_id = models.CharField(max_length=20, blank=True, db_index=True)
+    detail_url = models.CharField(max_length=300, blank=True)
+    referee = models.CharField(max_length=120, blank=True)
+    venue = models.CharField(max_length=120, blank=True)
+    stage = models.CharField(max_length=120, blank=True)  # phase / groupe
+    ht_home_score = models.IntegerField(null=True, blank=True)
+    ht_away_score = models.IntegerField(null=True, blank=True)
+    details_fetched_at = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         indexes = [
             models.Index(fields=["status", "kickoff_at"]),
@@ -61,6 +71,54 @@ class Match(models.Model):
 
     def __str__(self):
         return f"{self.home_team} vs {self.away_team} — {self.kickoff_at:%Y-%m-%d %H:%M}"
+
+
+class MatchEvent(models.Model):
+    """Action d'un match (but, carton, remplacement) extraite de la fiche foot-live."""
+
+    Type = [
+        ("goal", "But"),
+        ("own_goal", "But contre son camp"),
+        ("penalty", "Penalty"),
+        ("yellow_card", "Carton jaune"),
+        ("red_card", "Carton rouge"),
+        ("substitution", "Remplacement"),
+    ]
+    Side = [("home", "Home"), ("away", "Away")]
+
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name="events")
+    minute = models.IntegerField(null=True, blank=True)
+    type = models.CharField(max_length=20, choices=Type)
+    team_side = models.CharField(max_length=4, choices=Side)
+    player = models.CharField(max_length=120)
+    player_out = models.CharField(max_length=120, blank=True)  # remplacements : sortant
+
+    class Meta:
+        ordering = ["minute", "id"]
+        indexes = [models.Index(fields=["match", "minute"])]
+
+    def __str__(self):
+        return f"{self.minute}' {self.get_type_display()} — {self.player}"
+
+
+class MatchLineup(models.Model):
+    """Joueur d'une feuille de match (titulaire ou remplaçant)."""
+
+    Side = [("home", "Home"), ("away", "Away")]
+    Role = [("starter", "Titulaire"), ("substitute", "Remplaçant")]
+
+    match = models.ForeignKey(Match, on_delete=models.CASCADE, related_name="lineups")
+    team_side = models.CharField(max_length=4, choices=Side)
+    role = models.CharField(max_length=12, choices=Role)
+    number = models.IntegerField(null=True, blank=True)
+    player = models.CharField(max_length=120)
+
+    class Meta:
+        ordering = ["team_side", "role", "id"]
+        indexes = [models.Index(fields=["match", "team_side", "role"])]
+
+    def __str__(self):
+        return f"{self.number or '–'} {self.player} ({self.team_side}/{self.role})"
 
 
 class Odds(models.Model):

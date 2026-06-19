@@ -59,6 +59,8 @@ def upsert_matches(match_list: list[dict]) -> tuple[int, int]:
                     "current_minute": data.get("current_minute"),
                     "home_score": data.get("home_score"),
                     "away_score": data.get("away_score"),
+                    "footlive_id": data.get("footlive_id", ""),
+                    "detail_url": data.get("detail_url", ""),
                 },
             )
             if is_new:

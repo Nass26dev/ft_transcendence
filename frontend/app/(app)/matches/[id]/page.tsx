@@ -6,6 +6,8 @@ import { Icon } from "@/components/ui/Icon";
 import { useMatchDetail } from "@/hooks/useMatchDetail";
 import { useBetSlipHandlers } from "../../_components/BetSlipProvider";
 import { MatchHero } from "./_components/MatchHero";
+import { MatchTimeline } from "./_components/MatchTimeline";
+import { MatchLineups } from "./_components/MatchLineups";
 
 export default function MatchDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -27,7 +29,19 @@ export default function MatchDetailPage() {
       </button>
 
       {match ? (
-        <MatchHero match={match} {...handlers} />
+        <div className="flex flex-col gap-4">
+          <MatchHero match={match} {...handlers} />
+          {match.events && match.events.length > 0 && (
+            <MatchTimeline events={match.events} />
+          )}
+          {match.lineups && match.lineups.length > 0 && (
+            <MatchLineups
+              lineups={match.lineups}
+              homeName={match.home_team}
+              awayName={match.away_team}
+            />
+          )}
+        </div>
       ) : (
         <div className="text-sm text-text-3">Chargement du match…</div>
       )}

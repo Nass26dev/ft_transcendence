@@ -7,7 +7,7 @@ from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from rest_framework import mixins, viewsets
 from .models import Match
-from .serializers import MatchListSerializer, OddsSerializer
+from .serializers import MatchDetailSerializer, MatchListSerializer, OddsSerializer
 
 
 
@@ -31,15 +31,23 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
     filter_backends = [filters.DjangoFilterBackend]
     filterset_class = MatchFilter
 
+    def get_serializer_class(self):
+        if self.action == "retrieve":
+            return MatchDetailSerializer
+        return MatchListSerializer
+
     def get_queryset(self):
         # Répartition des paris par sélection 1N2 (Confiance des Kopistes).
         # On compte les jambes (bet_selections) : un combiné compte pour chacun
         # de ses matchs. Count(filter=...) génère un seul JOIN via FILTER.
-        return super().get_queryset().annotate(
+        qs = super().get_queryset().annotate(
             bets_home=Count("bet_selections", filter=Q(bet_selections__odd__selection="home")),
             bets_draw=Count("bet_selections", filter=Q(bet_selections__odd__selection="draw")),
             bets_away=Count("bet_selections", filter=Q(bet_selections__odd__selection="away")),
         )
+        if self.action == "retrieve":
+            qs = qs.prefetch_related("events", "lineups")
+        return qs
 
     def upcoming(self, request):
         now = timezone.now()

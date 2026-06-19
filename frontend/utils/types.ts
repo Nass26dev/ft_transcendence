@@ -55,6 +55,42 @@ export interface Match {
   away_score?: number;
   current_minute?: number;
   kickoff_at?: string;
+
+  // ---- Détail enrichi (endpoint retrieve) ----
+  referee?: string;
+  venue?: string;
+  stage?: string;
+  ht_home_score?: number | null;
+  ht_away_score?: number | null;
+  details_fetched_at?: string | null;
+  events?: MatchEvent[];
+  lineups?: MatchLineupPlayer[];
+}
+
+export type MatchEventType =
+  | "goal"
+  | "own_goal"
+  | "penalty"
+  | "yellow_card"
+  | "red_card"
+  | "substitution";
+
+export type TeamSide = "home" | "away";
+
+export interface MatchEvent {
+  minute: number | null;
+  type: MatchEventType;
+  team_side: TeamSide;
+  player: string;
+  /** Joueur sortant (remplacements uniquement). */
+  player_out?: string;
+}
+
+export interface MatchLineupPlayer {
+  team_side: TeamSide;
+  role: "starter" | "substitute";
+  number: number | null;
+  player: string;
 }
 
 // ---------- Betting ----------

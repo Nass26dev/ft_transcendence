@@ -1,6 +1,6 @@
 # sports/serializers.py
 from rest_framework import serializers
-from .models import Match, Odds
+from .models import Match, MatchEvent, MatchLineup, Odds
 
 
 class MatchListSerializer(serializers.ModelSerializer):
@@ -56,3 +56,29 @@ class OddsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Odds
         fields = ["market", "selection", "value", "updated_at"]
+
+
+class MatchEventSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MatchEvent
+        fields = ["minute", "type", "team_side", "player", "player_out"]
+
+
+class MatchLineupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MatchLineup
+        fields = ["team_side", "role", "number", "player"]
+
+
+class MatchDetailSerializer(MatchListSerializer):
+    """Vue détaillée d'un match : méta foot-live + événements + compositions."""
+
+    events = MatchEventSerializer(many=True, read_only=True)
+    lineups = MatchLineupSerializer(many=True, read_only=True)
+
+    class Meta(MatchListSerializer.Meta):
+        fields = MatchListSerializer.Meta.fields + [
+            "referee", "venue", "stage",
+            "ht_home_score", "ht_away_score",
+            "details_fetched_at", "events", "lineups",
+        ]
