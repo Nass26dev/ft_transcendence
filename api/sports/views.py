@@ -51,10 +51,13 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
 
     def upcoming(self, request):
         now = timezone.now()
+        # order_by explicite : l'annotate(Count(...)) du get_queryset ajoute un
+        # GROUP BY qui écrase l'ordering du modèle. Sans ça, les matchs sortent
+        # en désordre et le prochain coup d'envoi est noyé dans la liste.
         qs = self.get_queryset().filter(
             status="scheduled",
             kickoff_at__range=(now, now + timedelta(days=7)),
-        )
+        ).order_by("kickoff_at")
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
@@ -63,7 +66,9 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         # heures. Couvre les matchs à cheval sur minuit et écarte les "live"
         # fantômes restés bloqués (kickoff vieux de plusieurs jours/mois).
         cutoff = timezone.now() - timedelta(hours=4)
-        qs = self.get_queryset().filter(status="live", kickoff_at__gte=cutoff)
+        qs = self.get_queryset().filter(
+            status="live", kickoff_at__gte=cutoff
+        ).order_by("kickoff_at")
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 

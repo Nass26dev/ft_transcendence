@@ -30,6 +30,11 @@ class Team(models.Model):
     logo_url = models.URLField(blank=True)
     external_id = models.CharField(max_length=50, blank=True, db_index=True)
 
+    class Meta:
+        # Empêche les doublons d'équipe créés par la course entre tâches de
+        # scraping concurrentes (get_or_create sans contrainte BDD).
+        unique_together = [("competition", "name")]
+
     def __str__(self):
         return self.name
 

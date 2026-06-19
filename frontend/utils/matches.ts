@@ -34,6 +34,28 @@ export function filterByMajorCompetitions(matches: Match[]): Match[] {
   return matches.filter((m) => m.competition != null && MAJOR_SET.has(m.competition));
 }
 
+/** Minuscule sans accents, pour une recherche tolérante (« Genève » ~ « geneve »). */
+function normalize(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .trim();
+}
+
+/**
+ * Vrai si le match correspond à la recherche `query` (équipes ou compétition).
+ * Chaque mot de la requête doit matcher quelque part (recherche « ET »).
+ */
+export function matchMatchesQuery(match: Match, query: string): boolean {
+  const q = normalize(query);
+  if (!q) return true;
+  const haystack = normalize(
+    [match.home_team, match.away_team, match.competition].filter(Boolean).join(" ")
+  );
+  return q.split(/\s+/).every((word) => haystack.includes(word));
+}
+
 /**
  * Liste les championnats majeurs réellement présents dans `matches`,
  * dans l'ordre de MAJOR_COMPETITIONS. Sert à n'afficher que les filtres utiles.

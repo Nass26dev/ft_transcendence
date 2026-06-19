@@ -4,8 +4,10 @@ import React from "react";
 import { Tag } from "@/components/ui/Tag";
 import { LiveTile } from "@/components/match/LiveTile";
 import { LeagueFilterBar } from "@/components/match/LeagueFilterBar";
+import { MatchSearchBar } from "@/components/match/MatchSearchBar";
 import { MatchCardSkeletonGrid } from "@/components/match/MatchSkeleton";
 import { useLeagueFilter } from "@/hooks/useLeagueFilter";
+import { useMatchSearch } from "@/hooks/useMatchSearch";
 import type { Match, MatchHandlers } from "@/utils/types";
 
 interface LiveGridProps extends MatchHandlers {
@@ -14,7 +16,8 @@ interface LiveGridProps extends MatchHandlers {
 }
 
 export function LiveGrid({ matches, loading, onPick, isPicked, onOpen }: LiveGridProps) {
-  const { filtered, leagues, active, setActive } = useLeagueFilter(matches);
+  const { query, setQuery, filtered: searched } = useMatchSearch(matches);
+  const { filtered, leagues, active, setActive } = useLeagueFilter(searched);
 
   return (
     <>
@@ -30,6 +33,12 @@ export function LiveGrid({ matches, loading, onPick, isPicked, onOpen }: LiveGri
         </div>
       </div>
 
+      <MatchSearchBar
+        value={query}
+        onChange={setQuery}
+        className="mb-4 max-w-[480px]"
+      />
+
       {loading ? (
         <div className="mb-6">
           <MatchCardSkeletonGrid count={4} />
@@ -43,18 +52,24 @@ export function LiveGrid({ matches, loading, onPick, isPicked, onOpen }: LiveGri
             className="mb-4"
           />
 
-          {/* Live tiles */}
-          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {filtered.map((m) => (
-              <LiveTile
-                key={m.id}
-                match={m}
-                onPick={onPick}
-                isPicked={isPicked}
-                onOpen={onOpen}
-              />
-            ))}
-          </div>
+          {filtered.length === 0 ? (
+            <div className="mb-6 rounded-[10px] border border-border bg-surface-1 px-4 py-8 text-center text-[13px] text-text-3">
+              Aucun match en direct ne correspond.
+            </div>
+          ) : (
+            /* Live tiles */
+            <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+              {filtered.map((m) => (
+                <LiveTile
+                  key={m.id}
+                  match={m}
+                  onPick={onPick}
+                  isPicked={isPicked}
+                  onOpen={onOpen}
+                />
+              ))}
+            </div>
+          )}
         </>
       )}
     </>

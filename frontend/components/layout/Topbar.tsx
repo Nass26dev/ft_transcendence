@@ -6,7 +6,6 @@ import { Icon } from "@/components/ui/Icon";
 import { Avatar } from "@/components/ui/Avatar";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 import { userInitials } from "@/utils/user";
-import { TopbarSearch } from "./TopbarSearch";
 import { NotificationBell } from "./NotificationBell";
 
 interface TopbarProps {
@@ -28,9 +27,6 @@ export function Topbar({ onMenu }: TopbarProps) {
       >
         <Icon name="menu" size={20} stroke={1.8} />
       </button>
-
-      {/* Search (masquée sur mobile) */}
-      <TopbarSearch />
 
       <div className="flex-1" />
 

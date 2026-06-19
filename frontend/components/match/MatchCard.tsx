@@ -11,7 +11,12 @@ interface MatchCardProps extends PickHandlers {
   match: Match;
 }
 
-export function MatchCard({ match, onPick, isPicked, onOpen }: MatchCardProps) {
+export const MatchCard = React.memo(function MatchCard({
+  match,
+  onPick,
+  isPicked,
+  onOpen,
+}: MatchCardProps) {
   const conf = match.conf ?? { "1": 0, X: 0, "2": 0 };
   const hasBets = (match.bets_total ?? 0) > 0;
   const handleClick = useCardOpen(match.id, onOpen);
@@ -83,4 +88,4 @@ export function MatchCard({ match, onPick, isPicked, onOpen }: MatchCardProps) {
       </div>
     </div>
   );
-}
+});
