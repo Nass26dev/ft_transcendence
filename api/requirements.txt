@@ -51,3 +51,5 @@ channels==4.3.1
 channels-redis==4.3.0
 daphne>=4.0.0
 whitenoise==6.8.2
+pytest==8.3.5
+pytest-django==4.11.1
