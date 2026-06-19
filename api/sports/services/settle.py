@@ -15,8 +15,11 @@ import logging
 from decimal import Decimal
 
 from django.db import transaction
-from django.db.models import F
+from django.db.models import F, Value
+from django.db.models.functions import Least
 from django.utils import timezone
+
+from users.models import MAX_WALLET
 
 from sports.models import Match
 from betting.models import Bet, BetSelection
@@ -123,11 +126,14 @@ def _notify_settled(bet, payout) -> None:
 
 
 def _credit(user_id: int, amount) -> None:
-    """Crédite le wallet d'un utilisateur (mise à jour atomique en base)."""
+    """Crédite le wallet d'un utilisateur (mise à jour atomique en base),
+    plafonné à MAX_WALLET pour éviter tout débordement du champ."""
     from django.contrib.auth import get_user_model
 
     User = get_user_model()
-    User.objects.filter(pk=user_id).update(wallet=F("wallet") + amount)
+    User.objects.filter(pk=user_id).update(
+        wallet=Least(F("wallet") + amount, Value(MAX_WALLET))
+    )
 
 
 def settle_finished_matches() -> int:

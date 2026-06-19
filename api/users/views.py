@@ -7,7 +7,7 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .serializers import UserSerializer
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
-from .models import User
+from .models import User, MAX_WALLET
 from .serializers import UserSerializer, RegisterSerializer, ProfileUpdateSerializer
 import secrets
 from .services import send_2fa_email
@@ -139,7 +139,7 @@ class DailyBonusView(APIView):
                     {"detail": "Bonus déjà récupéré aujourd'hui."},
                     status=400,
                 )
-            user.wallet += DAILY_BONUS_AMOUNT
+            user.wallet = min(user.wallet + DAILY_BONUS_AMOUNT, MAX_WALLET)
             user.last_daily_bonus = today
             user.save(update_fields=["wallet", "last_daily_bonus"])
 

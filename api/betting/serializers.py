@@ -9,6 +9,15 @@ from .models import Bet, BetSelection
 # Mapping front (1 / X / 2) -> sélection Odds en base (market 1N2)
 SELECTION_MAP = {"1": "home", "X": "draw", "2": "away"}
 
+# Garde-fous des paris (monnaie virtuelle, mais on borne pour éviter les
+# débordements de champ et le farming de Kops).
+MAX_STAKE = Decimal("10000000")            # mise max par pari : 10 M Kops
+MAX_COMBO_LEGS = 10                         # nombre max de matchs dans un combiné
+MAX_ODD_VALUE = Decimal("9999999999.99")   # cote totale max (anti-overflow)
+# Les paris en direct ferment en fin de rencontre : passé cette minute, le
+# résultat est quasi acquis, on bloque comme le font les books.
+LIVE_BET_CUTOFF_MINUTE = 85
+
 
 def _pick_label(odd):
     """Libellé lisible d'une jambe à partir de sa cote."""
@@ -91,6 +100,10 @@ class BetSerializer(serializers.ModelSerializer):
     def validate_stake(self, value):
         if value <= 0:
             raise serializers.ValidationError("La mise doit être positive.")
+        if value > MAX_STAKE:
+            raise serializers.ValidationError(
+                f"Mise maximale : {int(MAX_STAKE):,} Kops.".replace(",", " ")
+            )
         return value
 
     def validate(self, attrs):
@@ -102,6 +115,11 @@ class BetSerializer(serializers.ModelSerializer):
                     "Fournis 'selections' (combiné) ou 'match' + 'selection' (simple)."
                 )
             raw = [{"match": attrs["match"], "selection": attrs["selection"]}]
+
+        if len(raw) > MAX_COMBO_LEGS:
+            raise serializers.ValidationError(
+                f"Un combiné ne peut pas dépasser {MAX_COMBO_LEGS} matchs."
+            )
 
         match_ids = [leg["match"].id for leg in raw]
         if len(match_ids) != len(set(match_ids)):
@@ -119,6 +137,16 @@ class BetSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError(
                     f"Les paris sont fermés pour {match}."
                 )
+            # En direct, on ferme les paris en fin de match (résultat quasi
+            # acquis) — comme sur les sites de paris.
+            if (
+                match.status == "live"
+                and match.current_minute is not None
+                and match.current_minute >= LIVE_BET_CUTOFF_MINUTE
+            ):
+                raise serializers.ValidationError(
+                    f"Paris fermés : {match} touche à sa fin."
+                )
             sel = SELECTION_MAP[leg["selection"]]
             try:
                 odd = match.odds.get(market="1N2", selection=sel)
@@ -131,6 +159,10 @@ class BetSerializer(serializers.ModelSerializer):
 
         attrs["_legs"] = legs
         attrs["odd_value"] = round(total_odd, 2)  # cote totale figée
+        if attrs["odd_value"] > MAX_ODD_VALUE:
+            raise serializers.ValidationError(
+                "Cote totale trop élevée pour ce combiné."
+            )
         return attrs
 
     # ---------- Création ----------

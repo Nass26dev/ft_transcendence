@@ -27,12 +27,12 @@ class Bet(models.Model):
         related_name="bets"
     )
 
-    stake = models.DecimalField(max_digits=10, decimal_places=2)
+    stake = models.DecimalField(max_digits=14, decimal_places=2)
 
     # Cote totale figée au moment du pari (produit des cotes des jambes).
     # Les cotes sont recalculées en continu, le gain doit utiliser la valeur
     # prise à la création, pas la valeur actuelle.
-    odd_value = models.DecimalField(max_digits=10, decimal_places=2)
+    odd_value = models.DecimalField(max_digits=14, decimal_places=2)
 
     status = models.CharField(
         max_length=20,
