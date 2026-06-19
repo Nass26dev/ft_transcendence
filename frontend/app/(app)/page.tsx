@@ -13,7 +13,7 @@ import { HomeRail } from "./_components/HomeRail";
 import { Onboarding } from "@/components/betting/Onboarding";
 
 export default function HomePage() {
-  const { live, upcoming } = useHomeMatches();
+  const { live, upcoming, loading } = useHomeMatches();
   const handlers = useBetSlipHandlers();
   const { profile, completeOnboarding } = useProfile();
 
@@ -26,8 +26,8 @@ export default function HomePage() {
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1">
-          <LiveSection matches={live} {...handlers} />
-          <UpcomingSection matches={upcoming} {...handlers} />
+          <LiveSection matches={live} loading={loading} {...handlers} />
+          <UpcomingSection matches={upcoming} loading={loading} {...handlers} />
         </div>
 
         <HomeRail friendsOn />

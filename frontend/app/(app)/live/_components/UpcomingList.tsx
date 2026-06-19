@@ -2,18 +2,25 @@
 
 import React from "react";
 import { CompactRow } from "@/components/match/CompactRow";
+import { LeagueFilterBar } from "@/components/match/LeagueFilterBar";
+import { CompactRowSkeleton } from "@/components/match/MatchSkeleton";
+import { useLeagueFilter } from "@/hooks/useLeagueFilter";
 import type { Match, MatchHandlers } from "@/utils/types";
 
 interface UpcomingListProps extends MatchHandlers {
   matches: Match[];
+  loading?: boolean;
 }
 
 export function UpcomingList({
   matches,
+  loading,
   onPick,
   isPicked,
   onOpen,
 }: UpcomingListProps) {
+  const { filtered, leagues, active, setActive } = useLeagueFilter(matches);
+
   return (
     <>
       {/* À venir */}
@@ -25,17 +32,34 @@ export function UpcomingList({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-[10px] border border-border bg-surface-1">
-        {matches.map((m) => (
-          <CompactRow
-            key={m.id}
-            match={m}
-            onPick={onPick}
-            isPicked={isPicked}
-            onOpen={onOpen}
+      {loading ? (
+        <div className="overflow-hidden rounded-[10px] border border-border bg-surface-1">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <CompactRowSkeleton key={i} />
+          ))}
+        </div>
+      ) : (
+        <>
+          <LeagueFilterBar
+            leagues={leagues}
+            active={active}
+            onChange={setActive}
+            className="mb-4"
           />
-        ))}
-      </div>
+
+          <div className="overflow-hidden rounded-[10px] border border-border bg-surface-1">
+            {filtered.map((m) => (
+              <CompactRow
+                key={m.id}
+                match={m}
+                onPick={onPick}
+                isPicked={isPicked}
+                onOpen={onOpen}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </>
   );
 }

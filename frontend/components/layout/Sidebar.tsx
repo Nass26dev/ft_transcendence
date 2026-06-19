@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Icon } from "@/components/ui/Icon";
+import { Icon, type IconName } from "@/components/ui/Icon";
 import { Kops } from "@/components/ui/Kops";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 import { useHomeMatches } from "@/hooks/useHomeMatches";
@@ -14,7 +14,7 @@ import { useBets } from "@/hooks/useBets";
 interface NavItem {
   href: string;
   label: string;
-  icon: string;
+  icon: IconName;
   badge?: string;
   badgeMuted?: string;
 }

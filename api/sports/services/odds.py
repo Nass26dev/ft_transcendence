@@ -1,6 +1,7 @@
 # sports/services/odds.py
 import logging
 from decimal import Decimal
+from math import exp
 
 from django.db.models import Q
 
@@ -13,6 +14,10 @@ FORM_WINDOW = 10        # nombre de derniers matchs analysés par équipe
 HOME_ADVANTAGE = 0.15   # bonus de force pour l'équipe à domicile
 MARGIN = 0.07           # overround bookmaker (~7 %)
 MIN_PROB = 0.05         # plancher de proba par issue (évite cotes absurdes)
+
+# ── Ajustement live (cotes en direct selon le score) ──────────────
+LIVE_GOAL_SENSITIVITY = 0.55  # plus c'est haut, plus un but d'écart bouge la cote
+LIVE_DRAW_BOOST = 0.25        # à égalité, prime au nul en fin de match
 
 
 def _team_strength(team, before) -> float:
@@ -68,6 +73,50 @@ def _probabilities(home_strength: float, away_strength: float) -> dict:
     return {k: v / s for k, v in probs.items()}
 
 
+def _live_time_factor(minute) -> float:
+    """Poids du score selon l'avancement : ~0.4 en début de match, 1.0 à la fin.
+    Un but encaissé tôt est moins décisif qu'un but en fin de partie."""
+    progress = min(max((minute or 0) / 90.0, 0.0), 1.0)
+    return 0.4 + 0.6 * progress
+
+
+def _apply_live_adjustment(probs: dict, home_score: int, away_score: int, minute) -> dict:
+    """Réajuste les probabilités 1N2 d'un match EN COURS selon le score.
+    Plus l'écart de buts est fort, plus la cote de l'équipe qui mène baisse
+    (et celles du nul / de l'adversaire montent)."""
+    diff = home_score - away_score
+    t = _live_time_factor(minute)
+
+    if diff == 0:
+        # Match nul en cours : le nul devient plus probable au fil du temps.
+        # On utilise l'avancement brut (≈0 en début de match) pour ne quasiment
+        # rien bouger tant que le score est vierge tôt.
+        progress = min(max((minute or 0) / 90.0, 0.0), 1.0)
+        boost = LIVE_DRAW_BOOST * progress
+        draw = probs["draw"] + boost * (1 - probs["draw"])
+        rest = (probs["home"] + probs["away"]) or 1.0
+        scale = (1 - draw) / rest
+        adjusted = {"home": probs["home"] * scale, "draw": draw, "away": probs["away"] * scale}
+    else:
+        # Une équipe mène : elle absorbe une fraction de la proba (nul + adversaire),
+        # d'autant plus grande que l'écart |diff| et le temps écoulé sont importants.
+        strength = 1 - exp(-LIVE_GOAL_SENSITIVITY * abs(diff) * t)  # 0 → 1
+        leader = "home" if diff > 0 else "away"
+        other = "away" if diff > 0 else "home"
+
+        transferred = strength * (probs["draw"] + probs[other])
+        adjusted = {
+            leader: probs[leader] + transferred,
+            "draw": probs["draw"] * (1 - strength),
+            other: probs[other] * (1 - strength),
+        }
+
+    # Plancher par issue + renormalisation (somme = 1).
+    adjusted = {k: max(MIN_PROB, v) for k, v in adjusted.items()}
+    s = sum(adjusted.values())
+    return {k: v / s for k, v in adjusted.items()}
+
+
 def _to_odds(prob: float) -> Decimal:
     """Probabilité → cote décimale, marge bookmaker appliquée."""
     fair = 1 / prob
@@ -81,6 +130,18 @@ def compute_match_odds(match: Match) -> dict:
     away_s = _team_strength(match.away_team, match.kickoff_at)
 
     probs = _probabilities(home_s, away_s)
+
+    # En direct : le score en cours fait bouger les cotes (plus l'écart est fort,
+    # plus la cote de l'équipe qui mène baisse).
+    if (
+        match.status == "live"
+        and match.home_score is not None
+        and match.away_score is not None
+    ):
+        probs = _apply_live_adjustment(
+            probs, match.home_score, match.away_score, match.current_minute
+        )
+
     odds = {sel: _to_odds(p) for sel, p in probs.items()}
 
     for selection, value in odds.items():

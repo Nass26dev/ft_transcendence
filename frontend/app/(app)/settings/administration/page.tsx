@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Icon } from "@/components/ui/Icon";
+import { Icon, type IconName } from "@/components/ui/Icon";
 import { useProfile } from "../../_components/ProfileProvider";
 import api from "@/utils/api";
 
@@ -87,7 +87,7 @@ function Card({
   children,
 }: {
   title: string;
-  icon?: string;
+  icon?: IconName;
   children: React.ReactNode;
 }) {
   return (
@@ -131,7 +131,7 @@ function StatCard({
   value,
   hint,
 }: {
-  icon: string;
+  icon: IconName;
   label: string;
   value: string;
   hint?: string;
@@ -411,7 +411,7 @@ function BetsViewer({ bets }: { bets: Bet[] }) {
 
 type Tab = "data" | "wallet" | "friends" | "bets";
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
+const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: "data", label: "Données", icon: "user" },
   { id: "wallet", label: "Wallet", icon: "wallet" },
   { id: "friends", label: "Amis", icon: "users" },

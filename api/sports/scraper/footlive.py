@@ -17,6 +17,7 @@ LEAGUES = {
     "italie/serie-a":            ("Serie A",          "serie-a"),
     "portugal/primeira-liga":    ("Primeira Liga",    "primeira-liga"),
     "ukraine/premier-league":    ("Premier League UA", "premier-league-ua"),
+    "monde/coupe-du-monde":      ("Coupe du monde",   "coupe-du-monde"),
 }
 
 RESTE_DU_MONDE = ("Reste du monde", "reste-du-monde")

@@ -82,11 +82,6 @@ button {
   cursor: pointer;
 }
 
-/* Pulse animation pour les tags live */
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
-}
 /* Animations réduites (préférence utilisateur, réglages).
    Coupe transitions/animations quand la classe est posée sur <html>. */
 html.reduce-motion *,

@@ -2,21 +2,12 @@
 
 import React from "react";
 import type { Match, PickHandlers } from "@/utils/types";
-import { OddPill } from "@/components/ui/OddPill";
+import { OddsRow } from "@/components/match/OddsRow";
+import { TeamBadge } from "@/components/match/TeamBadge";
+import { formatKickoff } from "@/utils/date";
 
 interface MatchHeroProps extends PickHandlers {
   match: Match;
-}
-
-function formatKickoff(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString("fr-FR", {
-    weekday: "long",
-    day: "2-digit",
-    month: "long",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
 }
 
 export function MatchHero({ match, onPick, isPicked }: MatchHeroProps) {
@@ -28,7 +19,7 @@ export function MatchHero({ match, onPick, isPicked }: MatchHeroProps) {
         {match.kickoff_at && (
           <>
             <span className="text-text-4">•</span>
-            <span>{formatKickoff(match.kickoff_at)}</span>
+            <span>{formatKickoff(match.kickoff_at, "long")}</span>
           </>
         )}
       </div>
@@ -36,21 +27,16 @@ export function MatchHero({ match, onPick, isPicked }: MatchHeroProps) {
       {/* Teams + odds */}
       <div className="grid grid-cols-[1fr_auto] items-center gap-6">
         <div className="flex flex-col gap-3">
-          <span className="text-lg font-bold">{match.home_team}</span>
-          <span className="text-lg font-bold">{match.away_team}</span>
+          <span className="flex items-center gap-2.5 text-lg font-bold">
+            <TeamBadge team={match.home_team} side="home" size={26} />
+            {match.home_team}
+          </span>
+          <span className="flex items-center gap-2.5 text-lg font-bold">
+            <TeamBadge team={match.away_team} side="away" size={26} />
+            {match.away_team}
+          </span>
         </div>
-        <div className="flex gap-1.5">
-          {(["1", "X", "2"] as const).map((k) => (
-            <OddPill
-              key={k}
-              label={k}
-              value={match.odds?.[k]}
-              selected={isPicked(match.id, k)}
-              trend={match.trend?.[k] as "up" | "down" | undefined}
-              onClick={() => onPick(match, k)}
-            />
-          ))}
-        </div>
+        <OddsRow match={match} onPick={onPick} isPicked={isPicked} />
       </div>
     </div>
   );

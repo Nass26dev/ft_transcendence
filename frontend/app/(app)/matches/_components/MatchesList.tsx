@@ -2,18 +2,31 @@
 
 import React from "react";
 import { MatchCard } from "@/components/match/MatchCard";
+import { MatchCardSkeleton } from "@/components/match/MatchSkeleton";
 import type { Match, MatchHandlers } from "@/utils/types";
 
 interface MatchesListProps extends MatchHandlers {
   matches: Match[];
+  loading?: boolean;
 }
 
 export function MatchesList({
   matches,
+  loading,
   onPick,
   isPicked,
   onOpen,
 }: MatchesListProps) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <MatchCardSkeleton key={i} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       {matches.length === 0 ? (

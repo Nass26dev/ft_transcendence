@@ -7,18 +7,25 @@ import type { Match } from "@/utils/types";
 /** Charge tous les matchs à venir (hors live), toutes compétitions confondues. */
 export function useUpcomingMatches() {
   const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    let cancelled = false;
     const load = async () => {
       try {
         const res = await api.get("/api/matches/upcoming/");
-        setMatches(res.data);
+        if (!cancelled) setMatches(res.data);
       } catch (err) {
-        console.error("Erreur chargement matchs:", err);
+        if (!cancelled) console.error("Erreur chargement matchs:", err);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
     load();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
-  return { matches };
+  return { matches, loading };
 }

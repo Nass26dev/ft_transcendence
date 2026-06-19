@@ -35,15 +35,8 @@ import {
   X,
 } from "lucide-react";
 
-interface IconProps {
-  name: string;
-  size?: number;
-  stroke?: number;
-  className?: string;
-}
-
 /** Associe les noms d'icônes historiques à leurs équivalents lucide-react. */
-const ICONS: Record<string, LucideIcon> = {
+const ICONS = {
   home: Home,
   menu: Menu,
   live: Radio,
@@ -76,11 +69,20 @@ const ICONS: Record<string, LucideIcon> = {
   users: Users,
   "trending-up": TrendingUp,
   "door-exit": LogOut,
-};
+} satisfies Record<string, LucideIcon>;
+
+/** Nom d'icône valide (clé de la table ci-dessus). */
+export type IconName = keyof typeof ICONS;
+
+interface IconProps {
+  name: IconName;
+  size?: number;
+  stroke?: number;
+  className?: string;
+}
 
 export function Icon({ name, size = 18, stroke = 2, className }: IconProps) {
   const LucideComp = ICONS[name];
-  if (!LucideComp) return null;
   const cls = className ? `icon ${className}` : "icon";
   return <LucideComp className={cls} size={size} strokeWidth={stroke} />;
 }

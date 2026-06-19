@@ -3,7 +3,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .serializers import UserSerializer
 from rest_framework import generics
 from rest_framework.permissions import AllowAny
@@ -86,8 +86,9 @@ class LoginStep2View(APIView):
 
 class ProfileView(APIView):
     permission_classes = [IsAuthenticated]
-    # Accepte le multipart pour l'upload de la photo de profil.
-    parser_classes = [MultiPartParser, FormParser]
+    # JSON pour les champs texte (prénom, bio, profil public…) ;
+    # multipart pour l'upload de la photo de profil.
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     # Taille max de l'avatar : 5 Mo.
     MAX_AVATAR_SIZE = 5 * 1024 * 1024

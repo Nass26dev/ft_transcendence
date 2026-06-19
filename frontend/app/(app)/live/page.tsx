@@ -9,15 +9,15 @@ import { LiveGrid } from "./_components/LiveGrid";
 import { UpcomingList } from "./_components/UpcomingList";
 
 export default function LivePage() {
-  const { live, upcoming } = useHomeMatches();
+  const { live, upcoming, loading } = useHomeMatches();
   const handlers = useBetSlipHandlers();
 
   return (
     <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
         <div className="min-w-0 flex-1">
-          <LiveGrid matches={live} {...handlers} />
-          <UpcomingList matches={upcoming} {...handlers} />
+          <LiveGrid matches={live} loading={loading} {...handlers} />
+          <UpcomingList matches={upcoming} loading={loading} {...handlers} />
         </div>
 
         <HomeRail friendsOn />

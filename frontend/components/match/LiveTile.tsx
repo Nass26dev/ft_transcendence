@@ -1,21 +1,18 @@
 "use client";
 
 import React from "react";
-import { Crest } from "@/components/ui/Crest";
 import { Tag } from "@/components/ui/Tag";
+import { TeamBadge } from "@/components/match/TeamBadge";
+import { OddsRow } from "@/components/match/OddsRow";
+import { useCardOpen } from "@/hooks/useCardOpen";
 import type { Match, PickHandlers } from "@/utils/types";
-import { OddPill } from "@/components/ui/OddPill";
 
 interface LiveTileProps extends PickHandlers {
   match: Match;
 }
 
 export function LiveTile({ match, onPick, isPicked, onOpen }: LiveTileProps) {
-  const handleClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!(e.target as HTMLElement).closest("[data-odd-pill]")) {
-      onOpen(match.id);
-    }
-  };
+  const handleClick = useCardOpen(match.id, onOpen);
 
   return (
     <div
@@ -35,6 +32,7 @@ export function LiveTile({ match, onPick, isPicked, onOpen }: LiveTileProps) {
       {/* Score */}
       <div className="my-3 flex items-center justify-between">
         <div className="flex min-w-0 flex-1 items-center gap-2">
+          <TeamBadge team={match.home_team} side="home" size={20} />
           <span className="truncate text-sm font-semibold">{match.home_team}</span>
         </div>
         <div className="flex-none px-2 font-display tnum text-2xl font-bold tracking-[-0.02em]">
@@ -42,22 +40,12 @@ export function LiveTile({ match, onPick, isPicked, onOpen }: LiveTileProps) {
         </div>
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
           <span className="truncate text-sm font-semibold">{match.away_team}</span>
+          <TeamBadge team={match.away_team} side="away" size={20} />
         </div>
       </div>
 
       {/* Odds */}
-      <div className="flex gap-1.5">
-        {(["1", "X", "2"] as const).map((k) => (
-          <OddPill
-            key={k}
-            label={k}
-            value={match.odds?.[k]}
-            selected={isPicked(match.id, k)}
-            onClick={() => onPick(match, k)}
-            fullWidth
-          />
-        ))}
-      </div>
+      <OddsRow match={match} onPick={onPick} isPicked={isPicked} fullWidth />
     </div>
   );
 }
