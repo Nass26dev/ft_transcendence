@@ -75,7 +75,7 @@ export function NotificationBell() {
           animate="show"
           exit="exit"
           style={{ transformOrigin: "top right" }}
-          className="absolute right-0 top-[calc(100%+8px)] z-50 w-[340px] overflow-hidden rounded-[12px] border border-border-strong bg-surface-1 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
+          className="absolute right-0 top-[calc(100%+8px)] z-50 w-[min(340px,calc(100vw-2rem))] overflow-hidden rounded-[12px] border border-border-strong bg-surface-1 shadow-[0_20px_60px_rgba(0,0,0,0.6)]">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <h3 className="font-display text-[15px] font-bold">Notifications</h3>
             {unread > 0 && (

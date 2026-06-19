@@ -52,7 +52,7 @@ export function TopbarSearch() {
   };
 
   return (
-    <div ref={boxRef} className="relative max-w-[420px] flex-1">
+    <div ref={boxRef} className="relative hidden min-w-0 max-w-[420px] flex-1 sm:block">
       <div className="flex items-center gap-2.5 rounded-[10px] border border-border bg-surface-1 px-3 py-2.5">
         <Icon name="search" size={16} stroke={1.8} />
         <input
@@ -64,7 +64,8 @@ export function TopbarSearch() {
             if (e.key === "Escape") setOpen(false);
           }}
           placeholder="Rechercher un joueur…"
-          className="flex-1 border-none bg-transparent text-[13.5px] outline-none placeholder:text-text-3"
+          size={1}
+          className="w-full min-w-0 flex-1 border-none bg-transparent text-[13.5px] outline-none placeholder:text-text-3"
         />
       </div>
 

@@ -172,13 +172,13 @@ function LeaguesContent() {
                 </div>
                 <button
                   onClick={() => handleAccept(inv.id)}
-                  className="inline-flex items-center gap-1.5 rounded-md bg-kop px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-kop-bright"
+                  className="inline-flex flex-none items-center gap-1.5 rounded-md bg-kop px-3 py-1.5 text-[12.5px] font-semibold text-white transition-colors hover:bg-kop-bright"
                 >
                   <Icon name="check" size={14} /> Accepter
                 </button>
                 <button
                   onClick={() => handleDecline(inv.id)}
-                  className="rounded-md border border-border-strong bg-transparent px-3 py-1.5 text-[12.5px] font-semibold text-text-3 transition-colors hover:border-kop hover:text-kop"
+                  className="flex-none rounded-md border border-border-strong bg-transparent px-3 py-1.5 text-[12.5px] font-semibold text-text-3 transition-colors hover:border-kop hover:text-kop"
                 >
                   Refuser
                 </button>

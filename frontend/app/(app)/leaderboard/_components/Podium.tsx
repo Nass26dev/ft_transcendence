@@ -5,22 +5,22 @@ import type { LeagueBoardEntry } from "@/utils/types";
 
 export function Podium({ entries }: { entries: LeagueBoardEntry[] }) {
   return (
-    <div className="mb-4 grid grid-cols-3 gap-3">
+    <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-3">
       {entries.map((r) => (
         <div
           key={r.rank}
-          className={`rounded-[10px] border bg-gradient-to-b to-surface-1 p-4 ${getPodiumColor(r.rank)}`}
+          className={`min-w-0 rounded-[10px] border bg-gradient-to-b to-surface-1 p-3 sm:p-4 ${getPodiumColor(r.rank)}`}
         >
-          <div className="mb-3 flex items-center justify-between">
-            <span className="font-display text-3xl font-bold">
+          <div className="mb-3 flex items-center justify-between gap-1">
+            <span className="font-display text-2xl font-bold sm:text-3xl">
               {r.rank === 1 ? "🥇" : r.rank === 2 ? "🥈" : "🥉"}
             </span>
-            <span className="font-mono tnum text-xs font-bold text-text-3">
+            <span className="font-mono tnum text-[11px] font-bold text-text-3 sm:text-xs">
               WR {r.wr}
             </span>
           </div>
-          <div className="mb-1 text-sm font-bold">{r.user}</div>
-          <div className="mb-3 text-xs text-text-3">{r.handle}</div>
+          <div className="mb-1 truncate text-sm font-bold">{r.user}</div>
+          <div className="mb-3 truncate text-xs text-text-3">{r.handle}</div>
           <Kops amount={r.kops} size={16} color="var(--green)" />
         </div>
       ))}

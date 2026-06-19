@@ -23,21 +23,21 @@ export function ProfileHero() {
     : null;
 
   return (
-    <div className="mb-6 rounded-[10px] border border-border bg-gradient-to-br from-[#1A0808] to-surface-1 p-7">
-      <div className="flex items-center gap-5">
+    <div className="mb-6 rounded-[10px] border border-border bg-gradient-to-br from-[#1A0808] to-surface-1 p-5 sm:p-7">
+      <div className="flex flex-wrap items-center gap-4 sm:gap-5">
         {/* Avatar */}
         <Avatar
           src={profile.avatar}
           initials={userInitials(profile)}
-          className="h-20 w-20 text-[28px]"
+          className="h-16 w-16 text-[22px] sm:h-20 sm:w-20 sm:text-[28px]"
         />
 
         {/* Identity */}
         <div className="min-w-0 flex-1">
-          <h1 className="font-display text-[32px] font-bold tracking-[-0.02em]">
+          <h1 className="truncate font-display text-[24px] font-bold tracking-[-0.02em] sm:text-[32px]">
             {displayName(profile)}
           </h1>
-          <div className="mt-1 text-[13px] text-text-3">
+          <div className="mt-1 truncate text-[13px] text-text-3">
             @{profile.username || profile.email.split("@")[0]}
             {memberSince && <> · Membre depuis {memberSince}</>}
           </div>
@@ -52,7 +52,7 @@ export function ProfileHero() {
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
             Solde
           </div>
-          <div className="font-display tnum text-4xl font-bold text-kop-bright">
+          <div className="font-display tnum text-3xl font-bold text-kop-bright sm:text-4xl">
             {profile.wallet.toLocaleString("fr-FR")}
           </div>
           <div className="text-xs text-text-3">Kops</div>

@@ -30,14 +30,14 @@ export function MatchCard({ match, onPick, isPicked, onOpen }: MatchCardProps) {
 
       {/* Teams + odds */}
       <div className="grid grid-cols-[1fr_auto] items-center gap-3.5">
-        <div className="flex flex-col gap-2">
-          <span className="flex items-center gap-2 text-sm font-semibold">
+        <div className="flex min-w-0 flex-col gap-2">
+          <span className="flex min-w-0 items-center gap-2 text-sm font-semibold">
             <TeamBadge team={match.home_team} side="home" />
-            {match.home_team}
+            <span className="truncate">{match.home_team}</span>
           </span>
-          <span className="flex items-center gap-2 text-sm font-semibold">
+          <span className="flex min-w-0 items-center gap-2 text-sm font-semibold">
             <TeamBadge team={match.away_team} side="away" />
-            {match.away_team}
+            <span className="truncate">{match.away_team}</span>
           </span>
         </div>
         <OddsRow match={match} onPick={onPick} isPicked={isPicked} />

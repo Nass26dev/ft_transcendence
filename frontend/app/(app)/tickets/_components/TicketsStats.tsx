@@ -14,7 +14,7 @@ export function TicketsStats({ bets }: { bets: Bet[] }) {
     : 0;
 
   return (
-    <div className="mb-6 grid grid-cols-4 gap-3.5">
+    <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-3.5">
       <StatCard
         label="Tickets en cours"
         value={String(pending.length)}

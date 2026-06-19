@@ -13,7 +13,7 @@ export function LeaderboardRow({
   return (
     <div
       className={[
-        "grid grid-cols-[50px_1fr_100px_100px_110px] items-center gap-3 border-b border-border px-4 py-3 last:border-b-0",
+        "grid grid-cols-[36px_1fr_auto] items-center gap-3 border-b border-border px-4 py-3 last:border-b-0 sm:grid-cols-[50px_1fr_100px_100px_110px]",
         r.me ? "border-l-[3px] border-l-kop bg-kop/5 pl-[13px]" : "",
       ].join(" ")}
     >
@@ -37,11 +37,11 @@ export function LeaderboardRow({
         </div>
       </div>
 
-      <span className="text-right font-mono tnum text-[13px] font-semibold">
+      <span className="hidden text-right font-mono tnum text-[13px] font-semibold sm:block">
         {r.wr}
       </span>
       <span
-        className={`text-right font-mono tnum text-[13px] font-semibold ${getDeltaColor(r.weekDelta)}`}
+        className={`hidden text-right font-mono tnum text-[13px] font-semibold sm:block ${getDeltaColor(r.weekDelta)}`}
       >
         {r.weekDelta}
       </span>

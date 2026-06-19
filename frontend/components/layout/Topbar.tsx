@@ -29,7 +29,7 @@ export function Topbar({ onMenu }: TopbarProps) {
         <Icon name="menu" size={20} stroke={1.8} />
       </button>
 
-      {/* Search */}
+      {/* Search (masquée sur mobile) */}
       <TopbarSearch />
 
       <div className="flex-1" />

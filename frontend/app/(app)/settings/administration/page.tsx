@@ -194,7 +194,7 @@ function WalletEditor({
           step={0.01}
           value={val}
           onChange={(e) => setVal(e.target.value)}
-          className="w-40 rounded-[8px] border border-border bg-surface-2 px-3 py-2 text-[13.5px] text-text outline-none transition-colors focus:border-kop"
+          className="w-full rounded-[8px] border border-border bg-surface-2 px-3 py-2 text-[13.5px] text-text outline-none transition-colors focus:border-kop sm:w-40"
         />
         <button
           onClick={handleSave}
@@ -253,7 +253,7 @@ function DataEditor({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
           <label className="text-[12px] text-text-3">Nom d&apos;utilisateur</label>
           <input
@@ -286,7 +286,7 @@ function DataEditor({
           value={status}
           onChange={(e) => setStatus(e.target.value as Role)}
           disabled={!canEditOwner}
-          className="w-40 rounded-[8px] border border-border bg-surface-2 px-3 py-2 text-[13.5px] text-text outline-none transition-colors focus:border-kop disabled:opacity-50"
+          className="w-full rounded-[8px] border border-border bg-surface-2 px-3 py-2 text-[13.5px] text-text outline-none transition-colors focus:border-kop disabled:opacity-50 sm:w-40"
         >
           <option value="user">user</option>
           <option value="admin">admin</option>

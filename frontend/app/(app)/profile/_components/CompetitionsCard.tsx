@@ -13,18 +13,18 @@ function CompetitionRow({
   return (
     <div
       className={[
-        "grid grid-cols-[1fr_80px_80px_1fr_90px] items-center gap-3.5 py-3",
+        "grid grid-cols-[1fr_auto_auto_auto] items-center gap-2.5 py-3 sm:grid-cols-[1fr_80px_80px_1fr_90px] sm:gap-3.5",
         isLast ? "" : "border-b border-border",
       ].join(" ")}
     >
-      <div className="text-sm font-semibold">
+      <div className="min-w-0 truncate text-sm font-semibold">
         {s.flag} {s.lg}
       </div>
       <div className="font-mono tnum text-[13px] text-text-2">
         {s.bets} paris
       </div>
       <div className="font-mono tnum text-[13px] font-bold">{s.wr} %</div>
-      <div className="h-1 overflow-hidden rounded-[2px] bg-surface-3">
+      <div className="hidden h-1 overflow-hidden rounded-[2px] bg-surface-3 sm:block">
         <div
           className={`h-full rounded-[2px] ${getWrBarColor(s.wr)}`}
           style={{ width: `${s.wr}%` }}

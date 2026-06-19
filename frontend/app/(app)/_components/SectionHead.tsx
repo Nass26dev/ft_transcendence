@@ -10,7 +10,7 @@ export function SectionHead({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="mb-3.5 flex items-end justify-between">
+    <div className="mb-3.5 flex flex-wrap items-end justify-between gap-2">
       <div>
         <h2 className="flex items-center gap-2 font-display text-[22px] font-bold tracking-[-0.02em]">
           {title}
