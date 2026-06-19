@@ -59,7 +59,10 @@ function buildSocial(pendingBetsCount: number, isAuthenticated: boolean): NavIte
   ];
 }
 
-const ME: NavItem[] = [{ href: "/profile", label: "Profil", icon: "user" }];
+const ME: NavItem[] = [
+  { href: "/profile", label: "Profil", icon: "user" },
+  { href: "/settings", label: "Réglages", icon: "settings" },
+];
 
 // ---------- Sub-components ----------
 
