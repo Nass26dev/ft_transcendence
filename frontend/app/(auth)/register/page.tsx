@@ -204,6 +204,17 @@ export default function RegisterPage() {
         <p className="mt-5 text-center text-[11.5px] text-text-4">
           Pas d&apos;argent réel. 100 % Kops, 100 % gloire.
         </p>
+        <p className="mt-2 text-center text-[11.5px] text-text-4">
+          En créant un compte, tu acceptes les{" "}
+          <Link href="/terms" className="underline hover:text-text-2">
+            conditions d&apos;utilisation
+          </Link>{" "}
+          et la{" "}
+          <Link href="/privacy" className="underline hover:text-text-2">
+            politique de confidentialité
+          </Link>
+          .
+        </p>
       </div>
     </div>
   );

@@ -180,9 +180,11 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         </div>
       )}
 
+      {/* Bas de barre : bonus du jour puis liens légaux */}
+      <div className="mt-auto flex flex-col gap-3">
       {/* Bonus card — masquée une fois le bonus récupéré */}
       {available && (
-        <div className="mt-auto rounded-[10px] border border-border bg-surface-1 p-3">
+        <div className="rounded-[10px] border border-border bg-surface-1 p-3">
           <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
             Bonus quotidien
           </div>
@@ -197,6 +199,18 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
           </button>
         </div>
       )}
+
+        {/* Liens légaux — obligatoires et accessibles sans compte */}
+        <div className="flex flex-wrap gap-x-2.5 gap-y-1 px-2 text-[11px] text-text-4">
+          <Link href="/privacy" className="transition-colors hover:text-text-2">
+            Confidentialité
+          </Link>
+          <span aria-hidden>·</span>
+          <Link href="/terms" className="transition-colors hover:text-text-2">
+            Conditions
+          </Link>
+        </div>
+      </div>
       </aside>
     </>
   );

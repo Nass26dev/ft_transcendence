@@ -206,6 +206,15 @@ function LoginContent() {
         <p className="mt-5 text-center text-[11.5px] text-text-4">
           Pas d&apos;argent réel. 100 % Kops, 100 % gloire.
         </p>
+        <p className="mt-2 text-center text-[11.5px] text-text-4">
+          <Link href="/privacy" className="underline hover:text-text-2">
+            Confidentialité
+          </Link>
+          {" · "}
+          <Link href="/terms" className="underline hover:text-text-2">
+            Conditions d&apos;utilisation
+          </Link>
+        </p>
       </div>
     </div>
   );
