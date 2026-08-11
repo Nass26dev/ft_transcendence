@@ -25,7 +25,7 @@ interface OnboardingProps {
 const ONBOARDING: OnboardingStep[] = [
   {
     title: "Bienvenue sur Kop.",
-    body: "Le pari sportif sans pognon. 100 % adrénaline, 0 % facture. Tu as 10 000 Kops pour démarrer — fais-les fructifier.",
+    body: "Le pari sportif sans pognon. 100 % adrénaline, 0 % facture. Tu as 100 Kops pour démarrer — fais-les fructifier.",
     accent: "logo",
   },
   {
@@ -40,7 +40,7 @@ const ONBOARDING: OnboardingStep[] = [
   },
   {
     title: "Prêt ?",
-    body: "On t'a crédité 10 000 Kops. Tu sais ce qu'il te reste à faire.",
+    body: "On t'a crédité 100 Kops. Tu sais ce qu'il te reste à faire.",
     accent: "fire",
   },
 ];
@@ -110,7 +110,7 @@ function ArtFire() {
   return (
     <div className="absolute inset-0 grid place-items-center">
       <div className="font-display tnum flex items-center gap-2.5 text-white text-[80px] font-extrabold tracking-[-0.04em]">
-        10K <KCoin size={56} />
+        100 <KCoin size={56} />
       </div>
     </div>
   );

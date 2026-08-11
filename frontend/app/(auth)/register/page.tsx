@@ -98,7 +98,7 @@ export default function RegisterPage() {
             Créer un compte
           </h1>
           <p className="mt-1 text-[13.5px] text-text-3">
-            10 000 Kops t&apos;attendent. Zéro euro, 100 % adrénaline.
+            100 Kops t&apos;attendent. Zéro euro, 100 % adrénaline.
           </p>
 
           {success ? (
