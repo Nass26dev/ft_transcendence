@@ -61,7 +61,7 @@ export function InviteModal({
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Rechercher un ami"
+            placeholder="Rechercher un ami…"
             className="w-full rounded-md border border-border bg-surface-2 py-2 pl-8 pr-3 text-sm outline-none focus:border-kop"
           />
         </div>

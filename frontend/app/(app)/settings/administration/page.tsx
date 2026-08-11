@@ -179,7 +179,7 @@ function WalletEditor({
       });
       onSaved(num(data.wallet));
     } catch (e) {
-      setError(errMessage(e, "Erreur lors de la sauvegarde."));
+      setError(errMessage(e, "Erreur lors de l'enregistrement."));
     } finally {
       setSaving(false);
     }
@@ -201,7 +201,7 @@ function WalletEditor({
           disabled={saving}
           className="rounded-[8px] bg-kop px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-kop-bright disabled:opacity-50"
         >
-          {saving ? "…" : "Sauvegarder"}
+          {saving ? "Enregistrement…" : "Enregistrer"}
         </button>
       </div>
       {error && <p className="text-[12px] text-red-400">{error}</p>}
@@ -245,7 +245,7 @@ function DataEditor({
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2000);
     } catch (e) {
-      setError(errMessage(e, "Erreur lors de la sauvegarde."));
+      setError(errMessage(e, "Erreur lors de l'enregistrement."));
     } finally {
       setSaving(false);
     }
@@ -304,9 +304,9 @@ function DataEditor({
           disabled={saving}
           className="rounded-[8px] bg-kop px-4 py-2 text-[13px] font-semibold text-white transition-colors hover:bg-kop-bright disabled:opacity-50"
         >
-          {saving ? "Sauvegarde…" : "Sauvegarder"}
+          {saving ? "Enregistrement…" : "Enregistrer"}
         </button>
-        {success && <span className="text-[12px] text-green-400">✓ Sauvegardé</span>}
+        {success && <span className="text-[12px] text-green-400">✓ Enregistré</span>}
         {error && <span className="text-[12px] text-red-400">{error}</span>}
       </div>
     </div>
@@ -514,7 +514,7 @@ export default function AdminPage() {
         </h1>
       </div>
       <p className="mb-6 text-[13.5px] text-text-3">
-        Vue d&apos;ensemble et gestion des utilisateurs (données, wallet, amis, paris).
+        Vue d&apos;ensemble et gestion des utilisateurs (données, solde, amis, paris).
       </p>
 
       {/* Dashboard global */}

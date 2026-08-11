@@ -21,7 +21,7 @@ export default function TicketsPage() {
           Mes paris
         </h2>
         <div className="mt-0.5 text-[13px] text-text-3">
-          Historique complet de tes tickets
+          Historique complet de tes paris
         </div>
       </div>
 
@@ -31,7 +31,7 @@ export default function TicketsPage() {
 
       {loading ? (
         <div className="rounded-[10px] border border-border bg-surface-1 p-8 text-center text-sm text-text-3">
-          Chargement de tes tickets…
+          Chargement de tes paris…
         </div>
       ) : (
         <TicketsList bets={filtered} />

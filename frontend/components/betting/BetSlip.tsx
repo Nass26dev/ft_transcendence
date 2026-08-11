@@ -146,7 +146,7 @@ export function BetSlip({
         </div>
 
         <div className="my-1.5 flex items-center justify-between text-[13px]">
-          <span className="text-text-3">Gain potentiel</span>
+          <span className="text-text-3">Bénéfice</span>
           <span className="font-mono tnum font-bold text-text-2">
             +{profit.toLocaleString("fr-FR")} K
           </span>

@@ -25,7 +25,7 @@ interface OnboardingProps {
 const ONBOARDING: OnboardingStep[] = [
   {
     title: "Bienvenue sur Kop.",
-    body: "Le paris sportif sans pognon. 100 % adrénaline, 0 % facture. T'as 10 000 Kops pour démarrer — fais-les fructifier.",
+    body: "Le pari sportif sans pognon. 100 % adrénaline, 0 % facture. Tu as 10 000 Kops pour démarrer — fais-les fructifier.",
     accent: "logo",
   },
   {
@@ -40,7 +40,7 @@ const ONBOARDING: OnboardingStep[] = [
   },
   {
     title: "Prêt ?",
-    body: "On t'a crédité 10 000 Kops. Le Classique commence dans 2 heures. Tu sais ce qu'il te reste à faire.",
+    body: "On t'a crédité 10 000 Kops. Tu sais ce qu'il te reste à faire.",
     accent: "fire",
   },
 ];

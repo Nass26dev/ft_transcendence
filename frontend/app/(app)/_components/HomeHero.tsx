@@ -4,6 +4,7 @@ import React from "react";
 import { Icon } from "@/components/ui/Icon";
 import { Tag } from "@/components/ui/Tag";
 import { useTrending } from "@/hooks/useTrending";
+import { currentSeasonLabel } from "@/utils/date";
 import type { TrendingBet } from "@/utils/types";
 import Link from "next/link";
 
@@ -19,7 +20,7 @@ function volLabel(t: TrendingBet): string {
       : t.window === "24h"
         ? "24 dernières h"
         : "au total";
-  return `${t.share}% des Kopistes · ${w}`;
+  return `${t.share} % des Kopistes · ${w}`;
 }
 
 export function HomeHero({ onOpen }: HomeHeroProps) {
@@ -31,7 +32,7 @@ export function HomeHero({ onOpen }: HomeHeroProps) {
       <div className="relative grid grid-cols-1 items-center gap-8 lg:grid-cols-[1fr_auto]">
         <div>
           <div className="mb-3.5 inline-flex gap-2">
-            <Tag kind="green">Saison 2025/26</Tag>
+            <Tag kind="green">Saison {currentSeasonLabel()}</Tag>
             <Tag>Choc du week-end</Tag>
           </div>
           <h1 className="mb-2.5 font-display text-[28px] font-bold leading-none tracking-[-0.03em] sm:text-[38px]">

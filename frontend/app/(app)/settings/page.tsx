@@ -319,7 +319,7 @@ export default function SettingsPage() {
                 {uploading ? "Envoi…" : "Changer la photo"}
               </button>
               <div className="mt-0.5 text-[11.5px] text-text-3">
-                JPG ou PNG, 5 Mo max.
+                Image de 5 Mo max.
               </div>
               {avatarError && (
                 <div className="mt-0.5 text-[11.5px] text-red-500">{avatarError}</div>
@@ -419,7 +419,7 @@ export default function SettingsPage() {
                 className="flex flex-none items-center gap-2 rounded-[10px] border border-kop/40 bg-kop/10 px-4 py-2 text-[13px] font-semibold text-kop-bright transition-colors hover:bg-kop/20"
               >
                 <Icon name="shield" size={15} stroke={2} />
-                Admin Panel
+                Ouvrir le panneau
               </Link>
             </div>
           )}

@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { useProfile } from "../_components/ProfileProvider";
 import { useChallenges } from "@/hooks/useChallenges";
+import { currentSeasonLabel } from "@/utils/date";
 import { DailyChallengeRow } from "./_components/DailyChallengeRow";
 import { SeasonChallengeCard } from "./_components/SeasonChallengeCard";
 
@@ -63,7 +64,7 @@ export default function ChallengesPage() {
 
       {/* ============= SEASON ============= */}
       <div className="mb-3.5">
-        <h2 className="font-display text-[22px] font-bold tracking-[-0.02em]">Saison 2025/26</h2>
+        <h2 className="font-display text-[22px] font-bold tracking-[-0.02em]">Saison {currentSeasonLabel()}</h2>
         <div className="mt-0.5 text-[13px] text-text-3">Récompenses long terme</div>
       </div>
 

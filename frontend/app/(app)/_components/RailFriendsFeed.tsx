@@ -22,7 +22,7 @@ export function RailFriendsFeed() {
     <div className="rounded-[10px] border border-border bg-surface-1">
       <div className="flex items-center justify-between border-b border-border p-3.5">
         <h3 className="font-display text-base">Le feed des potes</h3>
-        <Tag kind="green">Live</Tag>
+        <Tag kind="green">En direct</Tag>
       </div>
 
       {loading ? (

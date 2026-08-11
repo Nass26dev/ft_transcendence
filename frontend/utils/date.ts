@@ -16,6 +16,15 @@ export function formatKickoff(iso: string, variant: "short" | "long" = "short"):
   });
 }
 
+/**
+ * Saison en cours au format « 2026/27 ».
+ * Bascule au 1er juillet : avant, on est encore sur la saison ouverte l'été précédent.
+ */
+export function currentSeasonLabel(now: Date = new Date()): string {
+  const startYear = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
+  return `${startYear}/${String((startYear + 1) % 100).padStart(2, "0")}`;
+}
+
 /** Coup d'envoi scindé en [date, heure] (ex. ["23/06", "21:00"]) pour les lignes compactes. */
 export function splitKickoff(iso: string): [string, string] {
   if (!iso) return ["", ""];

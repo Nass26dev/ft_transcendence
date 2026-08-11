@@ -28,7 +28,7 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Kop",
-  description: "Le paris sportif sans pognon. 100 % adrénaline, 0 % facture.",
+  description: "Le pari sportif sans pognon. 100 % adrénaline, 0 % facture.",
 };
 
 // Viewport explicite : largeur = écran, pas de zoom forcé sur mobile.

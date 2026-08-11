@@ -25,7 +25,7 @@ export function ProfileStats() {
   return (
     <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-3.5">
       <StatCard
-        label="Win rate"
+        label="Taux de réussite"
         value={`${winRate} %`}
         delta={`${settledCount} pari${settledCount > 1 ? "s" : ""} réglé${settledCount > 1 ? "s" : ""}`}
       />
@@ -36,7 +36,7 @@ export function ProfileStats() {
         deltaKind="up"
       />
       <StatCard
-        label="Streak actuelle"
+        label="Série actuelle"
         value={`${streak} V`}
         delta={streak > 0 ? "↑ En cours" : "—"}
         deltaKind={streak > 0 ? "up" : "muted"}

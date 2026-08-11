@@ -16,7 +16,7 @@ export function TicketsStats({ bets }: { bets: Bet[] }) {
   return (
     <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-3.5">
       <StatCard
-        label="Tickets en cours"
+        label="Paris en cours"
         value={String(pending.length)}
         delta={`${inPlay.toLocaleString("fr-FR")} K en jeu`}
         deltaKind="muted"
@@ -25,19 +25,19 @@ export function TicketsStats({ bets }: { bets: Bet[] }) {
         label="Gain potentiel"
         value={potential.toLocaleString("fr-FR")}
         valueKind="green"
-        delta="sur paris en cours"
+        delta="sur les paris en cours"
         deltaKind="muted"
       />
       <StatCard
-        label="Win rate"
+        label="Taux de réussite"
         value={`${winRate} %`}
-        delta={`${settled.length} paris réglés`}
+        delta={`${settled.length} pari${settled.length > 1 ? "s" : ""} réglé${settled.length > 1 ? "s" : ""}`}
         deltaKind="muted"
       />
       <StatCard
         label="Paris totaux"
         value={String(bets.length)}
-        delta={`${won.length} gagnés`}
+        delta={`${won.length} gagné${won.length > 1 ? "s" : ""}`}
         deltaKind="muted"
       />
     </div>

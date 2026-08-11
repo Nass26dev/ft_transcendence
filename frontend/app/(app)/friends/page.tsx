@@ -172,7 +172,7 @@ export default function FriendsPage() {
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Pseudo ou email…"
+              placeholder="Rechercher par pseudo ou email…"
               className="flex-1 border-none bg-transparent text-[13.5px] outline-none placeholder:text-text-3"
             />
           </div>

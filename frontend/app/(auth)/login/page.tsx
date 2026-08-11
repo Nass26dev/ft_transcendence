@@ -144,7 +144,7 @@ function LoginContent() {
                   onClick={handleSubmit}
                   className="mt-1 w-full rounded-[10px] bg-kop px-5 py-3 text-[14.5px] font-semibold text-white transition-all hover:-translate-y-px hover:bg-kop-bright hover:shadow-[0_8px_24px_-8px_var(--kop)]"
                 >
-                  Suivant
+                  Recevoir le code
                 </button>
 
                 <div className="my-1 flex items-center gap-3">

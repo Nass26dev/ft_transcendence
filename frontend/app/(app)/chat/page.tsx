@@ -176,7 +176,7 @@ export default function ChatPage() {
                 <input
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Nouveau message…"
+                  placeholder="Rechercher un joueur…"
                   className="flex-1 border-none bg-transparent text-[13px] outline-none placeholder:text-text-3"
                 />
               </div>

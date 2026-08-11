@@ -21,7 +21,7 @@ export function LeaderboardTable({ entries }: { entries: LeagueBoardEntry[] }) {
       <div className="grid grid-cols-[36px_1fr_auto] gap-3 border-b border-border px-4 py-2.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3 sm:grid-cols-[50px_1fr_100px_100px_110px]">
         <span>#</span>
         <span>Joueur</span>
-        <span className="hidden text-right sm:block">Win rate</span>
+        <span className="hidden text-right sm:block">Réussite</span>
         <span className="hidden text-right sm:block">Cette sem.</span>
         <span className="text-right">Total</span>
       </div>
