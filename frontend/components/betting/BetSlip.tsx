@@ -21,6 +21,13 @@ interface BetSlipProps {
 
 // ---------- Component ----------
 
+/** Mise proposée à l'ouverture, ramenée au solde si celui-ci est plus bas
+ *  (un nouveau compte démarre à 100 Kops). */
+const DEFAULT_STAKE = 200;
+
+/** Paliers de mise rapide ; ceux au-dessus du solde sont désactivés. */
+const QUICK_STAKES = [100, 500, 1000, 5000];
+
 export function BetSlip({
   picks,
   onRemove,
@@ -29,7 +36,9 @@ export function BetSlip({
   onClose,
   balance,
 }: BetSlipProps) {
-  const [stake, setStake] = React.useState<number>(200);
+  const [stake, setStake] = React.useState<number>(() =>
+    Math.min(DEFAULT_STAKE, balance),
+  );
 
   const totalOdd = picks.reduce((acc, p) => acc * p.odd, 1);
   const isCombo = picks.length > 1;
@@ -128,11 +137,12 @@ export function BetSlip({
         </div>
 
         <div className="mb-3 flex gap-1.5">
-          {[100, 500, 1000, 5000].map((v) => (
+          {QUICK_STAKES.map((v) => (
             <button
               key={v}
               onClick={() => setStake(v)}
-              className="rounded-md bg-surface-3 px-3 py-2 text-xs font-semibold transition-colors hover:bg-border-strong"
+              disabled={v > balance}
+              className="rounded-md bg-surface-3 px-3 py-2 text-xs font-semibold transition-colors hover:bg-border-strong disabled:cursor-not-allowed disabled:opacity-35 disabled:hover:bg-surface-3"
             >
               {v.toLocaleString("fr-FR")}
             </button>
@@ -164,7 +174,7 @@ export function BetSlip({
           onClick={() => onPlace({ stake, payout, totalOdd, picks })}
           className="mt-3 w-full rounded-md bg-kop px-5 py-3.5 text-[15px] font-semibold text-white transition-all hover:bg-kop-bright hover:-translate-y-px hover:shadow-[0_6px_22px_-8px_var(--kop)] disabled:cursor-not-allowed disabled:bg-surface-3 disabled:text-text-3 disabled:transform-none disabled:shadow-none"
         >
-          {stake > balance
+          {stake > balance || balance === 0
             ? "Solde insuffisant"
             : `Placer le pari · ${stake.toLocaleString("fr-FR")} K`}
         </button>
