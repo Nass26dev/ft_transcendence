@@ -40,7 +40,7 @@ Le [README](README.md) est la porte d'entrée du projet ; ce document décrit **
 | Tâches | Celery + Celery Beat | 5.6 | Scraping, cotes, règlement |
 | Base | PostgreSQL | 16 | Transactions sur le solde |
 | Cache / broker / channel layer | Redis | 7 | Broker Celery, couche Channels, codes OTP (TTL 5 min) |
-| Reverse proxy | nginx (image `jonasal/nginx-certbot`) | — | TLS Let's Encrypt, **profil `prod` uniquement** |
+| Reverse proxy | nginx | — | Terminaison TLS. Dev : image locale, certificat auto-signé, `https://localhost:8443`. Prod : `jonasal/nginx-certbot`, Let's Encrypt |
 
 ### Pourquoi PostgreSQL et pas SQLite
 
@@ -58,8 +58,9 @@ Le socket doit savoir **qui** est connecté. `CookieJWTAuthMiddleware` relit le 
                           Navigateur
                               │
                     ┌─────────▼──────────┐
-                    │  nginx  (prod)     │   TLS, Let's Encrypt
-                    │  profil "prod"     │   absent en dev
+                    │       nginx        │   TLS dans les deux cas
+                    │  dev  : auto-signé │   :8443
+                    │  prod : Let's Encr.│   :443
                     └─────┬────────┬─────┘
                           │        │
               /  /_next   │        │  /api  /ws  /admin  /static  /media
@@ -83,7 +84,9 @@ Le socket doit savoir **qui** est connecté. `CookieJWTAuthMiddleware` relit le 
                                         └─────────────┘
 ```
 
-**En développement**, nginx n'existe pas : le navigateur tape directement `localhost:3000` (front) et `localhost:8000` (API), en HTTP.
+**En développement**, nginx tourne aussi (service `nginx_dev` de l'override) avec un certificat auto-signé généré à la construction de l'image. Le navigateur n'a qu'une entrée : `https://localhost:8443`. Les ports 3000 et 8000 ne sont pas publiés sur l'hôte, donc aucun accès en clair n'est possible.
+
+Les ports 8443 et 8080 remplacent 443 et 80 parce que Docker en mode rootless, fréquent sur les postes 42, ne peut pas se lier aux ports privilégiés.
 
 **Un seul process backend** sert le HTTP et les WebSockets — il n'y a pas de service Channels distinct, contrairement à ce que suggérait l'ancienne version de ce document.
 
@@ -146,8 +149,6 @@ Pas de préfixe de version. Authentification par **cookie JWT httpOnly**, pas d'
 | POST | `/api/auth/logout/` | Déconnexion |
 | POST | `/api/auth/token/refresh/` | Rafraîchit l'access token |
 | POST | `/api/auth/social/google/` | Connexion Google |
-
-> `/api/register/` existe aussi (`users/urls.py`) mais **renvoie 500** : la vue générique appelle `serializer.save()` sans l'argument `request` qu'attend `RegisterSerializer.save()`. Route morte à supprimer ou à réparer ; c'est la cause de l'unique test backend en échec.
 
 ### Profil et économie
 
@@ -337,7 +338,7 @@ Au premier démarrage, `seed_if_empty` enchaîne `scrape_history` puis `scrape_u
 - **Upload d'avatar** : type MIME vérifié côté serveur, 5 Mo maximum
 - **Solde non modifiable par le client** à l'inscription
 - **Authentification WebSocket** par cookie, connexion refusée sans utilisateur valide
-- **TLS** en production, certificats Let's Encrypt renouvelés automatiquement
+- **TLS partout** : Let's Encrypt en production, certificat auto-signé en développement, aucun port applicatif exposé en clair
 
 ### Absent
 
@@ -348,7 +349,6 @@ Au premier démarrage, `seed_if_empty` enchaîne `scrape_history` puis `scrape_u
 - Pas d'**audit log**
 - Pas de **CSP** ni d'en-têtes de sécurité durcis
 - Pas de **PKCE** explicite sur l'OAuth (délégué à allauth)
-- **HTTPS absent en développement**, alors que le sujet l'exige pour toute connexion navigateur → backend
 - Pas de validation de schéma côté front (pas de zod) : la validation repose sur les serializers DRF
 
 ---
@@ -364,7 +364,7 @@ Au premier démarrage, `seed_if_empty` enchaîne `scrape_history` puis `scrape_u
 ### Outils de vérification
 
 ```bash
-docker compose exec backend python3 -m pytest          # 11 tests
+docker compose exec backend python3 -m pytest          # 12 tests, tous verts
 docker compose exec frontend npx tsc --noEmit          # typage strict
 docker compose exec frontend npm run lint
 ```

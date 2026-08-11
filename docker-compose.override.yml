@@ -20,12 +20,30 @@ services:
     volumes:
       - ./api:/app
 
+  # Reverse proxy TLS du dev : seule porte d'entrée du navigateur.
+  # Le sujet impose HTTPS pour toute connexion navigateur → backend, donc
+  # backend et frontend ne publient plus leurs ports sur l'hôte.
+  nginx_dev:
+    build:
+      context: ./nginx
+      dockerfile: dockerfile
+    container_name: t_nginx_dev
+    restart: "no"
+    # Ports hauts : Docker en mode rootless (courant sur les postes 42) ne
+    # peut pas se lier aux ports privilégiés 80/443.
+    ports:
+      - "8080:80"
+      - "8443:443"
+    depends_on:
+      - backend
+      - frontend
+    networks:
+      - t_networks
+
   backend:
     restart: "no"
     volumes:
       - ./api:/app
-    ports:
-      - "8000:8000"
     command: >
       sh -c "python3 manage.py makemigrations &&
              python3 manage.py migrate &&
@@ -39,6 +57,4 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    ports:
-      - "3000:3000"
     command: npm run dev

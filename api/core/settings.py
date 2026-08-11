@@ -18,8 +18,10 @@ DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 # Dev (DEBUG) = permissif / localhost ; prod = domaines kop.life.
 if DEBUG:
     ALLOWED_HOSTS = ['*']
-    CSRF_TRUSTED_ORIGINS = []
-    CORS_ALLOWED_ORIGINS = ['http://localhost:3000']
+    # En dev le navigateur passe par nginx en HTTPS (https://localhost).
+    # http://localhost:3000 reste toléré pour un front lancé hors Docker.
+    CSRF_TRUSTED_ORIGINS = ['https://localhost:8443']
+    CORS_ALLOWED_ORIGINS = ['https://localhost:8443', 'http://localhost:3000']
 else:
     ALLOWED_HOSTS = ['kop.life', 'www.kop.life', 'api.kop.life']
     CSRF_TRUSTED_ORIGINS = [

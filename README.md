@@ -129,11 +129,15 @@ cp .env.example .env      # then fill it in
 docker compose up --build
 ```
 
-| Service | URL |
+| Entry point | URL |
 |---|---|
-| Frontend | http://localhost:3000 |
-| API | http://localhost:8000 |
-| Django admin | http://localhost:8000/admin/ |
+| Application | **https://localhost:8443** |
+| API | https://localhost:8443/api/ |
+| Django admin | https://localhost:8443/admin/ |
+
+Everything goes through **HTTPS**, including in development: an nginx reverse proxy terminates TLS with a self-signed certificate generated when its image is built. Your browser will warn about an unrecognised certificate on first visit — accept it once. Ports 3000 and 8000 are deliberately **not** published on the host, so there is no plaintext way into the application.
+
+Ports 8443 and 8080 are used instead of 443 and 80 because rootless Docker, common on 42 workstations, cannot bind privileged ports.
 
 On first launch the database is empty: the `seed_if_empty` command automatically triggers a scrape of the last 180 days, then of the next 7 days. Allow a few minutes before matches and odds appear — the Celery worker logs its progress.
 
@@ -367,12 +371,10 @@ Settings page, admin panel, mobile responsive work, deployment. Also the front-e
 
 Stated openly, because they are visible during evaluation:
 
-- **Privacy Policy and Terms of Service pages do not exist.** The subject states that missing or placeholder pages cause **project rejection**. They must be written and linked from the interface.
-- **HTTPS is only enabled in production.** The subject requires HTTPS for any browser-to-backend connection; local development runs over plain HTTP.
-- `/api/register/` returns a 500 on a valid payload: a duplicate registration route whose generic view calls `serializer.save()` without the `request` argument the serializer requires. The frontend uses `/api/auth/registration/`, so the bug is invisible in normal use, but one backend test fails because of it.
 - **Online status** is not implemented, although the "Standard user management" module lists it among its requirements.
 - No CI pipeline, no rate limiting, no audit log.
-- Frontend test coverage is nonexistent; backend coverage is minimal (11 tests).
+- The development TLS certificate is self-signed, so browsers show a warning on first visit.
+- Frontend test coverage is nonexistent; backend coverage is minimal (12 tests).
 - The starting balance (100 Kops) is low relative to the daily bonus (500) and to the wheel's swings (up to ±10 000).
 
 ---
