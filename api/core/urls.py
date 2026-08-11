@@ -7,7 +7,7 @@ from django.contrib import admin
 from django.conf import settings
 from django.conf.urls.static import static
 
-from users.views import ProfileView, RegisterView, LoginStep1View, LoginStep2View
+from users.views import ProfileView, LoginStep1View, LoginStep2View
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
 

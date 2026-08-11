@@ -81,11 +81,26 @@ def test_send_2fa_email_returns_false_on_api_exception():
 @pytest.mark.django_db
 def test_register_returns_201_on_valid_data():
 	client = APIClient()
-	response = client.post("/api/register/", {
+	# Route officielle (dj-rest-auth). L'ancienne /api/register/ dupliquait
+	# celle-ci sans passer `request` au serializer : supprimée.
+	response = client.post("/api/auth/registration/", {
 		"email": "test2@example.com",
 		"username": "testuser",
 		"password1": "Testpassword123",
 		"password2": "Testpassword123"
 	})
-	assert User.objects.filter(email="test2@example.com").exists()
 	assert response.status_code == 201
+	assert User.objects.filter(email="test2@example.com").exists()
+
+@pytest.mark.django_db
+def test_register_ignores_client_supplied_wallet():
+	"""Le solde de depart ne doit pas etre pilotable par le client."""
+	client = APIClient()
+	response = client.post("/api/auth/registration/", {
+		"email": "test3@example.com",
+		"password1": "Testpassword123",
+		"password2": "Testpassword123",
+		"wallet": "50000"
+	})
+	assert response.status_code == 201
+	assert User.objects.get(email="test3@example.com").wallet == 100.00

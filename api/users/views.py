@@ -5,10 +5,9 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from .serializers import UserSerializer
-from rest_framework import generics
 from rest_framework.permissions import AllowAny
 from .models import User, MAX_WALLET
-from .serializers import UserSerializer, RegisterSerializer, ProfileUpdateSerializer
+from .serializers import UserSerializer, ProfileUpdateSerializer
 import secrets
 from .services import send_2fa_email
 from django.core.cache import cache
@@ -210,9 +209,3 @@ class OnboardingCompleteView(APIView):
             user.save(update_fields=["onboarding_completed"])
         return Response(UserSerializer(user).data, status=200)
 
-
-class RegisterView(generics.CreateAPIView):
-    queryset = User.objects.all()
-
-    permission_classes = [AllowAny]
-    serializer_class = RegisterSerializer
