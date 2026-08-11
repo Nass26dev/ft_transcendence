@@ -7,7 +7,9 @@ class RegisterSerializer(BaseRegisterSerializer):
     username = None
     first_name = serializers.CharField(required=False, default='')
     last_name = serializers.CharField(required=False, default='')
-    wallet = serializers.DecimalField(required=False, default=100, max_digits=10, decimal_places=2)
+    # `wallet` n'est volontairement PAS un champ du serializer : il serait
+    # alimenté par le client, qui pourrait s'ouvrir un compte au solde de son
+    # choix. Le solde initial vient du défaut du modèle (User.wallet).
 
     def get_cleaned_data(self):
         return {
@@ -16,14 +18,12 @@ class RegisterSerializer(BaseRegisterSerializer):
             'password2': self.validated_data.get('password2', ''),
             'first_name': self.validated_data.get('first_name', ''),
             'last_name': self.validated_data.get('last_name', ''),
-            'wallet': self.validated_data.get('wallet', 100),
         }
 
     def save(self, request):
         user = super().save(request)
         user.first_name = self.cleaned_data.get('first_name', '')
         user.last_name = self.cleaned_data.get('last_name', '')
-        user.wallet = self.cleaned_data.get('wallet', 100)
         user.save()
         return user
 
