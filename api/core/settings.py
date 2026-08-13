@@ -111,12 +111,17 @@ REST_FRAMEWORK = {
 
 SPECTACULAR_SETTINGS = {
     'TITLE': 'Kop API',
-    'DESCRIPTION': "API de Kop : profils, amis, sport, paris, defis, ligues, chat et notifications.",
+    'DESCRIPTION': (
+        "API de Kop : profils, amis, sport, paris, defis, ligues, chat et notifications.\n\n"
+        "**Authentification** : cookie JWT httpOnly (`access_token`), pose par "
+        "`/api/auth/login/verify/`. Les endpoints marques d'un cadenas 🔒 renvoient "
+        "401/403 sans ce cookie ; ceux sans cadenas sont accessibles sans etre connecte, "
+        "comme sur le site. Si tu es deja connecte au site dans ce meme navigateur, le "
+        "cookie est envoye automatiquement ici (meme domaine) : pas besoin de cliquer "
+        "sur *Authorize*."
+    ),
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
-    # Le cookie JWT est posé par le login custom (voir users.authentication) ;
-    # on le documente ici pour que "Authorize" dans Swagger UI ait un sens.
-    'SECURITY': [{'cookieAuth': []}],
     'SWAGGER_UI_SETTINGS': {
         'persistAuthorization': True,
     },
