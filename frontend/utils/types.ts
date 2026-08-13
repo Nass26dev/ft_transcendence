@@ -1,8 +1,4 @@
-// ============================================================
-// Types partagés Kop
-// ============================================================
-
-// ---------- Domain entities ----------
+/** Types partagés Kop. */
 
 export interface Team {
   /** Nom complet (ex: "Paris SG") */
@@ -40,23 +36,29 @@ export interface Match {
   bets_total?: number;
   trend?: Partial<Record<OddKey, Trend>>;
 
-  // Live only
+  /** Live only */
   minute?: number;
   scoreH?: number;
   scoreA?: number;
 
-  // ---- Champs renvoyés par l'API backend (snake_case) ----
-  // Présents en plus de la forme courte ci-dessus, le temps de finir la
-  // migration mock -> API. À nettoyer/unifier plus tard.
+  /** Champs renvoyés par l'API backend (snake_case), présents en plus de la
+   *  forme courte ci-dessus, le temps de finir la migration mock -> API.
+   *  À nettoyer/unifier plus tard. */
   competition?: string;
   home_team?: string;
   away_team?: string;
+  /** URL du logo (TheSportsDB), vide si pas encore trouve : le badge retombe sur un visuel generique. */
+  home_team_logo?: string;
+  away_team_logo?: string;
+  /** Couleur officielle du club (hex), pour colorer le maillot generique en attendant le logo. */
+  home_team_color?: string;
+  away_team_color?: string;
   home_score?: number;
   away_score?: number;
   current_minute?: number;
   kickoff_at?: string;
 
-  // ---- Détail enrichi (endpoint retrieve) ----
+  /** Détail enrichi (endpoint retrieve) */
   referee?: string;
   venue?: string;
   stage?: string;
@@ -93,8 +95,6 @@ export interface MatchLineupPlayer {
   player: string;
 }
 
-// ---------- Betting ----------
-
 export type BetStatus = "pending" | "won" | "lost";
 
 export interface BetPick {
@@ -115,7 +115,7 @@ export interface Bet {
   picks: BetPick[];
 }
 
-// Pick actif dans le BetSlip (différent d'un BetPick historique)
+/** Pick actif dans le BetSlip (différent d'un BetPick historique). */
 export interface SlipPick {
   id: string;
   matchId: string;
@@ -131,8 +131,6 @@ export interface PlacePayload {
   totalOdd: number;
   picks: SlipPick[];
 }
-
-// ---------- Social / engagement ----------
 
 export type FriendBetKind = "simple" | "combo" | "won" | "league";
 
@@ -316,21 +314,17 @@ export interface ApiLeagueBoard {
   entries: ApiLeagueBoardEntry[];
 }
 
-// ---------- UI ----------
-
 export type TagKind = "default" | "live" | "soon" | "green";
 
-// Handlers partagés entre screens et cards
+/** Handlers partagés entre screens et cards. */
 export interface MatchHandlers {
   onPick: (match: Match, k: string, customLabel?: string) => void;
   isPicked: (matchId: string, k: string) => boolean;
   onOpen: (id: string) => void;
 }
 
-// Alias historique (anciennement utilisé par les cards et HomeScreen)
+/** Alias historique (anciennement utilisé par les cards et HomeScreen). */
 export type PickHandlers = MatchHandlers;
-
-// ---------- Toast ----------
 
 export interface Toast {
   type: "ok" | "err";

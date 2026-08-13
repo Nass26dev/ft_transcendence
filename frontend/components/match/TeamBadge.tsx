@@ -1,12 +1,16 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { teamFlag } from "@/utils/teams";
 
 interface TeamBadgeProps {
   team: string | undefined | null;
   /** Domicile = maillot rouge (kop), extérieur = maillot bleu. */
   side: "home" | "away";
+  /** URL du logo (TheSportsDB), si connu. */
+  logo?: string | null;
+  /** Couleur officielle du club (hex, TheSportsDB), si le logo n'est pas connu. */
+  color?: string | null;
   size?: number;
 }
 
@@ -33,11 +37,34 @@ function Jersey({ color, size }: { color: string; size: number }) {
 }
 
 /**
- * Visuel d'équipe : drapeau si sélection nationale (Coupe du monde…),
- * sinon maillot par défaut (domicile rouge / extérieur bleu).
+ * Visuel d'équipe : logo du club si connu (TheSportsDB), sinon maillot dans
+ * la couleur officielle du club si connue, sinon drapeau si sélection
+ * nationale (Coupe du monde…), sinon maillot par défaut (domicile rouge /
+ * extérieur bleu).
  */
-export function TeamBadge({ team, side, size = 22 }: TeamBadgeProps) {
+export function TeamBadge({ team, side, logo, color, size = 22 }: TeamBadgeProps) {
+  const [logoFailed, setLogoFailed] = useState(false);
   const flag = teamFlag(team);
+
+  if (logo && !logoFailed) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- domaine externe (TheSportsDB), pas d'optimisation next/image utile ici.
+      <img
+        src={logo}
+        alt=""
+        aria-hidden
+        width={size}
+        height={size}
+        className="flex-none rounded-full object-contain"
+        style={{ width: size, height: size }}
+        onError={() => setLogoFailed(true)}
+      />
+    );
+  }
+
+  if (color && /^#[0-9a-fA-F]{3,8}$/.test(color)) {
+    return <Jersey color={color} size={size} />;
+  }
 
   if (flag) {
     return (

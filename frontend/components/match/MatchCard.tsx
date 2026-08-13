@@ -11,6 +11,8 @@ interface MatchCardProps extends PickHandlers {
   match: Match;
 }
 
+/** Carte de match complète (grilles home / "tous les matchs") : équipes, cotes
+ *  et barre de confiance des Kopistes. Mémoïsée pour éviter les rerenders en liste. */
 export const MatchCard = React.memo(function MatchCard({
   match,
   onPick,
@@ -26,29 +28,26 @@ export const MatchCard = React.memo(function MatchCard({
       onClick={handleClick}
       className="cursor-pointer rounded-[10px] border border-border bg-surface-1 px-4.5 py-4 transition-all hover:-translate-y-px hover:border-border-strong"
     >
-      {/* Meta */}
       <div className="mb-3.5 flex items-center gap-2.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-text-3">
         <span className="text-text-2">{match.competition}</span>
         <span className="text-text-4">•</span>
         <span>{formatKickoff(match.kickoff_at ?? "")}</span>
       </div>
 
-      {/* Teams + odds */}
       <div className="grid grid-cols-[1fr_auto] items-center gap-3.5">
         <div className="flex min-w-0 flex-col gap-2">
           <span className="flex min-w-0 items-center gap-2 text-sm font-semibold">
-            <TeamBadge team={match.home_team} side="home" />
+            <TeamBadge team={match.home_team} side="home" logo={match.home_team_logo} color={match.home_team_color} />
             <span className="truncate">{match.home_team}</span>
           </span>
           <span className="flex min-w-0 items-center gap-2 text-sm font-semibold">
-            <TeamBadge team={match.away_team} side="away" />
+            <TeamBadge team={match.away_team} side="away" logo={match.away_team_logo} color={match.away_team_color} />
             <span className="truncate">{match.away_team}</span>
           </span>
         </div>
         <OddsRow match={match} onPick={onPick} isPicked={isPicked} />
       </div>
 
-      {/* Confidence */}
       <div className="mt-3.5">
         <div className="mb-1 flex justify-between text-[10.5px] font-semibold uppercase tracking-[0.06em] text-text-3">
           <span>Confiance des Kopistes</span>

@@ -10,16 +10,10 @@ load_dotenv()
 
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
-# Seule variable d'environnement de bascule dev/prod (définie dans .env).
-# Défaut prod (False) si non défini → on échoue côté sûr.
 DEBUG = os.getenv('DJANGO_DEBUG', 'False') == 'True'
 
-# Hôtes et origines autorisés : définis ici, PAS via l'environnement.
-# Dev (DEBUG) = permissif / localhost ; prod = domaines kop.life.
 if DEBUG:
     ALLOWED_HOSTS = ['*']
-    # En dev le navigateur passe par nginx en HTTPS (https://localhost).
-    # http://localhost:3000 reste toléré pour un front lancé hors Docker.
     CSRF_TRUSTED_ORIGINS = ['https://localhost:8443']
     CORS_ALLOWED_ORIGINS = ['https://localhost:8443', 'http://localhost:3000']
 else:
@@ -84,7 +78,6 @@ CHANNEL_LAYERS = {
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    # Sert les fichiers statiques en prod (inerte en dev quand DEBUG=True).
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -127,8 +120,6 @@ SPECTACULAR_SETTINGS = {
     },
 }
 
-# Durées des tokens JWT. La durée du refresh doit couvrir celle du cookie
-# refresh_token (7 jours) côté login, sinon le token meurt avant le cookie.
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
@@ -139,8 +130,6 @@ REST_AUTH = {
     'JWT_AUTH_COOKIE': 'access_token',
     'JWT_AUTH_REFRESH_COOKIE': 'refresh_token',
     'JWT_AUTH_HTTPONLY': True,
-    # Cohérent avec le login custom : pas de Secure en dev (http localhost),
-    # SameSite=Lax pour que les cookies passent en cross-origin same-site.
     'JWT_AUTH_SECURE': not DEBUG,
     'JWT_AUTH_SAMESITE': 'Lax',
     'REGISTER_SERIALIZER': 'users.serializers.RegisterSerializer',
@@ -215,12 +204,8 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-# Destination de `collectstatic` en prod (servi par WhiteNoise).
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Médias uploadés par les utilisateurs (photos de profil).
-# En dev, servis par Django (cf. core/urls.py). En prod, par nginx
-# (bloc `location /media/` + volume partagé — voir doc déploiement).
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
@@ -238,10 +223,14 @@ CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_BEAT_SCHEDULE = {
     "scrape-live": {
         "task": "sports.scrape_live",
-        "schedule": 30.0,  # toutes les 30 secondes
+        "schedule": 30.0,
     },
     "scrape-upcoming": {
         "task": "sports.scrape_upcoming",
-        "schedule": crontab(hour=0, minute=0),  # minuit
+        "schedule": crontab(hour=0, minute=0),
+    },
+    "fetch-logos": {
+        "task": "sports.fetch_logos",
+        "schedule": crontab(hour=3, minute=0),
     },
 }

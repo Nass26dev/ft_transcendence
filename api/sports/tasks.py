@@ -13,29 +13,29 @@ from sports.models import Match
 from sports.services.odds import compute_odds_for_queryset
 from sports.services.settle import settle_finished_matches
 from sports.services.details import enrich_match
+from sports.services.logos import fetch_team_logos
 from django.utils import timezone
 
 logger = logging.getLogger(__name__)
 
 REQUEST_DELAY = 2
 
-# Nombre max de fiches détaillées scrapées par passage (politesse + rapidité).
 DETAILS_BATCH = 12
 
-# Fenêtre « proche du coup d'envoi » : on y rafraîchit les programmés pour
-# capter la compo officielle / les changements de dernière minute.
 NEAR_KICKOFF = timedelta(hours=2)
-# Intervalle minimal entre deux rafraîchissements d'un même match programmé.
 REFRESH_EVERY = timedelta(minutes=10)
 
 
 def _enrich_pending(limit: int = DETAILS_BATCH) -> int:
-    """Enrichit les fiches par priorité, dans la limite du lot.
+    """Enrichit les fiches par priorité, dans la limite du lot (DETAILS_BATCH
+    fiches par passage, par politesse envers foot-live et pour rester rapide).
 
     1. live          → (re)scrapé à chaque passage (événements en direct),
     2. programmés    → backfill une fois dès qu'ils sont en base (compos /
        arbitre / stade dispo des jours à l'avance sur foot-live), puis
-       rafraîchis près du coup d'envoi (compo officielle),
+       rafraîchis près du coup d'envoi (NEAR_KICKOFF, fenêtre de 2h) pour
+       capter la compo officielle / les changements de dernière minute, au
+       plus une fois toutes les REFRESH_EVERY (10 min),
     3. terminés      → scrapé une seule fois (details_fetched_at vide).
     """
     now = timezone.now()
@@ -43,8 +43,6 @@ def _enrich_pending(limit: int = DETAILS_BATCH) -> int:
 
     live = list(base.filter(status="live").order_by("kickoff_at"))
 
-    # Programmés : jamais enrichis (backfill), ou proches du coup d'envoi et
-    # pas rafraîchis depuis REFRESH_EVERY. Les plus proches d'abord.
     scheduled = list(
         base.filter(status="scheduled").filter(
             Q(details_fetched_at__isnull=True)
@@ -96,15 +94,16 @@ def _scrape_range(start_offset: int, end_offset: int) -> dict:
 
 @shared_task(name="sports.scrape_live")
 def scrape_live() -> dict:
+    """Tâche périodique principale : scrape le jour courant, recalcule les
+    cotes des matchs du jour, règle les paris des matchs qui viennent de se
+    terminer, puis enrichit les fiches (compos, arbitre, événements) des
+    matchs bientôt joués, en direct, puis fraîchement terminés.
+    """
     created, updated = _scrape_day(date.today())
-    # recalcule les cotes des matchs du jour
     today = date.today()
     qs = Match.objects.filter(kickoff_at__date=today)
     n = compute_odds_for_queryset(qs)
-    # règle les paris des matchs qui viennent de se terminer
     settled = settle_finished_matches()
-    # enrichit les fiches (compos, arbitre, événements) : matchs bientôt joués,
-    # en direct, puis fraîchement terminés
     enriched = _enrich_pending()
     return {
         "total_created": created,
@@ -117,6 +116,7 @@ def scrape_live() -> dict:
 
 @shared_task(name="sports.scrape_upcoming")
 def scrape_upcoming() -> dict:
+    """Scrape les matchs à venir (J+1 à J+7) et calcule leurs cotes."""
     summary = _scrape_range(1, 7)
     now = timezone.now()
     qs = Match.objects.filter(
@@ -133,14 +133,23 @@ def scrape_details(limit: int = DETAILS_BATCH) -> dict:
     return {"details_enriched": _enrich_pending(limit)}
 
 
+@shared_task(name="sports.fetch_logos")
+def fetch_logos() -> dict:
+    """Renseigne les logos d'equipes manquants (TheSportsDB)."""
+    return {"team_logos_found": fetch_team_logos()}
+
+
 @shared_task(name="sports.settle_bets")
 def settle_bets() -> dict:
     """Règle les paris des matchs terminés/annulés (déclenchable seul)."""
     return {"bets_settled": settle_finished_matches()}
 
 
-# Lancer uniquement une fois au demarrage : python manage.py shell -c "from sports.tasks import scrape_history; scrape_history.delay()"
 @shared_task(name="sports.scrape_history")
 def scrape_history() -> dict:
-    """Historique — J-180 à J-1."""
+    """Historique — J-180 à J-1.
+
+    À lancer uniquement une fois au démarrage :
+    python manage.py shell -c "from sports.tasks import scrape_history; scrape_history.delay()"
+    """
     return _scrape_range(-180, -1)
