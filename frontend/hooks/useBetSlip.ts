@@ -7,7 +7,9 @@ import { labelFor } from "@/utils/bets";
 import type { Match, SlipPick, PlacePayload, Toast } from "@/utils/types";
 
 /** État et actions du ticket de paris (pari simple : 1 pick à la fois).
- *  `onPlaced` est appelé après un pari réussi (ex: rafraîchir le wallet). */
+ *  `onPlaced` est appelé après un pari réussi (ex: rafraîchir le wallet).
+ *  Toutes les sélections sont envoyées comme un seul ticket (simple ou combiné) ;
+ *  un 401 lors du placement redirige vers /login (session expirée ou absente). */
 export function useBetSlip(onPlaced?: () => void) {
   const [picks, setPicks] = useState<SlipPick[]>([]);
   const [slipOpen, setSlipOpen] = useState<boolean>(true);
@@ -20,7 +22,7 @@ export function useBetSlip(onPlaced?: () => void) {
 
   const handlePick = (match: Match, k: string, customLabel?: string) => {
     const odd = match.odds?.[k as "1" | "X" | "2"];
-    if (typeof odd !== "number") return; // cote indisponible : pas de pick
+    if (typeof odd !== "number") return;
 
     setPicks((prev) => {
       const existing = prev.find((p) => p.matchId === match.id);
@@ -61,7 +63,6 @@ export function useBetSlip(onPlaced?: () => void) {
     const isCombo = picks.length > 1;
 
     try {
-      // Toutes les sélections forment un seul ticket (simple ou combiné).
       await api.post("/api/betting/", {
         selections: picks.map((p) => ({
           match: Number(p.matchId),
@@ -82,7 +83,6 @@ export function useBetSlip(onPlaced?: () => void) {
               .response
           : undefined;
 
-      // Pas (ou plus) connecté : il faut s'authentifier pour parier.
       if (response?.status === 401) {
         window.location.href = "/login";
         return;

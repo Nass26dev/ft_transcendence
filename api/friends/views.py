@@ -192,6 +192,8 @@ class UserSearchView(APIView):
 
 
 class SendFriendRequest(APIView):
+    """POST /api/friends/request/ — envoie une demande d'ami."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -242,6 +244,8 @@ class SendFriendRequest(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class AcceptFriendRequest(APIView):
+    """PUT /api/friends/request/<id>/accept/ — accepte une demande d'ami."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -282,6 +286,8 @@ class AcceptFriendRequest(APIView):
 
 
 class DeclineFriendRequest(APIView):
+    """DELETE /api/friends/request/<id>/decline/ — refuse (supprime) une demande d'ami."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -321,6 +327,8 @@ class DeclineFriendRequest(APIView):
         return Response({'message': 'Demande refusée'}, status=status.HTTP_200_OK)
 
 class DeleteFriend(APIView):
+    """DELETE /api/friends/request/<id>/delete/ — supprime un ami (rompt l'amitié)."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -401,7 +409,6 @@ class FriendsFeedView(APIView):
     def get(self, request):
         user = request.user
 
-        # Amis acceptés uniquement (l'autre extrémité de chaque relation).
         friend_ids = set()
         pairs = (
             Friendship.objects.filter(status="accepted")
@@ -416,7 +423,7 @@ class FriendsFeedView(APIView):
 
         bets = (
             Bet.objects.filter(user_id__in=friend_ids)
-            .filter(user__is_public=True)  # seuls les profils publics dans le feed
+            .filter(user__is_public=True)
             .exclude(status="cancelled")
             .select_related("user")
             .prefetch_related(
@@ -442,6 +449,7 @@ class FriendsFeedView(APIView):
 
     @staticmethod
     def _leg_label(leg):
+        """Libellé complet de la sélection d'une jambe (ex. « X vainqueur »)."""
         sel = leg.odd.selection
         return {
             "home": f"{leg.match.home_team} vainqueur",
@@ -449,6 +457,7 @@ class FriendsFeedView(APIView):
         }.get(sel, "Match nul")
 
     def _serialize_bet(self, bet, now, request):
+        """Sérialise un pari en entrée de feed (texte, mise/cote, type d'évènement)."""
         legs = list(bet.selections.all())
         n = len(legs)
         is_combo = n > 1

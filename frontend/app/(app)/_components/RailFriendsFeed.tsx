@@ -15,6 +15,7 @@ function avatarColor(name: string): string {
   return PALETTE[h % PALETTE.length];
 }
 
+/** Fil d'activité des amis (paris récents) affiché dans la colonne latérale de l'accueil. */
 export function RailFriendsFeed() {
   const { items, loading } = useFriendsFeed();
 

@@ -6,6 +6,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 import { userInitials, displayName } from "@/utils/user";
 
+/** En-tête du profil : avatar, identité, ancienneté et solde de Kops. */
 export function ProfileHero() {
   const { profile } = useProfile();
 
@@ -25,14 +26,12 @@ export function ProfileHero() {
   return (
     <div className="mb-6 rounded-[10px] border border-border bg-gradient-to-br from-[#1A0808] to-surface-1 p-5 sm:p-7">
       <div className="flex flex-wrap items-center gap-4 sm:gap-5">
-        {/* Avatar */}
         <Avatar
           src={profile.avatar}
           initials={userInitials(profile)}
           className="h-16 w-16 text-[22px] sm:h-20 sm:w-20 sm:text-[28px]"
         />
 
-        {/* Identity */}
         <div className="min-w-0 flex-1">
           <h1 className="truncate font-display text-[24px] font-bold tracking-[-0.02em] sm:text-[32px]">
             {displayName(profile)}
@@ -47,7 +46,6 @@ export function ProfileHero() {
           </div>
         </div>
 
-        {/* Balance */}
         <div className="flex-none text-right">
           <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
             Solde

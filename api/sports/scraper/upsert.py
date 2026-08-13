@@ -8,6 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_or_create_football() -> Sport:
+    """Récupère (ou crée) le sport « Football »."""
     sport, _ = Sport.objects.get_or_create(
         slug="football",
         defaults={"name": "Football"},
@@ -16,6 +17,7 @@ def get_or_create_football() -> Sport:
 
 
 def get_or_create_competition(slug: str, name: str) -> Competition:
+    """Récupère (ou crée) une compétition de football pour la saison courante."""
     sport = get_or_create_football()
     competition, _ = Competition.objects.get_or_create(
         sport=sport,
@@ -26,6 +28,7 @@ def get_or_create_competition(slug: str, name: str) -> Competition:
 
 
 def get_or_create_team(competition: Competition, name: str) -> Team:
+    """Récupère (ou crée) une équipe au sein d'une compétition."""
     team, _ = Team.objects.get_or_create(
         competition=competition,
         name=name,

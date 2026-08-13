@@ -17,6 +17,7 @@ interface UpcomingSectionProps extends MatchHandlers {
   loading?: boolean;
 }
 
+/** Section « Prochains matchs » de l'accueil : grands championnats des 7 prochains jours. */
 export function UpcomingSection({
   matches,
   loading,

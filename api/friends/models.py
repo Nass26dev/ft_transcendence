@@ -2,6 +2,7 @@ from django.db import models
 from django.conf import settings
 
 class Friendship(models.Model):
+    """Relation d'amitié (ou demande en cours) entre deux utilisateurs."""
     STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('accepted', 'Accepted'),
@@ -17,4 +18,5 @@ class Friendship(models.Model):
         unique_together = ('sender', 'receiver')
 
     def __str__(self):
+        """Représentation texte lisible de la relation."""
         return f"{self.sender} -> {self.receiver} ({self.status})"

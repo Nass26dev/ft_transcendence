@@ -24,12 +24,11 @@ class IsAdminOrOwner(IsAuthenticated):
     """Autorise uniquement les users admin ou owner."""
 
     def has_permission(self, request, view):
+        """Vrai si l'utilisateur est authentifié et a le statut admin ou owner."""
         if not super().has_permission(request, view):
             return False
         return request.user.status in ("admin", "owner")
 
-
-# ── Recherche ──────────────────────────────────────────────────────────────────
 
 class AdminUserSearchView(APIView):
     """
@@ -61,6 +60,7 @@ class AdminUserSearchView(APIView):
         responses={200: UserAdminListSerializer(many=True)},
     )
     def get(self, request):
+        """Liste ou recherche des utilisateurs selon le paramètre `q`."""
         q = request.query_params.get("q", "").strip()
 
         users = User.objects.exclude(id=request.user.id)
@@ -70,8 +70,6 @@ class AdminUserSearchView(APIView):
         users = users.order_by("username")[:100]
         return Response(UserAdminListSerializer(users, many=True).data)
 
-
-# ── Statistiques globales (dashboard) ──────────────────────────────────────────
 
 class AdminStatsView(APIView):
     """
@@ -106,6 +104,7 @@ class AdminStatsView(APIView):
         },
     )
     def get(self, request):
+        """Calcule et renvoie les métriques du dashboard admin."""
         from betting.models import Bet
 
         users = User.objects.all()
@@ -125,8 +124,6 @@ class AdminStatsView(APIView):
         })
 
 
-# ── Détail + update ────────────────────────────────────────────────────────────
-
 class AdminUserDetailView(APIView):
     """
     GET  /api/admin/users/<id>/        → détail complet (friends + bets)
@@ -135,6 +132,7 @@ class AdminUserDetailView(APIView):
     permission_classes = [IsAdminOrOwner]
 
     def _get_user(self, pk):
+        """Récupère l'utilisateur par sa clé primaire, ou None s'il n'existe pas."""
         try:
             return User.objects.get(pk=pk)
         except User.DoesNotExist:
@@ -155,6 +153,7 @@ class AdminUserDetailView(APIView):
         },
     )
     def get(self, request, pk):
+        """Renvoie le détail complet de l'utilisateur ciblé."""
         user = self._get_user(pk)
         if not user:
             return Response({"detail": "Utilisateur introuvable."}, status=404)
@@ -177,18 +176,17 @@ class AdminUserDetailView(APIView):
         },
     )
     def patch(self, request, pk):
+        """Modifie l'utilisateur ciblé (protège les owners et réserve le changement de rôle aux owners)."""
         user = self._get_user(pk)
         if not user:
             return Response({"detail": "Utilisateur introuvable."}, status=404)
 
-        # Un admin ne peut pas modifier un owner (sauf si lui-même owner)
         if user.status == "owner" and request.user.status != "owner":
             return Response(
                 {"detail": "Impossible de modifier un owner."},
                 status=status.HTTP_403_FORBIDDEN,
             )
 
-        # Seul un owner peut changer les rôles.
         new_status = request.data.get("status")
         if (
             new_status is not None
@@ -207,8 +205,6 @@ class AdminUserDetailView(APIView):
         serializer.save()
         return Response(UserAdminDetailSerializer(user).data)
 
-
-# ── Wallet ─────────────────────────────────────────────────────────────────────
 
 class AdminUserWalletView(APIView):
     """
@@ -240,6 +236,7 @@ class AdminUserWalletView(APIView):
         },
     )
     def patch(self, request, pk):
+        """Remplace le solde de l'utilisateur ciblé par la valeur fournie."""
         try:
             user = User.objects.get(pk=pk)
         except User.DoesNotExist:
@@ -254,8 +251,6 @@ class AdminUserWalletView(APIView):
 
         return Response({"id": user.id, "wallet": float(user.wallet)})
 
-
-# ── Amis ───────────────────────────────────────────────────────────────────────
 
 class AdminUserFriendRemoveView(APIView):
     """
@@ -279,6 +274,7 @@ class AdminUserFriendRemoveView(APIView):
         },
     )
     def delete(self, request, pk, friend_pk):
+        """Supprime la relation d'amitié entre les deux utilisateurs, quel que soit le sens."""
         from friends.models import Friendship
 
         deleted, _ = Friendship.objects.filter(

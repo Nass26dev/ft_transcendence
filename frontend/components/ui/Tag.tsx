@@ -8,6 +8,7 @@ interface TagProps {
   kind?: TagKind;
 }
 
+/** Badge/étiquette compact (statut, catégorie…). `kind="live"` ajoute un point. */
 export function Tag({ children, kind = "default" }: TagProps) {
   const className =
     kind === "live"

@@ -3,13 +3,11 @@ from decimal import Decimal
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-# Plafond du solde (monnaie virtuelle). Le crédit est clampé à cette valeur,
-# bien en-dessous de la capacité du champ (max_digits=14), donc aucun risque
-# de débordement en base.
-MAX_WALLET = Decimal("1000000000.00")  # 1 milliard de Kops
+MAX_WALLET = Decimal("1000000000.00")
 
 
 class User(AbstractUser):
+    """Utilisateur applicatif : identifiants, statut, solde virtuel et préférences de profil."""
 
     email = models.EmailField(unique=True)
     USERNAME_FIELD = 'email'
@@ -21,11 +19,10 @@ class User(AbstractUser):
     bio = models.TextField(blank=True)
     avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     last_daily_bonus = models.DateField(null=True, blank=True)
-    # Dernier jour où l'utilisateur a tourné la roue de la chance (1×/jour).
     last_wheel_spin = models.DateField(null=True, blank=True)
     onboarding_completed = models.BooleanField(default=False)
-    # Profil public : apparaît dans les classements et le feed des amis.
     is_public = models.BooleanField(default=True)
 
     def __str__(self):
+        """Représentation lisible de l'utilisateur (son email)."""
         return self.email

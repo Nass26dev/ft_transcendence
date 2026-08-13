@@ -13,8 +13,7 @@ import {
 import { userInitials } from "@/utils/user";
 import { Avatar } from "@/components/ui/Avatar";
 
-// ---------- Sous-composants ----------
-
+/** Ligne d'un joueur (ami, demande ou résultat de recherche) avec une action contextuelle. */
 function PlayerRow({
   user,
   action,
@@ -38,6 +37,7 @@ function PlayerRow({
   );
 }
 
+/** Bloc de section avec titre et compteur optionnel (ex : nombre d'amis). */
 function Card({ title, count, children }: { title: string; count?: number; children: React.ReactNode }) {
   return (
     <div className="rounded-[10px] border border-border bg-surface-1 p-5">
@@ -59,8 +59,7 @@ const btnPrimary =
 const btnGhost =
   "rounded-[8px] border border-border bg-surface-2 px-3 py-1.5 text-[12.5px] font-semibold text-text transition-colors hover:border-border-strong hover:bg-surface-3 disabled:cursor-not-allowed disabled:opacity-50";
 
-// ---------- Page ----------
-
+/** Page Amis : recherche de joueurs, demandes reçues/envoyées et liste d'amis. */
 export default function FriendsPage() {
   const { isAuthenticated, ready } = useProfile();
   const { friends, incoming, outgoing, sendRequest, accept, decline, removeFriend } = useFriends();
@@ -70,13 +69,13 @@ export default function FriendsPage() {
   const [searching, setSearching] = React.useState(false);
   const [busy, setBusy] = React.useState<number | null>(null);
 
-  // Pré-remplit depuis ?q= (recherche lancée depuis la top bar).
+  /** Pré-remplit la recherche depuis ?q= (recherche lancée depuis la top bar). */
   React.useEffect(() => {
     const q = new URLSearchParams(window.location.search).get("q");
     if (q) setQuery(q);
   }, []);
 
-  // Recherche débouncée
+  /** Recherche débouncée (300 ms) à chaque changement de requête. */
   React.useEffect(() => {
     const q = query.trim();
     if (q.length < 2) {
@@ -96,14 +95,13 @@ export default function FriendsPage() {
     return () => clearTimeout(t);
   }, [query]);
 
-  // Relance la recherche courante (après une action) pour rafraîchir les statuts.
+  /** Relance la recherche courante (après une action) pour rafraîchir les statuts affichés. */
   const refreshSearch = async () => {
     const q = query.trim();
     if (q.length >= 2) {
       try {
         setResults(await searchUsers(q));
       } catch {
-        /* ignore */
       }
     }
   };
@@ -165,7 +163,6 @@ export default function FriendsPage() {
       <p className="mt-1 text-[13.5px] text-text-3">Recherche des joueurs et défie tes potes.</p>
 
       <div className="mt-6 flex flex-col gap-4">
-        {/* Recherche */}
         <Card title="Trouver des joueurs">
           <div className="mb-1 flex items-center gap-2.5 rounded-[10px] border border-border bg-surface-2 px-3 py-2.5">
             <Icon name="search" size={16} stroke={1.8} />
@@ -190,7 +187,6 @@ export default function FriendsPage() {
           </div>
         </Card>
 
-        {/* Demandes reçues */}
         {incoming.length > 0 && (
           <Card title="Demandes reçues" count={incoming.length}>
             {incoming.map((f) => (
@@ -220,7 +216,6 @@ export default function FriendsPage() {
           </Card>
         )}
 
-        {/* Demandes envoyées */}
         {outgoing.length > 0 && (
           <Card title="Demandes envoyées" count={outgoing.length}>
             {outgoing.map((f) => (
@@ -233,7 +228,6 @@ export default function FriendsPage() {
           </Card>
         )}
 
-        {/* Mes amis */}
         <Card title="Mes amis" count={friends.length}>
           {friends.length === 0 ? (
             <div className="py-3 text-[13px] text-text-3">

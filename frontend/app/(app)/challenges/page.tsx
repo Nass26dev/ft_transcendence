@@ -8,6 +8,7 @@ import { currentSeasonLabel } from "@/utils/date";
 import { DailyChallengeRow } from "./_components/DailyChallengeRow";
 import { SeasonChallengeCard } from "./_components/SeasonChallengeCard";
 
+/** Page Défis : défis du jour (reset 00h00) et défis de saison, avec récupération des récompenses. */
 export default function ChallengesPage() {
   const { isAuthenticated, ready } = useProfile();
   const { daily, season, claim } = useChallenges();
@@ -43,7 +44,6 @@ export default function ChallengesPage() {
 
   return (
     <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
-      {/* ============= DAILY ============= */}
       <div className="mb-3.5">
         <h2 className="font-display text-[22px] font-bold tracking-[-0.02em]">Défis du jour</h2>
         <div className="mt-0.5 text-[13px] text-text-3">
@@ -62,7 +62,6 @@ export default function ChallengesPage() {
         ))}
       </div>
 
-      {/* ============= SEASON ============= */}
       <div className="mb-3.5">
         <h2 className="font-display text-[22px] font-bold tracking-[-0.02em]">Saison {currentSeasonLabel()}</h2>
         <div className="mt-0.5 text-[13px] text-text-3">Récompenses long terme</div>

@@ -8,6 +8,7 @@ import { HomeRail } from "../_components/HomeRail";
 import { LiveGrid } from "./_components/LiveGrid";
 import { UpcomingList } from "./_components/UpcomingList";
 
+/** Page live : matchs en direct puis matchs à venir, avec le rail latéral (amis). */
 export default function LivePage() {
   const { live, upcoming, loading } = useHomeMatches();
   const handlers = useBetSlipHandlers();

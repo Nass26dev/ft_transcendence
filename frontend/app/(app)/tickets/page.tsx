@@ -6,6 +6,7 @@ import { TicketsStats } from "./_components/TicketsStats";
 import { TicketsTabs, type TabKey } from "./_components/TicketsTabs";
 import { TicketsList } from "./_components/TicketsList";
 
+/** Page Mes paris : statistiques, filtre par onglet et liste des tickets de paris. */
 export default function TicketsPage() {
   const { bets, loading } = useBets();
   const [tab, setTab] = React.useState<TabKey>("pending");
@@ -15,7 +16,6 @@ export default function TicketsPage() {
 
   return (
     <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
-      {/* Header */}
       <div className="mb-3.5">
         <h2 className="font-display text-[22px] font-bold tracking-[-0.02em]">
           Mes paris

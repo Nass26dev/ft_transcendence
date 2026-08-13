@@ -28,6 +28,7 @@ function shortName(name: string): string {
   return parts.length > 1 ? parts[parts.length - 1] : name;
 }
 
+/** Pastille d'un joueur sur le terrain : numéro et nom court. */
 function PlayerDot({ p, side }: { p: MatchLineupPlayer; side: TeamSide }) {
   return (
     <div className="flex min-w-0 flex-col items-center gap-0.5" title={p.player}>
@@ -47,6 +48,7 @@ function PlayerDot({ p, side }: { p: MatchLineupPlayer; side: TeamSide }) {
   );
 }
 
+/** Une ligne de joueurs (une ligne de la formation) répartie horizontalement. */
 function Row({ players, side }: { players: MatchLineupPlayer[]; side: TeamSide }) {
   if (!players.length) return <div className="flex-1" />;
   return (
@@ -58,6 +60,10 @@ function Row({ players, side }: { players: MatchLineupPlayer[]; side: TeamSide }
   );
 }
 
+/**
+ * Terrain avec les deux formations : l'équipe extérieure en haut (gardien vers
+ * l'attaque), l'équipe à domicile en bas (miroir), avec les marquages du terrain.
+ */
 function Pitch({
   home,
   away,
@@ -65,7 +71,6 @@ function Pitch({
   home: MatchLineupPlayer[];
   away: MatchLineupPlayer[];
 }) {
-  // away en haut (lignes du gardien vers l'attaque), home en bas (miroir).
   const [aGk, aDef, aMid, aFwd] = toLines(away);
   const [hGk, hDef, hMid, hFwd] = toLines(home);
 
@@ -77,7 +82,6 @@ function Pitch({
           "repeating-linear-gradient(0deg, #2c7a4d 0px, #2c7a4d 11%, #29723f 11%, #29723f 22%)",
       }}
     >
-      {/* Marquages */}
       <div className="pointer-events-none absolute inset-0">
         <div className="absolute left-0 right-0 top-1/2 border-t border-white/30" />
         <div className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-full border border-white/30" />
@@ -86,7 +90,6 @@ function Pitch({
         <div className="absolute bottom-0 left-1/2 h-[12%] w-2/5 -translate-x-1/2 rounded-t-sm border border-b-0 border-white/30" />
       </div>
 
-      {/* Joueurs */}
       <div className="relative flex h-full flex-col py-2">
         <Row players={aGk} side="away" />
         <Row players={aDef} side="away" />
@@ -101,6 +104,7 @@ function Pitch({
   );
 }
 
+/** Colonne des remplaçants d'une équipe (numéro + nom). */
 function SubsColumn({
   name,
   subs,
@@ -140,6 +144,7 @@ interface MatchLineupsProps {
   awayName?: string;
 }
 
+/** Compositions d'équipe d'un match : terrain avec les titulaires puis liste des remplaçants. */
 export function MatchLineups({ lineups, homeName, awayName }: MatchLineupsProps) {
   if (!lineups.length) return null;
   const pick = (side: TeamSide, role: "starter" | "substitute") =>

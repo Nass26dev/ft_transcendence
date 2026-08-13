@@ -8,17 +8,16 @@ import { BetSlipProvider } from "@/app/(app)/_components/BetSlipProvider";
 import { applyReduceMotion, getPref } from "@/utils/prefs";
 
 /** Coquille de l'app : sidebar (colonne fixe sur desktop, drawer sur mobile),
- *  topbar et contenu. Gère l'ouverture du menu mobile. */
+ *  topbar et contenu. Ferme le drawer à chaque navigation (mobile) et applique
+ *  la préférence « animations réduites » au chargement de l'app. */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const [navOpen, setNavOpen] = React.useState(false);
   const pathname = usePathname();
 
-  // Ferme le drawer à chaque navigation (mobile).
   React.useEffect(() => {
     setNavOpen(false);
   }, [pathname]);
 
-  // Applique la préférence « animations réduites » au chargement de l'app.
   React.useEffect(() => {
     applyReduceMotion(getPref("reduceMotion", false));
   }, []);

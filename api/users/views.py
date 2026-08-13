@@ -16,6 +16,8 @@ from django.core.cache import cache
 from django.contrib.auth import authenticate
 
 class LoginStep1View(APIView):
+    """Première étape du login : vérifie email/mot de passe puis envoie un code 2FA."""
+
     permission_classes = [AllowAny]
 
     @extend_schema(
@@ -54,6 +56,7 @@ class LoginStep1View(APIView):
         },
     )
     def post(self, request):
+        """Vérifie les identifiants et envoie le code OTP par email si valides."""
         email = request.data.get('email') or request.data.get('username')
         password = request.data.get('password')
         user = authenticate(username=email, password=password)
@@ -76,6 +79,8 @@ class LoginStep1View(APIView):
         return Response({"error": "Identifiants invalides"}, status=401)
 
 class LoginStep2View(APIView):
+    """Deuxième étape du login : valide le code 2FA et ouvre la session."""
+
     permission_classes = [AllowAny]
 
     @extend_schema(
@@ -107,6 +112,7 @@ class LoginStep2View(APIView):
         },
     )
     def post(self, request):
+        """Compare le code saisi au code en cache et, si valide, pose les cookies JWT."""
         user_id = request.data.get('user_id')
         code_saisi = request.data.get('code')
         code_attendu = cache.get(f"otp_{user_id}")
@@ -149,12 +155,15 @@ class LoginStep2View(APIView):
         return Response({"error": "Code invalide"}, status=400)
 
 class ProfileView(APIView):
+    """Profil de l'utilisateur connecté : lecture et mise à jour (champs texte ou avatar).
+
+    Accepte le JSON pour les champs texte (prénom, bio, profil public…) et le
+    multipart pour l'upload de la photo de profil.
+    """
+
     permission_classes = [IsAuthenticated]
-    # JSON pour les champs texte (prénom, bio, profil public…) ;
-    # multipart pour l'upload de la photo de profil.
     parser_classes = [JSONParser, MultiPartParser, FormParser]
 
-    # Taille max de l'avatar : 5 Mo.
     MAX_AVATAR_SIZE = 5 * 1024 * 1024
 
     @extend_schema(
@@ -169,7 +178,7 @@ class ProfileView(APIView):
         responses={200: UserSerializer},
     )
     def get(self, request):
-        # `context={"request"}` → l'URL de l'avatar est renvoyée en absolu.
+        """Renvoie le profil de l'utilisateur connecté (URL de l'avatar en absolu, via `context`)."""
         serializer = UserSerializer(request.user, context={"request": request})
         return Response(serializer.data)
 
@@ -212,7 +221,6 @@ class ProfileView(APIView):
         user = request.user
         avatar = request.FILES.get("avatar")
 
-        # Cas 1 : upload de la photo de profil.
         if avatar is not None:
             if not (avatar.content_type or "").startswith("image/"):
                 return Response({"detail": "Le fichier doit être une image."}, status=400)
@@ -222,7 +230,6 @@ class ProfileView(APIView):
             user.save(update_fields=["avatar"])
             return Response(UserSerializer(user, context={"request": request}).data, status=200)
 
-        # Cas 2 : mise à jour des champs texte.
         serializer = ProfileUpdateSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -233,6 +240,8 @@ DAILY_BONUS_AMOUNT = 500
 
 
 class DailyBonusView(APIView):
+    """Bonus quotidien : crédite le wallet de l'utilisateur, une fois par jour civil."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -254,6 +263,7 @@ class DailyBonusView(APIView):
         },
     )
     def post(self, request):
+        """Crédite le bonus quotidien si non déjà réclamé aujourd'hui (verrouillé contre les doubles requêtes)."""
         from django.db import transaction
         from django.utils import timezone
 
@@ -297,6 +307,7 @@ class WheelView(APIView):
         },
     )
     def get(self, request):
+        """Renvoie les cases publiques de la roue et si elle est encore disponible aujourd'hui."""
         from django.utils import timezone
         from .wheel import public_segments
 
@@ -342,6 +353,7 @@ class WheelSpinView(APIView):
         },
     )
     def post(self, request):
+        """Tire une case au hasard et applique son montant au solde, une fois par jour civil."""
         from decimal import Decimal
         from django.db import transaction
         from django.utils import timezone
@@ -359,8 +371,6 @@ class WheelSpinView(APIView):
                     status=400,
                 )
             before = user.wallet
-            # Le solde reste borné à [0, MAX_WALLET] : une grosse perte ne peut
-            # pas rendre le solde négatif.
             user.wallet = max(Decimal("0"), min(user.wallet + amount, MAX_WALLET))
             user.last_wheel_spin = today
             user.save(update_fields=["wallet", "last_wheel_spin"])
@@ -378,6 +388,8 @@ class WheelSpinView(APIView):
 
 
 class OnboardingCompleteView(APIView):
+    """Marque l'onboarding de l'utilisateur connecté comme terminé (idempotent)."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -393,6 +405,7 @@ class OnboardingCompleteView(APIView):
         responses={200: UserSerializer},
     )
     def post(self, request):
+        """Passe `onboarding_completed` à True si ce n'est pas déjà fait."""
         user = request.user
         if not user.onboarding_completed:
             user.onboarding_completed = True

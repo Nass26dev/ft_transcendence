@@ -22,7 +22,8 @@ export interface AppNotification {
   created_at: string;
 }
 
-/** Notifications de l'utilisateur : historique REST + flux temps réel (WebSocket). */
+/** Notifications de l'utilisateur : historique REST + flux temps réel (WebSocket,
+ *  avec reconnexion automatique en cas de coupure). */
 export function useNotifications() {
   const { isAuthenticated, ready } = useProfile();
   const [items, setItems] = useState<AppNotification[]>([]);
@@ -31,7 +32,6 @@ export function useNotifications() {
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // ── Chargement initial ────────────────────────────────────────────
   const load = useCallback(async () => {
     try {
       const res = await api.get("/api/notifications/");
@@ -52,7 +52,6 @@ export function useNotifications() {
     load();
   }, [ready, isAuthenticated, load]);
 
-  // ── Flux temps réel (avec reconnexion) ─────────────────────────────
   useEffect(() => {
     if (!ready || !isAuthenticated) return;
     let closedByUs = false;
@@ -72,7 +71,6 @@ export function useNotifications() {
             setUnread((u) => u + 1);
           }
         } catch {
-          /* message non-JSON ignoré */
         }
       };
 
@@ -90,7 +88,6 @@ export function useNotifications() {
     };
   }, [ready, isAuthenticated]);
 
-  // ── Actions ────────────────────────────────────────────────────────
   const markAllRead = useCallback(async () => {
     setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
     setUnread(0);
@@ -101,13 +98,15 @@ export function useNotifications() {
     }
   }, []);
 
+  /** Marque une notification comme lue ; `unread` est resynchronisé sur la
+   *  valeur autoritative renvoyée par le serveur. */
   const markRead = useCallback(async (id: number) => {
     setItems((prev) =>
       prev.map((n) => (n.id === id ? { ...n, is_read: true } : n)),
     );
     try {
       const res = await api.post(`/api/notifications/${id}/read/`);
-      setUnread(res.data.unread ?? 0); // valeur autoritative du serveur
+      setUnread(res.data.unread ?? 0);
     } catch (err) {
       console.error("Erreur marquage notification:", err);
     }

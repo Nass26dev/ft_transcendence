@@ -12,12 +12,15 @@ import { UpcomingSection } from "./_components/UpcomingSection";
 import { HomeRail } from "./_components/HomeRail";
 import { Onboarding } from "@/components/betting/Onboarding";
 
+/**
+ * Page d'accueil : matches en direct et à venir, plus le module latéral.
+ * Affiche l'écran d'onboarding aux utilisateurs connectés qui ne l'ont pas encore terminé.
+ */
 export default function HomePage() {
   const { live, upcoming, loading } = useHomeMatches();
   const handlers = useBetSlipHandlers();
   const { profile, completeOnboarding } = useProfile();
 
-  // Onboarding affiché aux utilisateurs connectés qui ne l'ont pas encore terminé.
   const showOnboarding = profile !== null && !profile.onboarding_completed;
 
   return (

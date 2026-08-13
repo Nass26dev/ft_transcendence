@@ -6,8 +6,6 @@ import { Icon } from "@/components/ui/Icon";
 import { KCoin } from "@/components/ui/Kops";
 import { overlayVariants, modalPanelVariants, EASE } from "@/components/ui/motion";
 
-// ---------- Types ----------
-
 type Accent = "logo" | "coin" | "league" | "fire";
 
 interface OnboardingStep {
@@ -19,8 +17,6 @@ interface OnboardingStep {
 interface OnboardingProps {
   onClose: () => void;
 }
-
-// ---------- Data ----------
 
 const ONBOARDING: OnboardingStep[] = [
   {
@@ -45,8 +41,7 @@ const ONBOARDING: OnboardingStep[] = [
   },
 ];
 
-// ---------- Sub-renders ----------
-
+/** Illustration de l'étape « Bienvenue » (logo). */
 function ArtLogo() {
   return (
     <div className="absolute inset-0 grid place-items-center">
@@ -59,6 +54,7 @@ function ArtLogo() {
   );
 }
 
+/** Illustration de l'étape « Kops » (pièces empilées). */
 function ArtCoin() {
   return (
     <div className="absolute inset-0 grid place-items-center">
@@ -81,6 +77,7 @@ function ArtCoin() {
   );
 }
 
+/** Illustration de l'étape « Ligues » (avatars de ligue superposés). */
 function ArtLeague() {
   const colors = ["#FF6B6B", "#4A8DFF", "#A3FF12", "#FFD60A", "#C9184A"];
   const letters = ["L", "M", "N", "K", "S"];
@@ -106,6 +103,7 @@ function ArtLeague() {
   );
 }
 
+/** Illustration de l'étape finale (solde de bienvenue). */
 function ArtFire() {
   return (
     <div className="absolute inset-0 grid place-items-center">
@@ -116,8 +114,7 @@ function ArtFire() {
   );
 }
 
-// ---------- Component ----------
-
+/** Modale d'onboarding en plusieurs étapes présentée aux nouveaux comptes. */
 export function Onboarding({ onClose }: OnboardingProps) {
   const [step, setStep] = React.useState<number>(0);
   const cur = ONBOARDING[step];
@@ -144,7 +141,6 @@ export function Onboarding({ onClose }: OnboardingProps) {
         variants={modalPanelVariants}
         className="w-full max-w-[540px] overflow-hidden rounded-[14px] border border-border-strong bg-surface-1 shadow-[0_30px_80px_rgba(0,0,0,0.7)]"
       >
-        {/* Image / accent area */}
         <div className="relative h-[220px] overflow-hidden bg-gradient-to-br from-kop-deep to-[#2A0808]">
           <AnimatePresence mode="wait">
             <motion.div
@@ -160,7 +156,6 @@ export function Onboarding({ onClose }: OnboardingProps) {
           </AnimatePresence>
         </div>
 
-        {/* Body */}
         <div className="px-8 py-7">
           <AnimatePresence mode="wait">
             <motion.div
@@ -179,7 +174,6 @@ export function Onboarding({ onClose }: OnboardingProps) {
             </motion.div>
           </AnimatePresence>
 
-          {/* Dots */}
           <div className="flex gap-1.5 justify-center my-4">
             {ONBOARDING.map((_, i) => (
               <div
@@ -193,7 +187,6 @@ export function Onboarding({ onClose }: OnboardingProps) {
             ))}
           </div>
 
-          {/* Actions */}
           <div className="flex justify-between mt-6">
             <button
               onClick={onClose}

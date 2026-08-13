@@ -9,6 +9,7 @@ from .models import Challenge
 
 
 def _challenge_dict(challenge, state):
+    """Combine les infos statiques d'un défi et son état de progression."""
     return {
         "code": challenge.code,
         "kind": challenge.kind,
@@ -36,6 +37,9 @@ class _ChallengeItemSerializer(serializers.Serializer):
 
 
 class ChallengeListView(APIView):
+    """Liste les défis actifs (quotidiens et saison) avec la progression de
+    l'utilisateur connecté."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -58,6 +62,7 @@ class ChallengeListView(APIView):
         },
     )
     def get(self, request):
+        """Renvoie les défis actifs répartis en listes `daily` et `season`."""
         daily, season = [], []
         for ch in Challenge.objects.filter(active=True):
             item = _challenge_dict(ch, services.challenge_state(request.user, ch))
@@ -66,6 +71,8 @@ class ChallengeListView(APIView):
 
 
 class ChallengeClaimView(APIView):
+    """Réclame la récompense d'un défi terminé pour l'utilisateur connecté."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -95,6 +102,7 @@ class ChallengeClaimView(APIView):
         },
     )
     def post(self, request, code):
+        """Crédite la récompense du défi `code` si terminé et non déjà réclamé."""
         try:
             challenge = Challenge.objects.get(code=code, active=True)
         except Challenge.DoesNotExist:
@@ -113,6 +121,8 @@ class ChallengeClaimView(APIView):
 
 
 class BadgeListView(APIView):
+    """Liste tous les badges avec l'état de déblocage de l'utilisateur connecté."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -140,6 +150,7 @@ class BadgeListView(APIView):
         },
     )
     def get(self, request):
+        """Renvoie tous les badges après avoir resynchronisé les déblocages."""
         data = [
             {
                 "code": b["badge"].code,

@@ -1,4 +1,3 @@
-# sports/views.py
 from datetime import date, timedelta
 from django.db.models import Count, Q
 from django.utils import timezone
@@ -13,11 +12,15 @@ from .serializers import MatchDetailSerializer, MatchListSerializer, OddsSeriali
 
 
 class MatchFilter(filters.FilterSet):
+    """Filtres disponibles sur la liste des matchs : statut, compétition, date."""
+
     status = filters.ChoiceFilter(choices=Match.Status)
     competition = filters.CharFilter(field_name="competition__slug")
     date = filters.DateFilter(field_name="kickoff_at", lookup_expr="date")
 
     class Meta:
+        """Modèle et champs filtrables."""
+
         model = Match
         fields = ["status", "competition", "date"]
 
@@ -43,6 +46,8 @@ class MatchFilter(filters.FilterSet):
     ),
 )
 class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """Endpoints en lecture seule pour les matchs : liste, détail, à venir, en direct, cotes."""
+
     queryset = (
         Match.objects
         .select_related("competition", "home_team", "away_team")
@@ -53,14 +58,16 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
     filterset_class = MatchFilter
 
     def get_serializer_class(self):
+        """Utilise le serializer détaillé pour `retrieve`, la version liste sinon."""
         if self.action == "retrieve":
             return MatchDetailSerializer
         return MatchListSerializer
 
     def get_queryset(self):
-        # Répartition des paris par sélection 1N2 (Confiance des Kopistes).
-        # On compte les jambes (bet_selections) : un combiné compte pour chacun
-        # de ses matchs. Count(filter=...) génère un seul JOIN via FILTER.
+        """Annote chaque match de la répartition des paris par issue 1N2 (Confiance des
+        Kopistes) : on compte les jambes (bet_selections), un combiné comptant pour
+        chacun de ses matchs, via un Count(filter=...) qui génère un seul JOIN par FILTER.
+        """
         qs = super().get_queryset().annotate(
             bets_home=Count("bet_selections", filter=Q(bet_selections__odd__selection="home")),
             bets_draw=Count("bet_selections", filter=Q(bet_selections__odd__selection="draw")),
@@ -82,10 +89,12 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         tags=["Sport"],
     )
     def upcoming(self, request):
+        """Matchs programmés dans les 7 prochains jours, triés par coup d'envoi.
+
+        Le order_by est explicite car l'annotate(Count(...)) du get_queryset ajoute
+        un GROUP BY qui écraserait sinon l'ordering du modèle.
+        """
         now = timezone.now()
-        # order_by explicite : l'annotate(Count(...)) du get_queryset ajoute un
-        # GROUP BY qui écrase l'ordering du modèle. Sans ça, les matchs sortent
-        # en désordre et le prochain coup d'envoi est noyé dans la liste.
         qs = self.get_queryset().filter(
             status="scheduled",
             kickoff_at__range=(now, now + timedelta(days=7)),
@@ -105,9 +114,11 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         tags=["Sport"],
     )
     def live(self, request):
-        # Matchs réellement en cours : status=live démarré dans les dernières
-        # heures. Couvre les matchs à cheval sur minuit et écarte les "live"
-        # fantômes restés bloqués (kickoff vieux de plusieurs jours/mois).
+        """Matchs réellement en cours (status=live démarré dans les dernières heures).
+
+        Le filtre temporel couvre les matchs à cheval sur minuit et écarte les
+        "live" fantômes restés bloqués (kickoff vieux de plusieurs jours/mois).
+        """
         cutoff = timezone.now() - timedelta(hours=4)
         qs = self.get_queryset().filter(
             status="live", kickoff_at__gte=cutoff
@@ -121,6 +132,7 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         tags=["Sport"],
     )
     def odds(self, request, pk=None):
+        """Liste les cotes du match identifié par `pk`."""
         match = self.get_object()
         serializer = OddsSerializer(match.odds.all(), many=True)
         return Response(serializer.data)

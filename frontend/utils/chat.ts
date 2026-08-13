@@ -28,7 +28,7 @@ export interface Conversation {
  *  Ex: http://localhost:8000/ + "ws/chat/3/" -> ws://localhost:8000/ws/chat/3/ */
 export function wsUrl(path: string): string {
   const base = (process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
-  const wsBase = base.replace(/^http/, "ws"); // http->ws, https->wss
+  const wsBase = base.replace(/^http/, "ws");
   const clean = path.replace(/^\//, "");
   return `${wsBase}/${clean}`;
 }

@@ -81,10 +81,16 @@ def settle_match(match: Match) -> int:
 
 
 def _resolve_ticket(bet_id: int, now) -> None:
-    """Résout un ticket si toutes ses jambes sont décidées (ou dès qu'une perd)."""
+    """Résout un ticket si toutes ses jambes sont décidées (ou dès qu'une perd).
+
+    Ne fait rien si le ticket est déjà réglé (ex. par une autre jambe
+    perdante) ou s'il reste des jambes encore en attente. Si toutes les
+    jambes décidées sont annulées (aucune gagnante), la mise est remboursée
+    plutôt que perdue.
+    """
     bet = Bet.objects.select_for_update().get(pk=bet_id)
     if bet.status != "pending":
-        return  # déjà réglé (ex. par une autre jambe perdante)
+        return
 
     legs = list(bet.selections.all())
     statuses = [l.status for l in legs]
@@ -93,11 +99,10 @@ def _resolve_ticket(bet_id: int, now) -> None:
     if "lost" in statuses:
         bet.status = "lost"
     elif "pending" in statuses:
-        return  # encore des jambes à régler
+        return
     else:
         won_legs = [l for l in legs if l.status == "won"]
         if not won_legs:
-            # Toutes les jambes annulées : on rembourse la mise.
             payout = bet.stake
             _credit(bet.user_id, payout)
             bet.status = "cancelled"
@@ -120,7 +125,7 @@ def _notify_settled(bet, payout) -> None:
         msg = f"Pari gagné : +{int(payout)} K encaissés ! 🎉"
     elif bet.status == "lost":
         msg = "Pari perdu… la prochaine sera la bonne."
-    else:  # cancelled
+    else:
         msg = f"Pari annulé : {int(payout)} K remboursés."
     notify(bet.user_id, "bet_settled", msg, url="/tickets")
 

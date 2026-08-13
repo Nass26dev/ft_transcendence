@@ -73,7 +73,6 @@ class ConversationList(APIView):
             .filter(Q(user_a=user) | Q(user_b=user))
             .select_related("user_a", "user_b")
         )
-        # Tri par date du dernier message (les plus récentes en premier).
         convs = sorted(
             convs,
             key=lambda c: (c.messages.order_by("-created_at").values_list("created_at", flat=True).first() or c.created_at),

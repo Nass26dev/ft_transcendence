@@ -7,12 +7,12 @@ django_asgi_app = get_asgi_application()
 from channels.routing import ProtocolTypeRouter, URLRouter
 from chat.routing import websocket_urlpatterns as chat_ws
 from notifications.routing import websocket_urlpatterns as notif_ws
-from chat.middleware import CookieJWTAuthMiddleware  # <-- Le nouveau middleware
+from chat.middleware import CookieJWTAuthMiddleware
 
 application = ProtocolTypeRouter(
     {
         "http": django_asgi_app,
-        "websocket": CookieJWTAuthMiddleware(  # <-- Appliqué ici
+        "websocket": CookieJWTAuthMiddleware(
             URLRouter(chat_ws + notif_ws)
         ),
     }

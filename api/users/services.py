@@ -7,6 +7,11 @@ from sib_api_v3_sdk.rest import ApiException
 
 
 def send_2fa_email(email_destinataire, code_otp):
+    """Envoie le code OTP de double authentification par email via Brevo.
+
+    Renvoie False (sans lever d'exception) si la clé API est absente ou si
+    l'envoi échoue côté Brevo.
+    """
 
     configuration = sib_api_v3_sdk.Configuration()
     api_key = os.getenv('BREVO_API_KEY') 

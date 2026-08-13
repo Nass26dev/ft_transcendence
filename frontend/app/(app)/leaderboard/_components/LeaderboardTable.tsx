@@ -15,6 +15,7 @@ const AVATAR_COLORS = [
   "#E11A22",
 ];
 
+/** Tableau de classement complet : en-tête des colonnes et lignes animées en cascade. */
 export function LeaderboardTable({ entries }: { entries: LeagueBoardEntry[] }) {
   return (
     <div className="overflow-hidden rounded-[10px] border border-border bg-surface-1">

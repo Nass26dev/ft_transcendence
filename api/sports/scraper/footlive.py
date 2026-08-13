@@ -34,11 +34,16 @@ def match_competition(href: str) -> tuple[str, str]:
 
 
 def parse_matches_page(soup: BeautifulSoup) -> list[dict]:
-    """Extrait les matchs en suivant les sections de compétition."""
+    """Extrait les matchs en suivant les sections de compétition.
+
+    Parcourt les éléments `.compLink` (en-têtes de compétition) et
+    `.feedGame` (matchs) dans l'ordre du document : chaque `.compLink`
+    rencontré met à jour la compétition courante, appliquée à tous les
+    `.feedGame` suivants jusqu'au prochain `.compLink`.
+    """
     results = []
     current_comp_name, current_comp_slug = RESTE_DU_MONDE
 
-    # Parcourt compLink et feedGame dans l'ordre du document
     for el in soup.select(".compLink, .feedGame"):
         classes = el.get("class", [])
 
@@ -47,7 +52,6 @@ def parse_matches_page(soup: BeautifulSoup) -> list[dict]:
             current_comp_name, current_comp_slug = match_competition(href)
             continue
 
-        # ── ici el est un .feedGame ──
         home = el.get("data-team1")
         away = el.get("data-team2")
         if not home or not away:
@@ -109,11 +113,6 @@ def parse_matches_page(soup: BeautifulSoup) -> list[dict]:
     return results
 
 
-# ════════════════════════════════════════════════════════════════════
-#  Fiche détaillée d'un match : /resultat/<home>-<away>-<date>/
-# ════════════════════════════════════════════════════════════════════
-
-# Classe CSS de l'icône foot-live → type d'événement.
 _EVENT_ICON = {
     "tgoal": "goal",
     "tog":   "own_goal",
@@ -125,21 +124,30 @@ _EVENT_ICON = {
 
 
 def _text(el: Tag | None) -> str:
+    """Texte normalisé (espaces compressés, bords rognés) d'un élément, ou chaîne vide si absent."""
     return el.get_text(" ", strip=True) if el else ""
 
 
 def _parse_minute(block: Tag) -> int | None:
+    """Extrait la minute d'un événement (ex. "45+2'" → 45), ou None si absente."""
     m = re.search(r"(\d+)(?:\s*\+\s*\d+)?\s*'", block.get_text(" ", strip=True))
     return int(m.group(1)) if m else None
 
 
 def _parse_events(soup: BeautifulSoup) -> list[dict]:
     """Buts / cartons / remplacements, alignés par index sur 3 colonnes
-    (gauche = domicile, centre = minute+icône, droite = extérieur)."""
+    (gauche = domicile, centre = minute+icône, droite = extérieur).
+
+    Les compositions partagent la même table `.match-detail` que les
+    événements : les lignes dont la première cellule porte la classe
+    "compo" sont donc ignorées ici. Pour un remplacement, le texte de la
+    cellule est "Entrant <br> Sortant" (joueur entrant puis sortant) ; pour
+    les autres événements, un éventuel suffixe " (csc)" (but contre son
+    camp) est retiré du nom du joueur.
+    """
     events: list[dict] = []
     for tbl in soup.select("#match-actions .match-detail"):
         first_td = tbl.select_one("td")
-        # Les compositions partagent la même table : on les saute ici.
         if first_td is None or "compo" in " ".join(first_td.get("class", [])):
             continue
         row = tbl.select_one("tr.t_a")
@@ -171,12 +179,10 @@ def _parse_events(soup: BeautifulSoup) -> list[dict]:
 
             player_out = ""
             if etype == "substitution":
-                # "Entrant <br> Sortant"
                 names = list((cell.find("div") or cell).stripped_strings)
                 player = names[0] if names else _text(cell)
                 player_out = names[1] if len(names) >= 2 else ""
             else:
-                # Nettoie un éventuel suffixe " (csc)".
                 player = re.sub(r"\s*\(csc\)\s*$", "", _text(cell)).strip()
 
             events.append({
@@ -220,7 +226,6 @@ def _parse_lineups(soup: BeautifulSoup) -> list[dict]:
     return players
 
 
-# Marqueurs de phase reconnus dans "Compétition: <nom> <phase>".
 _STAGE_RE = re.compile(
     r"(Groupe\s+\w+"
     r"|Journée\s+\d+|\d+\s*(?:[èe]re|[èe]me|er)?\s*journée"
@@ -232,7 +237,12 @@ _STAGE_RE = re.compile(
 
 
 def _extract_stage(comp_text: str) -> str:
-    """'Coupe du monde, Groupe A' ou 'Coupe du monde Groupe C' → 'Groupe A/C'."""
+    """'Coupe du monde, Groupe A' ou 'Coupe du monde Groupe C' → 'Groupe A/C'.
+
+    `_STAGE_RE` reconnaît les marqueurs de phase attendus dans le texte
+    "Compétition: <nom> <phase>" (groupe, journée, quarts/demies/finale,
+    barrages, play-offs, tours...).
+    """
     if "," in comp_text:
         return comp_text.split(",", 1)[1].strip()
     m = _STAGE_RE.search(comp_text)
@@ -263,7 +273,11 @@ def _parse_meta(soup: BeautifulSoup) -> dict:
 
 
 def parse_match_detail(soup: BeautifulSoup) -> dict:
-    """Extrait méta + événements + compositions d'une fiche match foot-live."""
+    """Extrait méta + événements + compositions d'une fiche match foot-live.
+
+    Fiche détaillée d'un match, accessible sur
+    /resultat/<home>-<away>-<date>/.
+    """
     return {
         "meta":     _parse_meta(soup),
         "events":   _parse_events(soup),

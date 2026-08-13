@@ -9,6 +9,7 @@ export const metadata: Metadata = {
 
 const UPDATED = "11 août 2026";
 
+/** Page légale : conditions d'utilisation (compte, monnaie virtuelle Kops, modération, responsabilité). */
 export default function TermsPage() {
   return (
     <article>
@@ -210,8 +211,6 @@ export default function TermsPage() {
     </article>
   );
 }
-
-// ---------- Sous-composants ----------
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

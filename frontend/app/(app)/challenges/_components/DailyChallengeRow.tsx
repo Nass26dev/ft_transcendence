@@ -8,6 +8,7 @@ interface Props {
   claiming: boolean;
 }
 
+/** Ligne d'un défi quotidien : icône, progression et bouton de récupération une fois complété. */
 export function DailyChallengeRow({ c, onClaim, claiming }: Props) {
   return (
     <div className="flex items-center gap-3.5 rounded-[10px] border border-border bg-surface-1 p-3.5">

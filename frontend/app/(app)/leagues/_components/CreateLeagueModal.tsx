@@ -4,6 +4,7 @@ import React from "react";
 import { Icon } from "@/components/ui/Icon";
 import { Modal } from "@/components/ui/Modal";
 
+/** Modale de création d'une ligue : formulaire nom + description avec validation basique. */
 export function CreateLeagueModal({
   onClose,
   onCreate,

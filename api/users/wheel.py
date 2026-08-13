@@ -11,7 +11,6 @@ Espérance de gain ≈ +314 Kops : la roue est légèrement favorable au joueur
 jackpot rare (1 %).
 """
 
-# kind : "jackpot" | "win" | "neutral" | "loss" (sert au code couleur du front)
 WHEEL_SEGMENTS = [
     {"label": "JACKPOT", "amount": 10000, "weight": 1,  "kind": "jackpot"},
     {"label": "−250",    "amount": -250,  "weight": 8,  "kind": "loss"},

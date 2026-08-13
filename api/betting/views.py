@@ -66,14 +66,19 @@ from .serializers import BetSerializer
     ),
 )
 class BetViewSet(viewsets.ModelViewSet):
+    """CRUD des paris de l'utilisateur connecté.
+
+    `queryset` n'est utilisé que pour permettre à drf-spectacular d'inférer
+    le type du paramètre d'URL "id" sans avoir à exécuter get_queryset()
+    (qui dépend de request.user).
+    """
 
     serializer_class = BetSerializer
     permission_classes = [permissions.IsAuthenticated]
-    # Permet a drf-spectacular d'inferer le type du parametre d'URL "id"
-    # sans avoir a executer get_queryset() (qui depend de request.user).
     queryset = Bet.objects.all()
 
     def get_queryset(self):
+        """Paris de l'utilisateur connecté, avec sélections/cotes/matchs préchargés."""
         return (
             Bet.objects
             .filter(user=self.request.user)
@@ -86,13 +91,12 @@ class BetViewSet(viewsets.ModelViewSet):
         )
 
 
-# Nombre minimal de paris distincts visé avant d'élargir la fenêtre, et
-# nombre max de tendances renvoyées.
 TRENDING_TARGET = 3
 TRENDING_LIMIT = 5
 
 
 def _pick_label(selection, home, away):
+    """Libellé lisible d'une issue 1N2 à partir des noms d'équipes."""
     return {
         "home": f"{home} vainqueur",
         "draw": "Match nul",
@@ -141,10 +145,13 @@ class TrendingBetsView(APIView):
         },
     )
     def get(self, request):
+        """Renvoie les tendances, en élargissant la fenêtre jusqu'à réunir au
+        moins TRENDING_TARGET combinaisons distinctes. Compte par jambe
+        (BetSelection), combinés inclus.
+        """
         now = timezone.now()
         windows = [("1h", timedelta(hours=1)), ("24h", timedelta(hours=24)), ("all", None)]
 
-        # On compte les tendances par jambe (BetSelection), combinés inclus.
         chosen, rows, total = "all", [], 0
         for label, delta in windows:
             qs = BetSelection.objects.all()
@@ -183,11 +190,8 @@ class TrendingBetsView(APIView):
         return Response(data)
 
 
-# Nombre max d'entrées renvoyées dans le classement.
 LEADERBOARD_LIMIT = 50
 
-# Fenêtre temporelle par période. "season" est mappé sur tout l'historique
-# (pas de notion de saison côté backend pour l'instant).
 PERIOD_DELTAS = {
     "week": timedelta(days=7),
     "month": timedelta(days=30),
@@ -279,12 +283,14 @@ class LeaderboardView(APIView):
         },
     )
     def get(self, request):
+        """Restreint le queryset (amis ou monde), calcule le net sur la
+        période choisie puis la variation à 7 jours glissants pour l'affichage.
+        """
         period = request.query_params.get("period", "week")
         scope = request.query_params.get("scope", "world")
         now = timezone.now()
         me_id = request.user.id if request.user.is_authenticated else None
 
-        # Portée "amis" : impossible sans être connecté.
         friend_ids = None
         if scope == "friends":
             if not me_id:
@@ -300,11 +306,12 @@ class LeaderboardView(APIView):
                 friend_ids.add(r_id)
 
         def scoped(qs):
-            # Seuls les profils publics apparaissent dans les classements.
+            """Restreint aux profils publics, et si `scope=friends`, aux amis
+            acceptés + soi-même.
+            """
             qs = qs.filter(user__is_public=True)
             return qs.filter(user_id__in=friend_ids) if friend_ids is not None else qs
 
-        # Classement sur la période demandée.
         qs = scoped(Bet.objects.filter(status__in=["won", "lost"]))
         delta = PERIOD_DELTAS.get(period)
         if delta is not None:
@@ -320,7 +327,6 @@ class LeaderboardView(APIView):
             .order_by("-net")[:LEADERBOARD_LIMIT]
         )
 
-        # Variation sur 7 jours glissants (même portée), pour la colonne "cette sem.".
         week_qs = scoped(
             Bet.objects.filter(
                 status__in=["won", "lost"], created_at__gte=now - timedelta(days=7)

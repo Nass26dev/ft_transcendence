@@ -3,6 +3,7 @@
 import React from "react";
 import type { MatchEvent, MatchEventType } from "@/utils/types";
 
+/** Icône d'un fait de jeu selon son type (but, carton, remplacement...). */
 function EventIcon({ type }: { type: MatchEventType }) {
   switch (type) {
     case "goal":
@@ -29,6 +30,7 @@ function eventDetail(ev: MatchEvent): string | null {
   return null;
 }
 
+/** Affiche un événement du côté de l'équipe concernée, vide sinon (pour l'alignement des deux colonnes). */
 function EventSide({ ev, side }: { ev: MatchEvent; side: "home" | "away" }) {
   const mine = ev.team_side === side;
   if (!mine) return <div className="flex-1" />;
@@ -56,6 +58,7 @@ function EventSide({ ev, side }: { ev: MatchEvent; side: "home" | "away" }) {
   );
 }
 
+/** Frise chronologique des faits de match, alignés à gauche (domicile) ou à droite (extérieur). */
 export function MatchTimeline({ events }: { events: MatchEvent[] }) {
   if (!events.length) return null;
 

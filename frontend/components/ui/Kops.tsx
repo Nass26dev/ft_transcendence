@@ -2,12 +2,11 @@
 
 import React from "react";
 
-// ---------- KCoin ----------
-
 interface KCoinProps {
   size?: number;
 }
 
+/** Pastille ronde « K » représentant la pièce Kop. */
 export function KCoin({ size = 16 }: KCoinProps) {
   return (
     <span
@@ -30,8 +29,6 @@ export function KCoin({ size = 16 }: KCoinProps) {
   );
 }
 
-// ---------- Kops (montant + coin) ----------
-
 interface KopsProps {
   amount: number;
   sign?: boolean;
@@ -39,6 +36,7 @@ interface KopsProps {
   color?: string;
 }
 
+/** Montant en Kops formaté (fr-FR) suivi de la pièce. `sign` affiche +/− devant. */
 export function Kops({ amount, sign = false, size = 14, color }: KopsProps) {
   const formatted = Math.abs(amount).toLocaleString("fr-FR");
 

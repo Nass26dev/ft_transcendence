@@ -18,6 +18,7 @@ interface LiveSectionProps extends MatchHandlers {
   loading?: boolean;
 }
 
+/** Section « En direct » de l'accueil : matchs live filtrables par championnat. */
 export function LiveSection({
   matches,
   loading,

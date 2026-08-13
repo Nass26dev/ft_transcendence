@@ -71,6 +71,13 @@ function normalize(data: Record<string, unknown>): Profile {
   return { ...(data as unknown as Profile), wallet: Number(data.wallet) };
 }
 
+/**
+ * Fournit le profil utilisateur à toute l'app : charge le profil au montage
+ * (un 401 est traité comme un visiteur non connecté, pas comme une erreur),
+ * expose les actions liées (bonus, roue, onboarding, déconnexion), et écoute
+ * l'évènement de session expirée pour se déconnecter une seule fois plutôt
+ * que de boucler sur des 401 répétés.
+ */
 export function ProfileProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = React.useState<Profile | null>(null);
   const [ready, setReady] = React.useState(false);
@@ -80,7 +87,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       const res = await api.get("/api/profile/");
       setProfile(normalize(res.data));
     } catch (err) {
-      // 401 = visiteur non connecté : cas normal, on reste en mode invité.
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         setProfile(null);
         return;
@@ -121,8 +127,8 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  /** Mise à jour optimiste : masque l'onboarding immédiatement, puis persiste le flag côté backend. */
   const completeOnboarding = React.useCallback(async (): Promise<void> => {
-    // Optimiste : on masque l'onboarding tout de suite, puis on persiste le flag.
     setProfile((prev) =>
       prev ? { ...prev, onboarding_completed: true } : prev,
     );
@@ -144,8 +150,6 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  // Session morte (refresh impossible) : on purge les cookies périmés une seule
-  // fois et on repasse en invité, ce qui stoppe la boucle de 401.
   const loggingOut = React.useRef(false);
   React.useEffect(() => {
     const onExpired = () => {

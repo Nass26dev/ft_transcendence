@@ -33,13 +33,13 @@ export function useConversations() {
     load();
   }, [ready, isAuthenticated, load]);
 
-  /** Récupère (ou crée) la conversation avec un utilisateur ; renvoie son objet. */
+  /** Récupère (ou crée) la conversation avec un utilisateur ; renvoie son objet
+   *  et met à jour la liste locale si la conversation est nouvelle. */
   const openConversation = useCallback(
     async (userId: number): Promise<Conversation> => {
       const res = await api.post<Conversation>("/api/chat/conversations/", {
         user_id: userId,
       });
-      // Met à jour la liste locale si la conversation est nouvelle.
       setConversations((prev) =>
         prev.some((c) => c.id === res.data.id) ? prev : [res.data, ...prev],
       );

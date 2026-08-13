@@ -11,10 +11,11 @@ const api = axios.create({
 /** Nom de l'événement émis quand la session est morte (refresh impossible). */
 export const AUTH_EXPIRED_EVENT = 'kop:auth-expired';
 
-// Refresh partagé : si plusieurs requêtes tombent en 401 en même temps, on ne
-// déclenche qu'UN seul appel /api/refresh-token (au lieu d'une rafale).
 let refreshPromise: Promise<void> | null = null;
 
+/** Rafraîchit le token de session. Le résultat en cours est partagé entre
+ *  appels concurrents : si plusieurs requêtes tombent en 401 en même temps,
+ *  un seul appel /api/refresh-token est déclenché (pas une rafale). */
 function refreshToken(): Promise<void> {
   if (!refreshPromise) {
     refreshPromise = axios

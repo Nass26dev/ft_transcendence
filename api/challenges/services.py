@@ -6,7 +6,7 @@ from django.db.models import Max
 from django.utils import timezone
 
 from betting.models import Bet
-from sports.services.settle import _credit  # crédit atomique du wallet
+from sports.services.settle import _credit
 
 from .models import Badge, ChallengeClaim, UserBadge
 
@@ -51,6 +51,9 @@ def period_key(challenge) -> str:
 
 
 def challenge_state(user, challenge) -> dict:
+    """État courant d'un défi pour un utilisateur : progression, cible,
+    complétion et statut de réclamation.
+    """
     progress = compute_metric(user, challenge.metric)
     claimed = ChallengeClaim.objects.filter(
         user=user, challenge=challenge, period=period_key(challenge)

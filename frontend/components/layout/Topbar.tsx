@@ -13,13 +13,14 @@ interface TopbarProps {
   onMenu?: () => void;
 }
 
+/** Barre supérieure : bouton menu (mobile), solde/notifications/avatar si
+ *  connecté, sinon boutons connexion/inscription. */
 export function Topbar({ onMenu }: TopbarProps) {
   const { profile, isAuthenticated, ready } = useProfile();
   const balance = profile?.wallet ?? 0;
 
   return (
     <div className="sticky top-0 z-10 flex items-center gap-2.5 border-b border-border bg-bg px-4 py-3.5 sm:gap-4 lg:px-8">
-      {/* Menu mobile */}
       <button
         onClick={onMenu}
         title="Menu"
@@ -31,11 +32,9 @@ export function Topbar({ onMenu }: TopbarProps) {
       <div className="flex-1" />
 
       {!ready ? (
-        // Évite le flash "boutons connexion" avant que le profil soit chargé.
         <div className="h-9 w-[180px]" />
       ) : isAuthenticated ? (
         <>
-          {/* Balance */}
           <div className="flex items-center gap-2.5 rounded-[10px] border border-border bg-gradient-to-b from-surface-2 to-surface-1 px-3.5 py-2">
             <div className="grid h-[22px] w-[22px] place-items-center rounded-full bg-kop font-display text-[13px] font-extrabold text-white">
               K
@@ -50,7 +49,6 @@ export function Topbar({ onMenu }: TopbarProps) {
             </div>
           </div>
 
-          {/* Notif / Settings */}
           <NotificationBell />
           <Link
             href="/settings"
@@ -60,7 +58,6 @@ export function Topbar({ onMenu }: TopbarProps) {
             <Icon name="settings" size={18} stroke={1.6} />
           </Link>
 
-          {/* Avatar */}
           <Link
             href="/profile"
             title={profile ? `@${profile.username || profile.email}` : "Profil"}

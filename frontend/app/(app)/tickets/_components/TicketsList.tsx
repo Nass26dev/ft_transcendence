@@ -2,6 +2,7 @@ import React from "react";
 import { TicketCard } from "@/components/betting/TicketCard";
 import type { Bet } from "@/utils/types";
 
+/** Liste de tickets de paris, ou message vide si la catégorie ne contient aucun pari. */
 export function TicketsList({ bets }: { bets: Bet[] }) {
   if (bets.length === 0) {
     return (

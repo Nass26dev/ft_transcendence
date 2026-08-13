@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { toastVariants } from "@/components/ui/motion";
 import type { Toast as ToastData } from "@/utils/types";
 
+/** Notification éphémère animée, affichée en haut à droite de l'écran. */
 export function Toast({ toast }: { toast: ToastData | null }) {
   return (
     <AnimatePresence>

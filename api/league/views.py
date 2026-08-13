@@ -17,6 +17,8 @@ from notifications.services import notify
 User = get_user_model()
 
 class CreateLeague(APIView):
+    """Crée une ligue et en fait de l'utilisateur connecté le créateur et premier membre."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -42,6 +44,7 @@ class CreateLeague(APIView):
         },
     )
     def post(self, request):
+        """Crée la ligue si le nom est libre et ajoute le créateur comme membre."""
         name = request.data.get("name")
         description = request.data.get("description", "")
 
@@ -72,6 +75,8 @@ class CreateLeague(APIView):
 
 
 class LeagueList(APIView):
+    """Liste les ligues dont l'utilisateur connecté est membre."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -85,12 +90,15 @@ class LeagueList(APIView):
         responses={200: LeagueSerializer(many=True)},
     )
     def get(self, request):
+        """Renvoie les ligues de l'utilisateur connecté (créées ou rejointes)."""
         leagues = request.user.leagues.all()
         return Response(LeagueSerializer(leagues, many=True).data)
 
 
 
 class LeagueDetail(APIView):
+    """Détail d'une ligue, accessible à tout utilisateur authentifié."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -107,6 +115,7 @@ class LeagueDetail(APIView):
         },
     )
     def get(self, request, league_id):
+        """Renvoie les informations de la ligue `league_id`, 404 si inexistante."""
         try:
             league = League.objects.get(id=league_id)
         except League.DoesNotExist:
@@ -119,6 +128,8 @@ class LeagueDetail(APIView):
 
 
 class MemberInLeague(APIView):
+    """Liste les membres d'une ligue, accessible même à un non-membre."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -136,6 +147,7 @@ class MemberInLeague(APIView):
         },
     )
     def get(self, request, league_id):
+        """Renvoie les membres (données minimales) de la ligue `league_id`."""
         try:
             league = League.objects.get(id=league_id)
         except League.DoesNotExist:
@@ -149,6 +161,8 @@ class MemberInLeague(APIView):
 
 
 class LeagueInvitationList(APIView):
+    """Liste les invitations de ligue en attente reçues par l'utilisateur connecté."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -162,10 +176,13 @@ class LeagueInvitationList(APIView):
         responses={200: LeagueInvitationSerializer(many=True)},
     )
     def get(self, request):
+        """Renvoie les invitations dont l'utilisateur connecté est destinataire."""
         invitations = LeagueInvitation.objects.filter(receiver=request.user)
         return Response(LeagueInvitationSerializer(invitations, many=True).data)
 
 class SendLeagueRequest(APIView):
+    """Envoie une invitation à rejoindre une ligue. Réservé au créateur de la ligue."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -198,6 +215,9 @@ class SendLeagueRequest(APIView):
         },
     )
     def post(self, request):
+        """Crée l'invitation si l'appelant est le créateur de la ligue et que
+        le destinataire n'est ni déjà membre ni déjà invité.
+        """
         receiver_id = request.data.get('receiver_id')
         league_id = request.data.get('league_id')
 
@@ -258,6 +278,8 @@ class SendLeagueRequest(APIView):
 
 
 class AcceptInvitation(APIView):
+    """Accepte une invitation de ligue adressée à l'utilisateur connecté."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -279,6 +301,9 @@ class AcceptInvitation(APIView):
         },
     )
     def post(self, request,invitation_id):
+        """Ajoute l'utilisateur connecté aux membres puis supprime l'invitation
+        (recherchée par id ET receiver=request.user : 404 sinon, même si elle
+        existe pour quelqu'un d'autre)."""
         try:
             invitation = LeagueInvitation.objects.get(
                 id = invitation_id,
@@ -299,6 +324,8 @@ class AcceptInvitation(APIView):
         )
 
 class DeclineInvitation(APIView):
+    """Refuse une invitation de ligue adressée à l'utilisateur connecté."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -320,6 +347,8 @@ class DeclineInvitation(APIView):
         },
     )
     def post(self, request, invitation_id):
+        """Supprime l'invitation sans ajouter l'utilisateur à la ligue
+        (recherchée par id ET receiver=request.user : 404 sinon)."""
         try:
             invitation = LeagueInvitation.objects.get(
                 id=invitation_id,
@@ -344,6 +373,12 @@ class DeclineInvitation(APIView):
 
 
 class LeaveLeague(APIView):
+    """Retire l'utilisateur connecté d'une ligue dont il est membre.
+
+    Le créateur ne peut jamais quitter sa propre ligue par cette route (pas
+    de transfert de propriété ni de suppression de la ligue prévus ici).
+    """
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -367,6 +402,7 @@ class LeaveLeague(APIView):
         },
     )
     def post(self,request,league_id):
+        """Retire l'utilisateur connecté des membres, sauf s'il est le créateur."""
         try:
             league=League.objects.get(id=league_id)
         except League.DoesNotExist:
@@ -394,6 +430,9 @@ class LeaveLeague(APIView):
         )
 
 class KickMember(APIView):
+    """Expulse un membre d'une ligue. Réservé au créateur ; le créateur
+    lui-même ne peut pas être expulsé."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -418,7 +457,8 @@ class KickMember(APIView):
         },
     )
     def post(self, request, league_id, user_id):
-
+        """Retire `user_id` des membres si l'appelant est le créateur et que
+        la cible n'est pas le créateur lui-même."""
         try:
             league = League.objects.get(id=league_id)
         except League.DoesNotExist:
@@ -460,6 +500,8 @@ class KickMember(APIView):
         )
 
 class AllLeague(APIView):
+    """Annuaire public de toutes les ligues, sans filtrage par appartenance."""
+
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -474,6 +516,7 @@ class AllLeague(APIView):
         responses={200: LeagueSerializer(many=True)},
     )
     def get(self,request):
+        """Renvoie toutes les ligues existantes."""
         leagues = League.objects.all()
         serializer = LeagueSerializer(leagues,many=True)
         return Response(serializer.data)
@@ -523,6 +566,7 @@ class LeagueLeaderboard(APIView):
         },
     )
     def get(self, request, league_id):
+        """Classe les membres de la ligue par solde de Kops décroissant."""
         try:
             league = League.objects.get(id=league_id)
         except League.DoesNotExist:

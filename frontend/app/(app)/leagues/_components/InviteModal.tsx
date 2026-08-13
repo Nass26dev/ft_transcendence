@@ -6,6 +6,10 @@ import { Modal } from "@/components/ui/Modal";
 import { useFriends } from "@/hooks/useFriends";
 import type { ApiLeague } from "@/utils/types";
 
+/**
+ * Modale d'invitation d'amis dans une ligue, avec recherche et statut d'envoi par ami.
+ * `state` associe l'id de chaque ami à "sending", "done" ou un message d'erreur.
+ */
 export function InviteModal({
   league,
   onClose,
@@ -18,7 +22,6 @@ export function InviteModal({
 }) {
   const { friends, loading } = useFriends();
   const [query, setQuery] = React.useState("");
-  // id ami -> "sending" | "done" | message d'erreur
   const [state, setState] = React.useState<Record<number, string>>({});
 
   const filtered = friends.filter((f) =>

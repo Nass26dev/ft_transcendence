@@ -39,6 +39,7 @@ function CompetitionRow({
   );
 }
 
+/** Carte listant les statistiques du joueur (paris, taux de réussite, ROI) par compétition. */
 export function CompetitionsCard() {
   return (
     <div className="flex-[2] rounded-[10px] border border-border bg-surface-1 p-5.5">

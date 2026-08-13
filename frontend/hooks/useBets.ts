@@ -63,7 +63,7 @@ export function useBets() {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (!ready) return; // on attend de savoir si l'utilisateur est connecté
+    if (!ready) return;
     if (!isAuthenticated) {
       setBets([]);
       setLoading(false);

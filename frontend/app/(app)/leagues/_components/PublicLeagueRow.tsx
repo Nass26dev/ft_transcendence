@@ -2,6 +2,7 @@ import React from "react";
 import type { ApiLeague } from "@/utils/types";
 import { leagueEmoji } from "@/utils/league";
 
+/** Ligne d'une ligue publique dans la liste des ligues à rejoindre. */
 export function PublicLeagueRow({
   league,
   onJoin,

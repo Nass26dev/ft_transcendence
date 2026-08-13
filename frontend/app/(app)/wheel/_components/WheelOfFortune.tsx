@@ -5,12 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Kops } from "@/components/ui/Kops";
 import type { WheelSegment, SpinResult } from "@/app/(app)/_components/ProfileProvider";
 
-// ---------- Géométrie ----------
-
 const SIZE = 340;
-const C = SIZE / 2; // centre
-const R = C - 6; // rayon des parts
-const R_LABEL = R * 0.66; // rayon des libellés
+const C = SIZE / 2;
+const R = C - 6;
+const R_LABEL = R * 0.66;
 
 /** Point sur le cercle, angle mesuré dans le sens horaire depuis le haut. */
 function point(angleDeg: number, radius: number) {
@@ -26,16 +24,12 @@ function slicePath(a0: number, a1: number) {
   return `M ${C} ${C} L ${p0.x} ${p0.y} A ${R} ${R} 0 ${largeArc} 1 ${p1.x} ${p1.y} Z`;
 }
 
-// ---------- Couleurs par type de lot ----------
-
 const COLORS: Record<WheelSegment["kind"], { fill: string; alt: string; text: string }> = {
   jackpot: { fill: "#FFD60A", alt: "#FFC400", text: "#1A1500" },
   win: { fill: "#A3FF12", alt: "#86D60A", text: "#0C2200" },
   loss: { fill: "#E10000", alt: "#B80000", text: "#FFFFFF" },
   neutral: { fill: "#26262F", alt: "#1C1C24", text: "#B5B5BD" },
 };
-
-// ---------- Composant ----------
 
 interface Props {
   segments: WheelSegment[];
@@ -45,6 +39,11 @@ interface Props {
 
 const SPIN_MS = 5200;
 
+/**
+ * Roue de la chance animée : un tour gratuit par jour (contrôlé par `available`),
+ * fait tourner la roue d'au moins 6 tours complets puis s'arrête sur le lot renvoyé
+ * par le serveur (`onSpin`), en alignant le centre de la case gagnante sous le curseur.
+ */
 export function WheelOfFortune({ segments, available, onSpin }: Props) {
   const [rotation, setRotation] = React.useState(0);
   const [phase, setPhase] = React.useState<"idle" | "spinning" | "done">("idle");
@@ -66,11 +65,10 @@ export function WheelOfFortune({ segments, available, onSpin }: Props) {
       return;
     }
 
-    // Aligne le centre de la case gagnante sous le curseur (en haut).
     const center = (res.index + 0.5) * seg;
     const want = (360 - center) % 360;
     const current = ((rotation % 360) + 360) % 360;
-    const extra = ((want - current + 360) % 360) + 360 * 6; // ≥ 6 tours
+    const extra = ((want - current + 360) % 360) + 360 * 6;
     setRotation(rotation + extra);
 
     window.setTimeout(() => {
@@ -81,9 +79,7 @@ export function WheelOfFortune({ segments, available, onSpin }: Props) {
 
   return (
     <div className="flex flex-col items-center gap-7">
-      {/* Roue + curseur */}
       <div className="relative" style={{ width: SIZE, height: SIZE }}>
-        {/* Curseur (triangle pointant vers le bas) */}
         <div className="absolute left-1/2 top-[-6px] z-10 -translate-x-1/2">
           <div
             style={{
@@ -105,7 +101,6 @@ export function WheelOfFortune({ segments, available, onSpin }: Props) {
           transition={{ duration: SPIN_MS / 1000, ease: [0.16, 1, 0.3, 1] }}
           style={{ filter: "drop-shadow(0 10px 40px rgba(0,0,0,0.5))" }}
         >
-          {/* Bord extérieur */}
           <circle cx={C} cy={C} r={R} fill="none" stroke="#3A3A45" strokeWidth={4} />
 
           {segments.map((s, i) => {
@@ -115,7 +110,6 @@ export function WheelOfFortune({ segments, available, onSpin }: Props) {
             const col = COLORS[s.kind];
             const fill = i % 2 === 0 ? col.fill : col.alt;
             const lp = point(mid, R_LABEL);
-            // Texte rayonnant vers l'extérieur, retourné en bas pour rester lisible.
             const flip = mid > 90 && mid < 270 ? 180 : 0;
             return (
               <g key={i}>
@@ -137,13 +131,11 @@ export function WheelOfFortune({ segments, available, onSpin }: Props) {
             );
           })}
 
-          {/* Moyeu central */}
           <circle cx={C} cy={C} r={26} fill="#131318" stroke="#3A3A45" strokeWidth={3} />
           <circle cx={C} cy={C} r={8} fill="var(--kop)" />
         </motion.svg>
       </div>
 
-      {/* Bouton */}
       <button
         onClick={handleSpin}
         disabled={!canSpin}
@@ -161,7 +153,6 @@ export function WheelOfFortune({ segments, available, onSpin }: Props) {
             : "Reviens demain"}
       </button>
 
-      {/* Résultat */}
       <AnimatePresence>
         {phase === "done" && result && (
           <motion.div

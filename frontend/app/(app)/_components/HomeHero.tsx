@@ -23,6 +23,7 @@ function volLabel(t: TrendingBet): string {
   return `${t.share} % des Kopistes · ${w}`;
 }
 
+/** Bandeau d'accueil : accroche, CTA vers les matchs/ligues, et tendances Kop du moment. */
 export function HomeHero({ onOpen }: HomeHeroProps) {
   const { trending } = useTrending();
 

@@ -3,6 +3,7 @@
 import React from "react";
 import type { BetStatus } from "@/utils/types";
 
+/** Onglet actif de la page tickets : un statut de pari donné, ou "all" pour tous les paris. */
 export type TabKey = BetStatus | "all";
 
 interface Tab {
@@ -17,6 +18,7 @@ const TABS: Tab[] = [
   { id: "all", label: "Tous" },
 ];
 
+/** Barre d'onglets pour filtrer les tickets par statut (en cours, gagnés, perdus, tous). */
 export function TicketsTabs({
   tab,
   onTab,

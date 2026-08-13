@@ -1,5 +1,3 @@
-// Helpers de présentation purs : mapping valeur -> classes/couleurs.
-
 /** Couleur du rang (or / argent / bronze / défaut). */
 export function getRankColor(rank: number): string {
   if (rank === 1) return "text-yellow";

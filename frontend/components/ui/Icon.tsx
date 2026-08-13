@@ -83,6 +83,7 @@ interface IconProps {
   className?: string;
 }
 
+/** Icône lucide-react rendue à partir d'un nom historique de la table ICONS. */
 export function Icon({ name, size = 18, stroke = 2, className }: IconProps) {
   const LucideComp = ICONS[name];
   const cls = className ? `icon ${className}` : "icon";

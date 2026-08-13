@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 
+/** Pose les cookies httpOnly access_token/refresh_token (ex: après le flux OAuth Google). */
 export async function POST(req: Request) {
   const { access, refresh } = await req.json();
   const cookieStore = await cookies();

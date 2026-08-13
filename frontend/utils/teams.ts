@@ -1,8 +1,3 @@
-// ============================================================
-// Visuels d'équipe : drapeau (sélections nationales) sinon maillot par défaut.
-// Les drapeaux sont des emoji (intégrés à l'OS) : aucune dépendance ni réseau.
-// ============================================================
-
 /** Normalise un nom pour la recherche (minuscules, sans accents, espaces compactés). */
 function normalize(name: string): string {
   return name
@@ -15,12 +10,12 @@ function normalize(name: string): string {
 }
 
 /**
- * Nom de pays (FR) → drapeau emoji.
- * Couvre les sélections de Coupe du monde + nations courantes.
- * (Les nations britanniques utilisent leurs drapeaux régionaux dédiés.)
+ * Nom de pays (FR) → drapeau emoji. Les drapeaux sont des emoji (intégrés à
+ * l'OS) : aucune dépendance ni réseau. Couvre les sélections de Coupe du monde
+ * + nations courantes (les nations britanniques utilisent leurs drapeaux
+ * régionaux dédiés).
  */
 const COUNTRY_FLAGS: Record<string, string> = {
-  // Coupe du monde & nations fréquentes
   france: "🇫🇷",
   angleterre: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
   ecosse: "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
@@ -44,7 +39,6 @@ const COUNTRY_FLAGS: Record<string, string> = {
   "bosnie-herzegovine": "🇧🇦",
   turquie: "🇹🇷",
   ukraine: "🇺🇦",
-  // Amériques
   bresil: "🇧🇷",
   argentine: "🇦🇷",
   uruguay: "🇺🇾",
@@ -59,7 +53,6 @@ const COUNTRY_FLAGS: Record<string, string> = {
   curacao: "🇨🇼",
   equateur: "🇪🇨",
   chili: "🇨🇱",
-  // Afrique
   maroc: "🇲🇦",
   tunisie: "🇹🇳",
   algerie: "🇩🇿",
@@ -72,7 +65,6 @@ const COUNTRY_FLAGS: Record<string, string> = {
   "cap-vert": "🇨🇻",
   "rd congo": "🇨🇩",
   nigeria: "🇳🇬",
-  // Asie / Océanie / Moyen-Orient
   japon: "🇯🇵",
   "coree du sud": "🇰🇷",
   "coree du nord": "🇰🇵",
@@ -87,7 +79,7 @@ const COUNTRY_FLAGS: Record<string, string> = {
   "emirats arabes unis": "🇦🇪",
 };
 
-// Index normalisé (résout accents / casse / variantes d'espaces).
+/** Index normalisé (résout accents / casse / variantes d'espaces). */
 const FLAGS_NORMALIZED: Record<string, string> = Object.fromEntries(
   Object.entries(COUNTRY_FLAGS).map(([name, flag]) => [normalize(name), flag])
 );

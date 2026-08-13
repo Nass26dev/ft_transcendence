@@ -12,6 +12,7 @@ interface UpcomingListProps extends MatchHandlers {
   loading?: boolean;
 }
 
+/** Liste compacte des matchs à venir aujourd'hui, avec filtre par championnat. */
 export function UpcomingList({
   matches,
   loading,
@@ -23,7 +24,6 @@ export function UpcomingList({
 
   return (
     <>
-      {/* À venir */}
       <div className="mb-3.5 flex items-end justify-between">
         <div>
           <h2 className="font-display text-[22px] font-bold tracking-[-0.02em]">

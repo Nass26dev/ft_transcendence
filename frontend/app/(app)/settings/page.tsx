@@ -11,8 +11,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import api from "@/utils/api";
 import { applyReduceMotion } from "@/utils/prefs";
 
-// ---------- Préférence persistée (localStorage) ----------
-
+/** Préférence booléenne persistée dans le localStorage sous la clé `kop.pref.<key>`. */
 function usePref(key: string, initial: boolean): [boolean, (v: boolean) => void] {
   const [value, setValue] = React.useState<boolean>(initial);
 
@@ -32,8 +31,7 @@ function usePref(key: string, initial: boolean): [boolean, (v: boolean) => void]
   return [value, update];
 }
 
-// ---------- Sous-composants ----------
-
+/** Bloc de section avec titre, utilisé pour regrouper les réglages par thème. */
 function Card({
   title,
   children,
@@ -51,6 +49,7 @@ function Card({
   );
 }
 
+/** Ligne d'information en lecture seule (libellé + valeur). */
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between border-b border-border py-3 last:border-b-0">
@@ -60,6 +59,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+/** Champ de texte étiqueté pour l'édition d'une donnée de profil. */
 function Field({
   label,
   value,
@@ -89,6 +89,7 @@ function Field({
   );
 }
 
+/** Ligne de réglage avec interrupteur on/off (label, description et switch). */
 function ToggleRow({
   label,
   desc,
@@ -129,15 +130,13 @@ function ToggleRow({
   );
 }
 
-// ---------- Page ----------
-
+/** Page Réglages : édition du profil, préférences et session (déconnexion, accès admin). */
 export default function SettingsPage() {
   const { profile, isAuthenticated, ready, logout, refreshProfile } = useProfile();
   const router = useRouter();
 
   const [reduceMotion, setReduceMotion] = usePref("reduceMotion", false);
 
-  // --- Édition du profil (prénom, nom, pseudo, bio) ---
   const [form, setForm] = React.useState({
     first_name: "",
     last_name: "",
@@ -189,28 +188,30 @@ export default function SettingsPage() {
     }
   };
 
-  // --- Profil public (champ backend) ---
   const [savingPublic, setSavingPublic] = React.useState(false);
+  /** Bascule la visibilité du profil ; en cas d'échec, l'état se resynchronise silencieusement au prochain chargement du profil. */
   const handlePublicToggle = async (v: boolean) => {
     setSavingPublic(true);
     try {
       await api.patch("/api/profile/", { is_public: v });
       await refreshProfile();
     } catch {
-      // silencieux : l'état se resynchronise au prochain chargement du profil.
     } finally {
       setSavingPublic(false);
     }
   };
 
-  // --- Photo de profil ---
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = React.useState(false);
   const [avatarError, setAvatarError] = React.useState<string | null>(null);
 
+  /**
+   * Valide puis envoie la nouvelle photo de profil (image, 5 Mo max) en multipart.
+   * Réinitialise la valeur de l'input pour permettre de re-sélectionner le même fichier ensuite.
+   */
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    e.target.value = ""; // permet de re-sélectionner le même fichier ensuite
+    e.target.value = "";
     if (!file) return;
     if (!file.type.startsWith("image/")) {
       setAvatarError("Le fichier doit être une image.");
@@ -225,8 +226,6 @@ export default function SettingsPage() {
     try {
       const fd = new FormData();
       fd.append("avatar", file);
-      // Override le Content-Type JSON par défaut : axios pose le bon
-      // multipart/form-data (avec boundary) pour un FormData.
       await api.patch("/api/profile/", fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -277,9 +276,7 @@ export default function SettingsPage() {
       </p>
 
       <div className="mt-6 flex flex-col gap-4">
-        {/* Profil */}
         <Card title="Profil">
-          {/* Avatar + upload */}
           <div className="mb-5 flex items-center gap-4">
             <button
               type="button"
@@ -327,7 +324,6 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          {/* Champs éditables */}
           <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <Field label="Prénom" value={form.first_name} onChange={setField("first_name")} placeholder="Ton prénom" maxLength={150} />
             <Field label="Nom" value={form.last_name} onChange={setField("last_name")} placeholder="Ton nom" maxLength={150} />
@@ -372,7 +368,6 @@ export default function SettingsPage() {
           </div>
         </Card>
 
-        {/* Compte (lecture seule) */}
         <Card title="Compte">
           <InfoRow label="Email" value={profile?.email ?? "-"} />
           <InfoRow
@@ -381,7 +376,6 @@ export default function SettingsPage() {
           />
         </Card>
 
-        {/* Préférences */}
         <Card title="Préférences">
           <ToggleRow
             label="Profil public"
@@ -401,7 +395,6 @@ export default function SettingsPage() {
           />
         </Card>
 
-        {/* Session */}
         <Card title="Session">
           {canAccessAdmin && (
             <div className="flex items-center justify-between border-b border-border py-3.5">

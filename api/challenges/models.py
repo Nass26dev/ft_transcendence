@@ -11,17 +11,20 @@ class Challenge(models.Model):
     kind = models.CharField(max_length=10, choices=KIND)
     title = models.CharField(max_length=120)
     description = models.CharField(max_length=200, blank=True)
-    icon = models.CharField(max_length=8, blank=True)  # emoji
-    metric = models.CharField(max_length=30)           # cf. services.compute_metric
+    icon = models.CharField(max_length=8, blank=True)
+    metric = models.CharField(max_length=30)
     target = models.PositiveIntegerField(default=1)
-    reward = models.PositiveIntegerField(default=0)    # Kops
+    reward = models.PositiveIntegerField(default=0)
     order = models.PositiveIntegerField(default=0)
     active = models.BooleanField(default=True)
 
     class Meta:
+        """Trié par type de défi puis par ordre d'affichage."""
+
         ordering = ["kind", "order"]
 
     def __str__(self):
+        """Représentation lisible : type et titre du défi."""
         return f"[{self.kind}] {self.title}"
 
 
@@ -37,9 +40,12 @@ class Badge(models.Model):
     order = models.PositiveIntegerField(default=0)
 
     class Meta:
+        """Trié par ordre d'affichage."""
+
         ordering = ["order"]
 
     def __str__(self):
+        """Représentation lisible : le nom du badge."""
         return self.name
 
 
@@ -55,6 +61,8 @@ class ChallengeClaim(models.Model):
     claimed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Une seule réclamation par utilisateur, défi et période."""
+
         unique_together = ("user", "challenge", "period")
 
 
@@ -66,4 +74,6 @@ class UserBadge(models.Model):
     unlocked_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
+        """Un badge ne peut être débloqué qu'une seule fois par utilisateur."""
+
         unique_together = ("user", "badge")

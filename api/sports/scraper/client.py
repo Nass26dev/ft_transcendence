@@ -18,6 +18,7 @@ HEADERS = {
 
 
 def fetch_page(path: str) -> BeautifulSoup | None:
+    """Récupère une page footlive.fr et la parse en BeautifulSoup, ou None en cas d'erreur HTTP."""
     url = BASE_URL + path
     try:
         resp = requests.get(url, headers=HEADERS, timeout=15)

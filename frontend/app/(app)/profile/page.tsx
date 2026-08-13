@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useProfile } from "../_components/ProfileProvider";
 import { ProfileHero } from "./_components/ProfileHero";
 import { ProfileStats } from "./_components/ProfileStats";
-// import { CompetitionsCard } from "./_components/CompetitionsCard";
 import { BadgesCard } from "./_components/BadgesCard";
 
+/** Page Profil : en-tête, statistiques et badges du joueur connecté. */
 export default function ProfilePage() {
   const { isAuthenticated, ready } = useProfile();
 
@@ -34,7 +34,6 @@ export default function ProfilePage() {
       <ProfileStats />
 
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
-        {/* <CompetitionsCard /> */}
         <BadgesCard />
       </div>
     </div>

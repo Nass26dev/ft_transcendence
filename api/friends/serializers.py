@@ -5,12 +5,14 @@ from django.contrib.auth import get_user_model
 User = get_user_model()
 
 class UserSummarySerializer(serializers.ModelSerializer):
+    """Infos minimales d'un utilisateur pour l'affichage dans les listes d'amis."""
     class Meta:
         model = User
         fields = ['id', 'username', 'email', 'avatar', 'bio']
 
 
 class FriendshipSerializer(serializers.ModelSerializer):
+    """Relation d'amitié (ou demande) avec les deux utilisateurs sérialisés."""
     sender = UserSummarySerializer(read_only=True)
     receiver = UserSummarySerializer(read_only=True)
 

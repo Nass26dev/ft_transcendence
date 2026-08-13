@@ -13,8 +13,7 @@ import type { Conversation } from "@/utils/chat";
 
 type Tab = "dm" | "league";
 
-// ---------- Sous-composants ----------
-
+/** Vignette d'une conversation : icône dédiée pour une ligue, photo/initiales pour un joueur. */
 function Avatar({
   label,
   league,
@@ -24,7 +23,6 @@ function Avatar({
   league?: boolean;
   src?: string | null;
 }) {
-  // Une ligue a une tuile dédiée (icône) ; un joueur a sa photo ou ses initiales.
   if (league) {
     return (
       <div className="grid h-9 w-9 flex-none place-items-center rounded-full bg-gradient-to-br from-[#3A86FF] to-[#1D3F6B] text-white">
@@ -41,6 +39,7 @@ function Avatar({
   );
 }
 
+/** Ligne cliquable d'une liste (conversation ou ligue), avec état actif surligné. */
 function ListRow({
   active,
   onClick,
@@ -73,8 +72,7 @@ function ListRow({
   );
 }
 
-// ---------- Page ----------
-
+/** Page Messages : conversations privées et discussions de ligue, avec recherche de joueurs. */
 export default function ChatPage() {
   const { profile, isAuthenticated, ready } = useProfile();
   const { conversations, openConversation } = useConversations();
@@ -83,7 +81,6 @@ export default function ChatPage() {
   const [tab, setTab] = React.useState<Tab>("dm");
   const [active, setActive] = React.useState<ActiveRoom | null>(null);
 
-  // Recherche pour démarrer une nouvelle conversation.
   const [query, setQuery] = React.useState("");
   const [results, setResults] = React.useState<SearchUser[]>([]);
 
@@ -144,14 +141,12 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] min-h-0">
-      {/* ── Colonne gauche : listes ─────────────────────────────────── */}
       <div
         className={[
           "w-full flex-none flex-col border-r border-border lg:flex lg:w-[300px]",
           active ? "hidden lg:flex" : "flex",
         ].join(" ")}
       >
-        {/* Onglets */}
         <div className="flex gap-1 border-b border-border p-2">
           {(["dm", "league"] as Tab[]).map((t) => (
             <button
@@ -170,7 +165,6 @@ export default function ChatPage() {
         <div className="flex-1 min-h-0 overflow-y-auto p-2">
           {tab === "dm" ? (
             <>
-              {/* Recherche nouvelle conversation */}
               <div className="mb-2 flex items-center gap-2 rounded-[10px] border border-border bg-surface-2 px-3 py-2">
                 <Icon name="search" size={15} stroke={1.8} />
                 <input
@@ -236,7 +230,6 @@ export default function ChatPage() {
         </div>
       </div>
 
-      {/* ── Colonne droite : fenêtre de chat ───────────────────────── */}
       <div className={["min-w-0 flex-1", active ? "block" : "hidden lg:block"].join(" ")}>
         {active && profile ? (
           <ChatWindow

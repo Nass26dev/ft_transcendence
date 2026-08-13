@@ -13,10 +13,10 @@ interface HomeRailProps {
   friendsOn: boolean;
 }
 
+/** Colonne latérale de l'accueil : défis du jour, feed des amis et classement de la ligue principale. */
 export function HomeRail({ friendsOn }: HomeRailProps) {
   const { daily } = useChallenges();
   const { myLeagues } = useLeagues();
-  // Ligue principale = première ligue de l'utilisateur.
   const primaryLeague = myLeagues[0] ?? null;
   const { board } = useLeagueBoard(primaryLeague?.id ?? null);
   return (

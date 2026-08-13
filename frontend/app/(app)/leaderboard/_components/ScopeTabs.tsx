@@ -2,6 +2,7 @@
 
 import React from "react";
 
+/** Portée du classement : tous les joueurs ou seulement les amis. */
 export type ScopeKey = "world" | "friends";
 
 const SCOPES: { id: ScopeKey; label: string }[] = [
@@ -9,6 +10,7 @@ const SCOPES: { id: ScopeKey; label: string }[] = [
   { id: "friends", label: "👥 Amis" },
 ];
 
+/** Onglets de sélection de la portée du classement (monde / amis). */
 export function ScopeTabs({
   scope,
   onScope,

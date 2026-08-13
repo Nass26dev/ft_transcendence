@@ -19,6 +19,7 @@ function flattenErrors(data: unknown): string[] {
   return out.length ? out : ["Une erreur est survenue."];
 }
 
+/** Formulaire d'inscription (email + mot de passe) avec option de connexion Google OAuth. */
 export default function RegisterPage() {
   const router = useRouter();
 
@@ -62,9 +63,11 @@ export default function RegisterPage() {
         const res = await api.post("/api/auth/social/google/", {
           access_token: tokenResponse.access_token,
         });
-        // dj_rest_auth (JWT_AUTH_HTTPONLY) pose déjà les cookies JWT et ne renvoie
-        // pas les tokens dans le body : on ne set-token que s'ils sont présents,
-        // sinon on écraserait les bons cookies avec "undefined".
+        /**
+         * dj_rest_auth (JWT_AUTH_HTTPONLY) pose déjà les cookies JWT et ne
+         * renvoie pas les tokens dans le body : on ne set-token que s'ils
+         * sont présents, sinon on écraserait les bons cookies avec "undefined".
+         */
         if (res.data?.access && res.data?.refresh) {
           await fetch("/api/set-token", {
             method: "POST",
@@ -82,17 +85,14 @@ export default function RegisterPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-bg px-4">
-      {/* Glow d'ambiance */}
       <div className="pointer-events-none absolute left-1/2 top-[-10%] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-kop/20 blur-[120px]" />
       <div className="pointer-events-none absolute bottom-[-15%] right-[10%] h-[320px] w-[320px] rounded-full bg-blue/10 blur-[120px]" />
 
       <div className="relative z-10 w-full max-w-[400px]">
-        {/* Logo */}
         <div className="mb-7 flex justify-center">
           <Image src="/full-logo.png" alt="Kop" width={150} height={45} priority />
         </div>
 
-        {/* Carte */}
         <div className="rounded-[16px] border border-border bg-surface-1 p-7 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.7)]">
           <h1 className="font-display text-[24px] font-bold tracking-[-0.02em]">
             Créer un compte

@@ -6,11 +6,14 @@ interface OddPillProps {
   label: string;
   value: number;
   selected: boolean;
+  /** Flèche indiquant l'évolution récente de la cote. */
   trend?: "up" | "down";
   onClick: () => void;
+  /** Étire la pill sur toute la largeur disponible (tuiles live). */
   fullWidth?: boolean;
 }
 
+/** Cote cliquable (une valeur 1 / N / 2) avec état sélectionné et tendance. */
 export function OddPill({
   label,
   value,

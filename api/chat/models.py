@@ -15,6 +15,7 @@ class Message(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
+        """Représentation texte lisible du message."""
         return f"{self.sender} : {self.content[:50]}"
 
 
@@ -42,6 +43,7 @@ class Conversation(models.Model):
         return conv
 
     def has_participant(self, user):
+        """Indique si `user` fait partie de cette conversation."""
         return self.user_a_id == user.id or self.user_b_id == user.id
 
     def other_user(self, user):
@@ -49,6 +51,7 @@ class Conversation(models.Model):
         return self.user_b if self.user_a_id == user.id else self.user_a
 
     def __str__(self):
+        """Représentation texte lisible de la conversation."""
         return f"DM {self.user_a} <-> {self.user_b}"
 
 
@@ -67,4 +70,5 @@ class DirectMessage(models.Model):
         ordering = ['created_at']
 
     def __str__(self):
+        """Représentation texte lisible du message."""
         return f"{self.sender} : {self.content[:50]}"

@@ -2,6 +2,7 @@ import React from "react";
 import { StatCard } from "@/components/ui/StatCard";
 import type { Bet } from "@/utils/types";
 
+/** Résumé chiffré des paris du joueur : en cours, gain potentiel, taux de réussite, total. */
 export function TicketsStats({ bets }: { bets: Bet[] }) {
   const pending = bets.filter((b) => b.status === "pending");
   const settled = bets.filter((b) => b.status !== "pending");

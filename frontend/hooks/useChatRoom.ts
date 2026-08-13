@@ -27,7 +27,9 @@ interface WsIncoming {
  *  - `historyUrl`: endpoint REST de l'historique (null = pas de salle active).
  *
  *  Charge l'historique via REST puis ouvre le WebSocket. Les nouveaux messages
- *  (y compris les nôtres, renvoyés en écho par le serveur) arrivent par le WS. */
+ *  (y compris les nôtres, renvoyés en écho par le serveur) arrivent par le WS.
+ *  En cas de coupure non voulue, le WebSocket se reconnecte automatiquement
+ *  tant que la salle (`wsPath`) reste active. */
 export function useChatRoom(wsPath: string | null, historyUrl: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<ConnectionStatus>("closed");
@@ -35,7 +37,7 @@ export function useChatRoom(wsPath: string | null, historyUrl: string | null) {
 
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // Évite les reconnexions d'une salle qu'on vient de quitter.
+  /** Évite les reconnexions d'une salle qu'on vient de quitter. */
   const activePathRef = useRef<string | null>(null);
 
   const appendMessage = useCallback((msg: ChatMessage) => {
@@ -44,7 +46,6 @@ export function useChatRoom(wsPath: string | null, historyUrl: string | null) {
     );
   }, []);
 
-  // ── Historique REST ────────────────────────────────────────────────
   useEffect(() => {
     if (!historyUrl) {
       setMessages([]);
@@ -78,7 +79,6 @@ export function useChatRoom(wsPath: string | null, historyUrl: string | null) {
     };
   }, [historyUrl]);
 
-  // ── Connexion WebSocket (avec reconnexion) ─────────────────────────
   useEffect(() => {
     activePathRef.current = wsPath;
     if (!wsPath) {
@@ -107,14 +107,11 @@ export function useChatRoom(wsPath: string | null, historyUrl: string | null) {
             username: data.username,
           });
         } catch {
-          /* message mal formé : on ignore */
         }
       };
 
       socket.onclose = () => {
         setStatus("closed");
-        // Reconnexion auto si on n'a pas fermé volontairement et qu'on est
-        // toujours sur la même salle.
         if (!closedByUs && activePathRef.current === wsPath) {
           reconnectRef.current = setTimeout(connect, 2000);
         }
@@ -133,7 +130,6 @@ export function useChatRoom(wsPath: string | null, historyUrl: string | null) {
     };
   }, [wsPath, appendMessage]);
 
-  // ── Envoi d'un message ──────────────────────────────────────────────
   const send = useCallback((content: string): boolean => {
     const text = content.trim();
     const socket = socketRef.current;

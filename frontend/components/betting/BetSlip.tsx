@@ -7,9 +7,7 @@ import { KCoin } from "@/components/ui/Kops";
 import { slideOverVariants } from "@/components/ui/motion";
 import type { SlipPick, PlacePayload } from "@/utils/types";
 
-
-// ---------- Types ----------
-
+/** Props du ticket de pari flottant. */
 interface BetSlipProps {
   picks: SlipPick[];
   onRemove: (id: string) => void;
@@ -19,8 +17,6 @@ interface BetSlipProps {
   balance: number;
 }
 
-// ---------- Component ----------
-
 /** Mise proposée à l'ouverture, ramenée au solde si celui-ci est plus bas
  *  (un nouveau compte démarre à 100 Kops). */
 const DEFAULT_STAKE = 200;
@@ -28,6 +24,8 @@ const DEFAULT_STAKE = 200;
 /** Paliers de mise rapide ; ceux au-dessus du solde sont désactivés. */
 const QUICK_STAKES = [100, 500, 1000, 5000];
 
+/** Ticket de pari flottant : liste des picks, saisie de la mise, calcul du
+ *  gain potentiel et validation. Masqué dès qu'il n'y a plus aucun pick. */
 export function BetSlip({
   picks,
   onRemove,
@@ -55,7 +53,6 @@ export function BetSlip({
       animate="show"
       exit="exit"
       className="fixed inset-x-3 bottom-3 z-[100] flex max-h-[calc(100vh-100px)] flex-col overflow-hidden rounded-[14px] border border-border-strong bg-surface-1 shadow-[0_20px_60px_rgba(0,0,0,0.6)] sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[360px]">
-      {/* Head */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3.5">
         <h3 className="font-display text-base font-bold">
           Mon ticket
@@ -80,7 +77,6 @@ export function BetSlip({
         </div>
       </div>
 
-      {/* Body */}
       <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-3.5">
         {picks.map((p) => (
           <div
@@ -115,7 +111,6 @@ export function BetSlip({
         )}
       </div>
 
-      {/* Foot */}
       <div className="border-t border-border bg-surface-2 px-4 py-3.5">
         <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
           Mise

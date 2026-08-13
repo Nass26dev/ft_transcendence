@@ -30,13 +30,14 @@ function relativeFr(iso: string): string {
   return days === 1 ? "hier" : `${days} j`;
 }
 
+/** Cloche de notifications : compteur non lues, panneau déroulant fermé au
+ *  clic extérieur, et navigation vers la cible de la notification au clic. */
 export function NotificationBell() {
   const { items, unread, markAllRead, markRead } = useNotifications();
   const [open, setOpen] = React.useState(false);
   const ref = React.useRef<HTMLDivElement>(null);
   const router = useRouter();
 
-  // Ferme le panneau au clic à l'extérieur.
   React.useEffect(() => {
     if (!open) return;
     const onClick = (e: MouseEvent) => {

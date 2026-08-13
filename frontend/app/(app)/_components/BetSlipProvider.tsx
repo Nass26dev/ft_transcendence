@@ -25,6 +25,12 @@ export function useBetSlipHandlers(): MatchHandlers {
   return ctx;
 }
 
+/**
+ * Fournit le ticket de pari (BetSlip) à tout le layout applicatif, ainsi que
+ * ses handlers de sélection. Parier nécessite d'être connecté : un visiteur
+ * qui clique une cote est redirigé vers la connexion plutôt que d'ajouter un
+ * pari inutilisable.
+ */
 export function BetSlipProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { profile, isAuthenticated, ready, refreshProfile } = useProfile();
@@ -42,8 +48,6 @@ export function BetSlipProvider({ children }: { children: React.ReactNode }) {
   } = useBetSlip(refreshProfile);
 
   const handlers: MatchHandlers = {
-    // Parier nécessite d'être connecté : un visiteur qui clique une cote est
-    // redirigé vers la connexion plutôt que d'ajouter un pari inutilisable.
     onPick: (match, k) => {
       if (ready && !isAuthenticated) {
         router.push("/login");
@@ -59,7 +63,6 @@ export function BetSlipProvider({ children }: { children: React.ReactNode }) {
     <BetSlipContext.Provider value={handlers}>
       {children}
 
-      {/* Bet slip */}
       <AnimatePresence>
         {slipOpen && picks.length > 0 && (
           <BetSlip
@@ -73,14 +76,12 @@ export function BetSlipProvider({ children }: { children: React.ReactNode }) {
         )}
       </AnimatePresence>
 
-      {/* Slip réduit (FAB) */}
       <AnimatePresence>
         {!slipOpen && picks.length > 0 && (
           <SlipFab count={picks.length} onClick={() => setSlipOpen(true)} />
         )}
       </AnimatePresence>
 
-      {/* Toast */}
       <Toast toast={toast} />
     </BetSlipContext.Provider>
   );

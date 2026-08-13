@@ -3,7 +3,10 @@ from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from drf_spectacular.extensions import OpenApiAuthenticationExtension
 
 class CookieJWTAuthentication(JWTAuthentication):
+    """Authentifie via le JWT stocké dans le cookie httpOnly `access_token`."""
+
     def authenticate(self, request):
+        """Valide le token du cookie ; retourne None (pas d'erreur) s'il est absent ou invalide."""
         access_token = request.COOKIES.get('access_token')
 
         if access_token is None:
@@ -22,6 +25,7 @@ class CookieJWTAuthenticationScheme(OpenApiAuthenticationExtension):
     name = 'cookieAuth'
 
     def get_security_definition(self, auto_schema):
+        """Décrit le schéma de sécurité `cookieAuth` pour la doc Swagger/OpenAPI."""
         return {
             'type': 'apiKey',
             'in': 'cookie',

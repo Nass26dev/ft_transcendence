@@ -5,6 +5,7 @@ import { Icon } from "@/components/ui/Icon";
 
 const AVATAR_COLORS = ["#FF6B6B", "#4A8DFF", "#A3FF12", "#FFD60A", "#C9184A"];
 
+/** Carte d'une ligue dont l'utilisateur est membre, avec actions inviter/quitter. */
 export function MyLeagueCard({
   league,
   isOwner,

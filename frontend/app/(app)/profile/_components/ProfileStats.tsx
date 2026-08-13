@@ -4,6 +4,11 @@ import React from "react";
 import { StatCard } from "@/components/ui/StatCard";
 import { useBets } from "@/hooks/useBets";
 
+/**
+ * Statistiques clés du joueur (taux de réussite, total, série, plus gros gain).
+ * La série en cours compte les victoires consécutives parmi les paris réglés,
+ * en partant du plus récent, et s'arrête à la première défaite rencontrée.
+ */
 export function ProfileStats() {
   const { bets } = useBets();
 
@@ -14,7 +19,6 @@ export function ProfileStats() {
   const winRate = settledCount ? Math.round((won.length / settledCount) * 100) : 0;
   const biggestWin = won.reduce((m, b) => Math.max(m, b.payout), 0);
 
-  // Streak en cours : victoires consécutives parmi les paris réglés (du + récent).
   let streak = 0;
   for (const b of bets) {
     if (b.status === "pending") continue;

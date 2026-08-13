@@ -6,6 +6,7 @@ import type { ApiLeague } from "@/utils/types";
 import { leagueEmoji } from "@/utils/league";
 import api from "@/utils/api";
 
+/** Membre d'une ligue tel que renvoyé par l'API des membres. */
 type Member = {
   id: number;
   username: string;
@@ -19,6 +20,7 @@ const AVATAR_COLORS = [
   { bg: "#FAECE7", text: "#993C1D" },
 ];
 
+/** Modale de détail d'une ligue : infos, liste des membres (avec exclusion pour le créateur) et actions. */
 export function LeagueDetailModal({
   league,
   isOwner,
@@ -58,7 +60,6 @@ export function LeagueDetailModal({
       onClose={onClose}
       className="w-full max-w-[420px] rounded-2xl border border-border bg-surface-1 overflow-hidden"
     >
-        {/* Header */}
         <div className="p-5 pb-0">
           <div className="mb-1 flex items-start justify-between">
             <div className="flex items-center gap-2.5">
@@ -90,7 +91,6 @@ export function LeagueDetailModal({
 
         <div className="h-px bg-border mx-0 my-3" />
 
-        {/* Membres */}
         <div className="px-5">
           <div className="mb-2.5 text-[11px] font-semibold uppercase tracking-wide text-text-3">
             Membres
@@ -141,7 +141,6 @@ export function LeagueDetailModal({
 
         <div className="h-px bg-border mx-0 my-3" />
 
-        {/* Actions */}
         <div className="flex flex-col gap-2 px-5 pb-5">
           {isOwner && (
             <button

@@ -10,31 +10,35 @@ interface TicketCardProps {
   bet: Bet;
 }
 
+/** Couleur du montant de gain selon l'issue du ticket. */
 const STATUS_COLOR: Record<BetStatus, string> = {
   won: "var(--green)",
   lost: "var(--kop-bright)",
   pending: "var(--text-2)",
 };
 
+/** Libellé affiché dans le tag de statut du ticket. */
 const STATUS_LABEL: Record<BetStatus, string> = {
   won: "Gagné",
   lost: "Perdu",
   pending: "En cours",
 };
 
+/** Variante visuelle du tag de statut du ticket. */
 const STATUS_TAG_KIND = (s: BetStatus) =>
   s === "won" ? "green" : s === "lost" ? "default" : "soon";
 
+/** Libellé du montant selon que le ticket est encaissé, perdu ou en attente. */
 const PAYOUT_LABEL: Record<BetStatus, string> = {
   won: "Encaissé",
   lost: "Perdu",
   pending: "Gain potentiel",
 };
 
+/** Carte d'un ticket de pari : picks, mise et gain (potentiel ou réel). */
 export function TicketCard({ bet }: TicketCardProps) {
   return (
     <div className="rounded-[10px] border border-border bg-surface-1 p-4.5">
-      {/* Head */}
       <div className="mb-3.5 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <Tag>{bet.kind}</Tag>
@@ -50,7 +54,6 @@ export function TicketCard({ bet }: TicketCardProps) {
         </div>
       </div>
 
-      {/* Picks */}
       <div className="mb-3.5 flex flex-col gap-2">
         {bet.picks.map((p, i) => (
           <div
@@ -69,7 +72,6 @@ export function TicketCard({ bet }: TicketCardProps) {
         ))}
       </div>
 
-      {/* Footer */}
       <div className="flex items-center justify-between border-t border-border pt-3">
         <div className="text-[13px]">
           <span className="text-text-3">Mise </span>
@@ -90,8 +92,7 @@ export function TicketCard({ bet }: TicketCardProps) {
   );
 }
 
-// ---------- Sub ----------
-
+/** Pastille d'état (gagné / perdu / en attente) d'un pick du ticket. */
 function PickStatusIcon({ status }: { status: BetStatus }) {
   if (status === "won") {
     return (

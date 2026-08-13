@@ -6,8 +6,6 @@ import { Icon, type IconName } from "@/components/ui/Icon";
 import { useProfile } from "../../_components/ProfileProvider";
 import api from "@/utils/api";
 
-// ---------- Types ----------
-
 type Role = "owner" | "admin" | "user";
 
 interface UserListItem {
@@ -62,9 +60,11 @@ interface Stats {
   won_bets: number;
 }
 
-// DRF sérialise les DecimalField en chaînes ("100.00") : on coerce toujours.
+/** Coerce en nombre : DRF sérialise les DecimalField en chaînes (ex. "100.00"). */
 const num = (v: unknown) => Number(v ?? 0);
+/** Formate un montant (Decimal ou number) en nombre localisé fr-FR. */
 const fmt = (v: unknown) => num(v).toLocaleString("fr-FR");
+/** Initiales (2 lettres majuscules) affichées dans les avatars de la liste admin. */
 const initialsOf = (name: string) => name.slice(0, 2).toUpperCase();
 
 /** Message d'erreur lisible à partir d'une erreur axios. */
@@ -79,8 +79,7 @@ function errMessage(e: unknown, fallback: string): string {
   return fallback;
 }
 
-// ---------- Sub-components ----------
-
+/** Bloc de section avec titre et icône optionnelle, utilisé dans tout le panneau admin. */
 function Card({
   title,
   icon,
@@ -101,6 +100,7 @@ function Card({
   );
 }
 
+/** Ligne d'information en lecture seule (libellé + valeur). */
 function InfoRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between border-b border-border py-3 last:border-b-0">
@@ -110,6 +110,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   );
 }
 
+/** Badge coloré affichant le rôle d'un utilisateur (owner / admin / user). */
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
     owner: "bg-amber-500/15 text-amber-400 border-amber-500/30",
@@ -125,6 +126,7 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+/** Tuile de statistique globale (icône, libellé, valeur, indication secondaire). */
 function StatCard({
   icon,
   label,
@@ -150,8 +152,7 @@ function StatCard({
   );
 }
 
-// ---------- Editable wallet ----------
-
+/** Éditeur de solde Kops d'un utilisateur, avec validation (nombre positif) et sauvegarde. */
 function WalletEditor({
   userId,
   current,
@@ -209,8 +210,7 @@ function WalletEditor({
   );
 }
 
-// ---------- Editable data ----------
-
+/** Éditeur des données d'un utilisateur (pseudo, email, bio, rôle) ; le rôle n'est modifiable que par un owner. */
 function DataEditor({
   userId,
   user,
@@ -313,8 +313,7 @@ function DataEditor({
   );
 }
 
-// ---------- Friends manager ----------
-
+/** Liste des amis d'un utilisateur avec possibilité de retirer une relation d'amitié. */
 function FriendsManager({
   userId,
   friends,
@@ -361,8 +360,7 @@ function FriendsManager({
   );
 }
 
-// ---------- Bets viewer ----------
-
+/** Historique en lecture seule des paris d'un utilisateur, avec statut coloré. */
 function BetsViewer({ bets }: { bets: Bet[] }) {
   const statusColors: Record<string, string> = {
     won: "text-green-400",
@@ -407,8 +405,6 @@ function BetsViewer({ bets }: { bets: Bet[] }) {
   );
 }
 
-// ---------- Page ----------
-
 type Tab = "data" | "wallet" | "friends" | "bets";
 
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
@@ -418,6 +414,7 @@ const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: "bets", label: "Paris", icon: "trending-up" },
 ];
 
+/** Panneau d'administration (owner/admin) : recherche, dashboard global et gestion complète d'un utilisateur. */
 export default function AdminPage() {
   const { profile, isAuthenticated, ready } = useProfile();
   const router = useRouter();
@@ -434,7 +431,7 @@ export default function AdminPage() {
   const isOwner = profile?.status === "owner";
   const canAccess = profile?.status === "admin" || profile?.status === "owner";
 
-  // Redirection des non-admins.
+  /** Redirige les non-admins : vers /login si déconnecté, vers /settings si sans droits admin. */
   React.useEffect(() => {
     if (!ready) return;
     if (!isAuthenticated) {
@@ -460,7 +457,7 @@ export default function AdminPage() {
     }
   }, []);
 
-  // Chargement initial : stats + liste complète.
+  /** Chargement initial du panneau admin : statistiques globales + liste complète des utilisateurs. */
   React.useEffect(() => {
     if (!ready || !canAccess) return;
     loadUsers("");
@@ -504,7 +501,6 @@ export default function AdminPage() {
 
   return (
     <div className="max-w-[820px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
-      {/* Header */}
       <div className="mb-1 flex items-center gap-3">
         <div className="grid h-8 w-8 place-items-center rounded-[8px] bg-kop/15">
           <Icon name="shield" size={16} stroke={2} className="text-kop-bright" />
@@ -517,7 +513,6 @@ export default function AdminPage() {
         Vue d&apos;ensemble et gestion des utilisateurs (données, solde, amis, paris).
       </p>
 
-      {/* Dashboard global */}
       {stats && (
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatCard
@@ -542,7 +537,6 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Search */}
       <form onSubmit={handleSearch} className="flex gap-2">
         <input
           type="text"
@@ -563,7 +557,6 @@ export default function AdminPage() {
 
       {error && !selected && <p className="mt-2 text-[13px] text-text-3">{error}</p>}
 
-      {/* Results list */}
       {!selected && users.length > 0 && (
         <div className="mt-3 flex flex-col overflow-hidden rounded-[10px] border border-border bg-surface-1">
           {users.map((u) => (
@@ -589,10 +582,8 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Selected user panel */}
       {selected && (
         <div className="mt-4 flex flex-col gap-4">
-          {/* User header */}
           <div className="flex items-center gap-4 rounded-[10px] border border-border bg-surface-1 p-5">
             <div className="grid h-12 w-12 flex-none place-items-center rounded-full bg-gradient-to-br from-[#FF6B6B] to-[#C9184A] text-[16px] font-bold text-white">
               {initialsOf(selected.username)}
@@ -614,7 +605,6 @@ export default function AdminPage() {
             </button>
           </div>
 
-          {/* Tabs */}
           <div className="flex gap-1 rounded-[10px] border border-border bg-surface-1 p-1">
             {TABS.map((t) => (
               <button
@@ -633,7 +623,6 @@ export default function AdminPage() {
             ))}
           </div>
 
-          {/* Tab content */}
           {tab === "data" && (
             <Card title="Données utilisateur" icon="user">
               <div className="mb-4">

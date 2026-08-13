@@ -5,6 +5,7 @@ import { Icon } from "@/components/ui/Icon";
 import { useChatRoom } from "@/hooks/useChatRoom";
 import type { ChatMessage } from "@/utils/chat";
 
+/** Conversation active affichée dans la fenêtre de chat : DM ou salon de ligue. */
 export interface ActiveRoom {
   kind: "dm" | "league";
   /** id de conversation (DM) ou de ligue. */
@@ -13,6 +14,7 @@ export interface ActiveRoom {
   subtitle?: string;
 }
 
+/** Formate un horodatage ISO en heure locale courte (HH:mm), vide si invalide. */
 function timeLabel(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "";
@@ -53,6 +55,9 @@ function MessageRow({
   );
 }
 
+/** Fenêtre de chat (DM ou ligue) : historique des messages, connexion temps
+ *  réel via WebSocket et saisie. Défile automatiquement vers le bas à chaque
+ *  nouveau message. */
 export function ChatWindow({
   room,
   currentUserId,
@@ -74,7 +79,6 @@ export function ChatWindow({
   const [draft, setDraft] = React.useState("");
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
-  // Auto-scroll vers le bas à chaque nouveau message.
   React.useEffect(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
@@ -87,7 +91,6 @@ export function ChatWindow({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      {/* En-tête */}
       <div className="flex items-center gap-3 border-b border-border px-5 py-3.5">
         {onBack && (
           <button
@@ -124,7 +127,6 @@ export function ChatWindow({
         </div>
       </div>
 
-      {/* Messages */}
       <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-auto px-5 py-4">
         {loading ? (
           <div className="py-8 text-center text-[13px] text-text-3">
@@ -152,7 +154,6 @@ export function ChatWindow({
         )}
       </div>
 
-      {/* Saisie */}
       <form
         onSubmit={submit}
         className="flex items-center gap-2 border-t border-border px-4 py-3"

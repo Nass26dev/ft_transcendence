@@ -5,8 +5,6 @@ from .views import BetViewSet, TrendingBetsView, LeaderboardView
 router = DefaultRouter()
 router.register(r"betting", BetViewSet, basename="bets")
 
-# Route explicite avant le routeur pour qu'elle ne soit pas captée par
-# betting/<pk>/ (sinon "trending" serait interprété comme un id).
 urlpatterns = [
     path("betting/trending/", TrendingBetsView.as_view(), name="bets-trending"),
     path("leaderboard/", LeaderboardView.as_view(), name="leaderboard"),

@@ -4,6 +4,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { popVariants } from "@/components/ui/motion";
 
+/** Bouton flottant affichant le nombre de sélections en attente dans le ticket réduit. */
 export function SlipFab({
   count,
   onClick,

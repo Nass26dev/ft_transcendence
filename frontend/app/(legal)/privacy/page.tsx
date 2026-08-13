@@ -8,6 +8,7 @@ export const metadata: Metadata = {
 
 const UPDATED = "11 août 2026";
 
+/** Page légale : politique de confidentialité (données collectées, cookies, droits RGPD). */
 export default function PrivacyPage() {
   return (
     <article>
@@ -195,8 +196,6 @@ export default function PrivacyPage() {
     </article>
   );
 }
-
-// ---------- Sous-composants ----------
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (

@@ -2,6 +2,7 @@
 
 import React from "react";
 
+/** Période sur laquelle le classement est calculé. */
 export type PeriodKey = "week" | "month" | "season" | "all";
 
 const PERIODS: { id: PeriodKey; label: string }[] = [
@@ -11,6 +12,7 @@ const PERIODS: { id: PeriodKey; label: string }[] = [
   { id: "all", label: "Tous temps" },
 ];
 
+/** Onglets de sélection de la période du classement (semaine, mois, saison, tous temps). */
 export function PeriodTabs({
   period,
   onPeriod,

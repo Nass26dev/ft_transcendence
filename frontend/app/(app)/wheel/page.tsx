@@ -6,6 +6,7 @@ import { useProfile } from "../_components/ProfileProvider";
 import { useWheel } from "@/hooks/useWheel";
 import { WheelOfFortune } from "./_components/WheelOfFortune";
 
+/** Page Roue de la chance : un tour gratuit par jour (`profile.wheel_available`), lots aléatoires. */
 export default function WheelPage() {
   const { isAuthenticated, ready, profile, spinWheel } = useProfile();
   const { segments, loading } = useWheel();
@@ -66,7 +67,6 @@ export default function WheelPage() {
         )}
       </div>
 
-      {/* Légende des lots */}
       <div className="mx-auto mt-10 max-w-[460px] rounded-[12px] border border-border bg-surface-1 p-4">
         <div className="mb-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-text-3">
           Les lots

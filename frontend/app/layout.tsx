@@ -5,21 +5,21 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { MotionProvider } from "@/components/ui/motion";
 
 
-// Texte / UI — moderne, dense, lisible
+/** Texte / UI — moderne, dense, lisible. */
 const interTight = Inter_Tight({
   variable: "--font-inter-tight",
   subsets: ["latin"],
   display: "swap",
 });
 
-// Titres — grotesque athlétique, look "sport"
+/** Titres — grotesque athlétique, look "sport". */
 const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],
   display: "swap",
 });
 
-// Chiffres / cotes
+/** Chiffres / cotes. */
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
@@ -31,13 +31,14 @@ export const metadata: Metadata = {
   description: "Le pari sportif sans pognon. 100 % adrénaline, 0 % facture.",
 };
 
-// Viewport explicite : largeur = écran, pas de zoom forcé sur mobile.
+/** Viewport explicite : largeur = écran, pas de zoom forcé sur mobile. */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
 };
 
+/** Layout racine de l'app : charge les polices, le provider Google OAuth et le provider d'animations. */
 export default function RootLayout({
   children,
 }: Readonly<{

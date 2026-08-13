@@ -1,5 +1,6 @@
 import React from "react";
 
+/** En-tête de section réutilisable : titre, sous-titre optionnel et action alignée à droite. */
 export function SectionHead({
   title,
   sub,

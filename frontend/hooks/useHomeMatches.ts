@@ -5,7 +5,9 @@ import api from "@/utils/api";
 import { filterByMajorCompetitions } from "@/utils/matches";
 import type { Match } from "@/utils/types";
 
-/** Charge les matchs live + à venir (filtrés sur les championnats majeurs). */
+/** Charge les matchs live + à venir (filtrés sur les championnats majeurs).
+ *  On privilégie les grands championnats, mais hors saison (aucun match
+ *  majeur à venir) on retombe sur les autres matchs pour ne pas avoir une home vide. */
 export function useHomeMatches() {
   const [live, setLive] = useState<Match[]>([]);
   const [upcoming, setUpcoming] = useState<Match[]>([]);
@@ -21,9 +23,6 @@ export function useHomeMatches() {
         ]);
         if (cancelled) return;
         setLive(liveRes.data);
-        // On privilégie les grands championnats, mais hors saison (aucun match
-        // majeur à venir) on retombe sur les autres matchs pour ne pas avoir
-        // une home vide.
         const major = filterByMajorCompetitions(upcomingRes.data);
         setUpcoming(major.length > 0 ? major : upcomingRes.data);
       } catch (err) {

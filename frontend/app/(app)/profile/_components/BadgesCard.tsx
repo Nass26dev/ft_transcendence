@@ -19,6 +19,7 @@ function BadgeCard({ b }: { b: ApiBadge }) {
   );
 }
 
+/** Grille des badges du joueur : débloqués en couleur, verrouillés en grisé avec cadenas. */
 export function BadgesCard() {
   const { badges } = useBadges();
 

@@ -9,8 +9,7 @@ import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 import { useHomeMatches } from "@/hooks/useHomeMatches";
 import { useBets } from "@/hooks/useBets";
 
-// ---------- Types ----------
-
+/** Entrée de navigation (lien, icône et badge optionnel) de la sidebar. */
 interface NavItem {
   href: string;
   label: string;
@@ -18,8 +17,6 @@ interface NavItem {
   badge?: string;
   badgeMuted?: string;
 }
-
-// ---------- Data ----------
 
 /** Construit la nav principale (le badge "En direct" reflète le nombre de matchs live). */
 function buildItems(liveCount: number): NavItem[] {
@@ -59,13 +56,13 @@ function buildSocial(pendingBetsCount: number, isAuthenticated: boolean): NavIte
   ];
 }
 
+/** Nav du compte, réservée aux utilisateurs connectés. */
 const ME: NavItem[] = [
   { href: "/profile", label: "Profil", icon: "user" },
   { href: "/settings", label: "Réglages", icon: "settings" },
 ];
 
-// ---------- Sub-components ----------
-
+/** Titre de section (petites majuscules) au-dessus d'un groupe de liens. */
 function NavSectionTitle({ children }: { children: React.ReactNode }) {
   return (
     <div className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-text-3">
@@ -74,9 +71,10 @@ function NavSectionTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
+/** Lien de nav mis en évidence si l'URL courante correspond exactement, ou
+ *  pour une sous-route (ex. /matches/m1 → l'entrée /matches reste active). */
 function NavItemRow({ it }: { it: NavItem }) {
   const pathname = usePathname();
-  // Active si exactement la même URL, ou pour les sous-routes (/matches/m1 → /match actif)
   const isActive =
     it.href === "/" ? pathname === "/" : pathname.startsWith(it.href);
 
@@ -107,14 +105,15 @@ function NavItemRow({ it }: { it: NavItem }) {
   );
 }
 
-// ---------- Component ----------
-
 interface SidebarProps {
   /** Drawer ouvert (mobile uniquement). */
   open?: boolean;
   onClose?: () => void;
 }
 
+/** Barre de navigation principale de l'app : logo, nav principale, section
+ *  sociale, compte (si connecté) et bonus quotidien. Colonne fixe sur desktop,
+ *  drawer fermable sur mobile. */
 export function Sidebar({ open = false, onClose }: SidebarProps) {
   const { profile, isAuthenticated, claimDailyBonus } = useProfile();
   const available = profile?.daily_bonus_available ?? false;
@@ -130,7 +129,6 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
 
   return (
     <>
-      {/* Fond semi-opaque (mobile) */}
       <div
         onClick={onClose}
         className={[
@@ -147,7 +145,6 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
           open ? "translate-x-0" : "-translate-x-full",
         ].join(" ")}
       >
-      {/* Logo */}
       <Link href="/" className="flex items-center gap-2.5 px-2">
         <img src="/logo-clear.png" alt="Kop" className="h-7 w-auto" />
         <span className="font-display text-[22px] font-bold tracking-[-0.03em]">
@@ -155,14 +152,12 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         </span>
       </Link>
 
-      {/* Main nav */}
       <div className="flex flex-col gap-0.5">
         {items.map((it) => (
           <NavItemRow key={it.href} it={it} />
         ))}
       </div>
 
-      {/* Social */}
       <div className="flex flex-col gap-0.5">
         <NavSectionTitle>Social</NavSectionTitle>
         {social.map((it) => (
@@ -170,7 +165,6 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         ))}
       </div>
 
-      {/* Compte — réservé aux utilisateurs connectés */}
       {isAuthenticated && (
         <div className="flex flex-col gap-0.5">
           <NavSectionTitle>Compte</NavSectionTitle>
@@ -180,9 +174,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         </div>
       )}
 
-      {/* Bas de barre : bonus du jour puis liens légaux */}
       <div className="mt-auto flex flex-col gap-3">
-      {/* Bonus card — masquée une fois le bonus récupéré */}
       {available && (
         <div className="rounded-[10px] border border-border bg-surface-1 p-3">
           <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-text-3">
@@ -200,7 +192,6 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
         </div>
       )}
 
-        {/* Liens légaux — obligatoires et accessibles sans compte */}
         <div className="flex flex-wrap gap-x-2.5 gap-y-1 px-2 text-[11px] text-text-4">
           <Link href="/privacy" className="transition-colors hover:text-text-2">
             Confidentialité

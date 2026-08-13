@@ -14,6 +14,8 @@ import type {
   Badge,
 } from "@/utils/types";
 
+/** Données de démonstration (mock) : équipes, ligues, matchs, paris, classement,
+ *  défis, etc. Utilisées comme jeu de données statique par certains écrans. */
 export const TEAMS: Record<string, Team> = {
   PSG: { n: "Paris SG", sh: "PSG", c: "#004170", t: "#fff" },
   OM: { n: "Marseille", sh: "OM", c: "#2FAEE0", t: "#fff" },

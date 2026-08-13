@@ -4,14 +4,16 @@ from .models import User
 
 
 class RegisterSerializer(BaseRegisterSerializer):
+    """Serializer d'inscription sans username ni champ `wallet` : le solde initial vient
+    toujours du défaut du modèle (`User.wallet`), jamais du client, pour empêcher
+    qu'un compte s'ouvre avec un solde choisi par l'utilisateur."""
+
     username = None
     first_name = serializers.CharField(required=False, default='')
     last_name = serializers.CharField(required=False, default='')
-    # `wallet` n'est volontairement PAS un champ du serializer : il serait
-    # alimenté par le client, qui pourrait s'ouvrir un compte au solde de son
-    # choix. Le solde initial vient du défaut du modèle (User.wallet).
 
     def get_cleaned_data(self):
+        """Données validées transmises à la création du compte (prénom/nom inclus)."""
         return {
             'email': self.validated_data.get('email', ''),
             'password1': self.validated_data.get('password1', ''),
@@ -21,6 +23,7 @@ class RegisterSerializer(BaseRegisterSerializer):
         }
 
     def save(self, request):
+        """Crée l'utilisateur puis renseigne prénom/nom (non gérés par le save parent)."""
         user = super().save(request)
         user.first_name = self.cleaned_data.get('first_name', '')
         user.last_name = self.cleaned_data.get('last_name', '')
@@ -32,6 +35,8 @@ from .models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
+    """Profil complet de l'utilisateur, exposé sur ses propres endpoints."""
+
     daily_bonus_available = serializers.SerializerMethodField()
     wheel_available = serializers.SerializerMethodField()
 
@@ -55,10 +60,12 @@ class UserSerializer(serializers.ModelSerializer):
         ]
 
     def get_daily_bonus_available(self, obj) -> bool:
+        """Vrai si le bonus quotidien n'a pas encore été réclamé aujourd'hui."""
         from django.utils import timezone
         return obj.last_daily_bonus != timezone.localdate()
 
     def get_wheel_available(self, obj) -> bool:
+        """Vrai si la roue de la chance n'a pas encore été tournée aujourd'hui."""
         from django.utils import timezone
         return obj.last_wheel_spin != timezone.localdate()
 
@@ -78,6 +85,7 @@ class ProfileUpdateSerializer(serializers.ModelSerializer):
         }
 
     def validate_username(self, value):
+        """Rejette un username vide ou déjà pris par un autre utilisateur."""
         value = (value or '').strip()
         if not value:
             raise serializers.ValidationError("Le nom d'utilisateur ne peut pas être vide.")

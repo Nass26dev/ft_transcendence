@@ -1,6 +1,12 @@
 import axios from 'axios';
 import { cookies } from 'next/headers';
 
+/**
+ * Renouvelle l'access token à partir du refresh_token en cookie. Cette route
+ * s'exécute côté serveur (conteneur frontend) : on joint le backend via son
+ * URL interne Docker (API_URL) et non NEXT_PUBLIC_API_URL, qui pointerait sur
+ * le frontend lui-même.
+ */
 export async function POST() {
   const cookieStore = await cookies();
   const refresh = cookieStore.get('refresh_token')?.value;
@@ -9,9 +15,6 @@ export async function POST() {
     return Response.json({ error: 'No refresh token' }, { status: 401 });
   }
 
-  // Cette route s'exécute côté serveur (conteneur frontend) : on doit joindre
-  // le backend par son URL interne Docker (API_URL), pas l'URL navigateur
-  // (NEXT_PUBLIC_API_URL = localhost, qui pointerait sur le frontend lui-même).
   const backendUrl = (process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "").replace(/\/$/, "");
 
   try {

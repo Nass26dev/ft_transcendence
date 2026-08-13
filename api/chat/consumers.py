@@ -14,6 +14,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     """Chat de ligue (discussion de groupe)."""
 
     async def connect(self):
+        """Rejette la connexion si l'utilisateur n'est pas authentifié ou pas membre de la ligue."""
         self.league_id = self.scope['url_route']['kwargs']['league_id']
         self.room_group_name = f'chat_{self.league_id}'
         user = self.scope['user']
@@ -34,10 +35,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
+        """Quitte le groupe de la ligue (si la connexion avait été acceptée)."""
         if hasattr(self, 'room_group_name'):
             await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     async def receive(self, text_data):
+        """Persiste le message reçu puis le diffuse à tous les membres connectés de la ligue."""
         data = json.loads(text_data)
         content = (data.get('content') or '').strip()
         if not content:
@@ -63,6 +66,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         )
 
     async def chat_message(self, event):
+        """Relaie au client l'évènement `chat_message` reçu du groupe de la ligue."""
         await self.send(text_data=json.dumps({
             'id': event['id'],
             'message': event['message'],
@@ -76,6 +80,7 @@ class DMConsumer(AsyncWebsocketConsumer):
     """Chat privé (message direct) entre deux utilisateurs."""
 
     async def connect(self):
+        """Rejette la connexion si l'utilisateur n'est pas authentifié ou n'est pas participant de la conversation."""
         self.conversation_id = self.scope['url_route']['kwargs']['conversation_id']
         self.room_group_name = f'dm_{self.conversation_id}'
         user = self.scope['user']
@@ -96,10 +101,12 @@ class DMConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
     async def disconnect(self, close_code):
+        """Quitte le groupe de la conversation (si la connexion avait été acceptée)."""
         if hasattr(self, 'room_group_name'):
             await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     async def receive(self, text_data):
+        """Persiste le message reçu, le diffuse aux deux participants puis notifie l'interlocuteur."""
         data = json.loads(text_data)
         content = (data.get('content') or '').strip()
         if not content:
@@ -124,7 +131,6 @@ class DMConsumer(AsyncWebsocketConsumer):
             }
         )
 
-        # Notifie l'interlocuteur (id calculé sans requête supplémentaire).
         conv = self.conversation
         recipient_id = (
             conv.user_b_id if conv.user_a_id == user.id else conv.user_a_id
@@ -138,6 +144,7 @@ class DMConsumer(AsyncWebsocketConsumer):
         )
 
     async def dm_message(self, event):
+        """Relaie au client l'évènement `dm_message` reçu du groupe de la conversation."""
         await self.send(text_data=json.dumps({
             'id': event['id'],
             'message': event['message'],

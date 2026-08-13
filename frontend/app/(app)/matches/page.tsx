@@ -12,16 +12,18 @@ import { MatchesList } from "./_components/MatchesList";
 
 const PAGE_SIZE = 60;
 
+/**
+ * Page listant tous les matchs à venir, avec recherche et filtre par championnat.
+ * Affichage progressif par pages de PAGE_SIZE (rendre toutes les cartes d'un coup
+ * fige la page) ; la recherche/le filtre travaillent sur l'ensemble des matchs et
+ * réinitialisent le nombre affiché pour repartir du haut de la nouvelle liste.
+ */
 export default function MatchesPage() {
   const { matches, loading } = useUpcomingMatches();
   const handlers = useBetSlipHandlers();
   const { query, setQuery, filtered: searched } = useMatchSearch(matches);
   const { filtered, leagues, active, setActive } = useLeagueFilter(searched);
 
-  // Affichage progressif : rendre 883 cartes d'un coup fige la page. On en
-  // montre PAGE_SIZE et on étend à la demande. La recherche/le filtre, eux,
-  // travaillent sur l'ensemble — on remet juste le compteur à zéro quand ils
-  // changent pour repartir du haut de la nouvelle liste (matchs imminents).
   const [visible, setVisible] = React.useState(PAGE_SIZE);
   React.useEffect(() => setVisible(PAGE_SIZE), [query, active]);
 
@@ -30,7 +32,6 @@ export default function MatchesPage() {
 
   return (
     <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
-      {/* Header */}
       <div className="mb-3.5 flex items-end justify-between">
         <div>
           <h2 className="font-display text-[22px] font-bold tracking-[-0.02em]">

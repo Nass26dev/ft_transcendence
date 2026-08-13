@@ -15,13 +15,13 @@ interface LiveGridProps extends MatchHandlers {
   loading?: boolean;
 }
 
+/** Grille des matchs en direct : recherche, filtre par championnat et tuiles live. */
 export function LiveGrid({ matches, loading, onPick, isPicked, onOpen }: LiveGridProps) {
   const { query, setQuery, filtered: searched } = useMatchSearch(matches);
   const { filtered, leagues, active, setActive } = useLeagueFilter(searched);
 
   return (
     <>
-      {/* Header */}
       <div className="mb-3.5 flex items-end justify-between">
         <div>
           <h2 className="flex items-center gap-2 font-display text-[22px] font-bold tracking-[-0.02em]">
@@ -57,7 +57,6 @@ export function LiveGrid({ matches, loading, onPick, isPicked, onOpen }: LiveGri
               Aucun match en direct ne correspond.
             </div>
           ) : (
-            /* Live tiles */
             <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
               {filtered.map((m) => (
                 <LiveTile

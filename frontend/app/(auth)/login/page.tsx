@@ -8,6 +8,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import axios from 'axios';
 
+/**
+ * Formulaire de connexion en deux étapes : email/mot de passe (1) puis code
+ * de vérification à 6 chiffres envoyé par email (2). Propose aussi une
+ * connexion Google OAuth.
+ */
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -61,10 +66,12 @@ function LoginContent() {
         const res = await api.post('/api/auth/social/google/', {
           access_token: tokenResponse.access_token,
         });
-        // En mode JWT_AUTH_HTTPONLY, dj_rest_auth pose lui-même les cookies JWT
-        // et ne renvoie PAS les tokens dans le body. On n'appelle set-token que
-        // s'ils sont réellement présents, sinon on écraserait les bons cookies
-        // avec des valeurs "undefined".
+        /**
+         * En mode JWT_AUTH_HTTPONLY, dj_rest_auth pose lui-même les cookies
+         * JWT et ne renvoie PAS les tokens dans le body. On n'appelle
+         * set-token que s'ils sont réellement présents, sinon on écraserait
+         * les bons cookies avec des valeurs "undefined".
+         */
         if (res.data?.access && res.data?.refresh) {
           await fetch('/api/set-token', {
             method: 'POST',
@@ -85,17 +92,14 @@ function LoginContent() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-bg px-4">
-      {/* Glow d'ambiance */}
       <div className="pointer-events-none absolute left-1/2 top-[-10%] h-[420px] w-[420px] -translate-x-1/2 rounded-full bg-kop/20 blur-[120px]" />
       <div className="pointer-events-none absolute bottom-[-15%] right-[10%] h-[320px] w-[320px] rounded-full bg-blue/10 blur-[120px]" />
 
       <div className="relative z-10 w-full max-w-[400px]">
-        {/* Logo */}
         <div className="mb-7 flex justify-center">
           <Image src="/full-logo.png" alt="Kop" width={150} height={45} priority />
         </div>
 
-        {/* Carte */}
         <div className="rounded-[16px] border border-border bg-surface-1 p-7 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.7)]">
           <h1 className="font-display text-[24px] font-bold tracking-[-0.02em]">
             {step === 1 ? "Connexion" : "Vérification"}
@@ -220,6 +224,7 @@ function LoginContent() {
   );
 }
 
+/** Page de connexion, chargée dans un Suspense car elle lit `?email=` via useSearchParams. */
 export default function LoginPage() {
   return (
     <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-bg text-text-3">Chargement…</div>}>

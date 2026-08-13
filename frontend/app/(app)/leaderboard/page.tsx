@@ -7,6 +7,7 @@ import { Podium } from "./_components/Podium";
 import { LeaderboardTable } from "./_components/LeaderboardTable";
 import { useLeaderboard } from "@/hooks/useLeaderboard";
 
+/** Page de classement : filtres portée/période, podium des 3 premiers et tableau complet. */
 export default function LeaderboardPage() {
   const [scope, setScope] = React.useState<ScopeKey>("world");
   const [period, setPeriod] = React.useState<PeriodKey>("week");
@@ -14,7 +15,6 @@ export default function LeaderboardPage() {
 
   return (
     <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
-      {/* Header */}
       <div className="mb-4">
         <h2 className="font-display text-[22px] font-bold tracking-[-0.02em]">
           Classement

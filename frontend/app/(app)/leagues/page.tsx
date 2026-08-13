@@ -15,6 +15,7 @@ import { CreateLeagueModal } from "./_components/CreateLeagueModal";
 import { InviteModal } from "./_components/InviteModal";
 import { LeagueDetailModal } from "./_components/LeagueDetailModal";
 
+/** Page ligues : mes ligues, invitations en attente, top ligues publiques et modales associées. */
 function LeaguesContent() {
   const { profile, isAuthenticated, ready } = useProfile();
   const {
@@ -104,7 +105,6 @@ function LeaguesContent() {
     <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
       <Toast toast={toast} />
 
-      {/* ============= MES LIGUES ============= */}
       <div className="mb-3.5 flex items-end justify-between">
         <div>
           <h2 className="font-display text-[22px] font-bold tracking-[-0.02em]">
@@ -145,7 +145,6 @@ function LeaguesContent() {
         </div>
       )}
 
-      {/* ============= INVITATIONS ============= */}
       {invitations.length > 0 && (
         <>
           <div className="mb-3.5">
@@ -188,7 +187,6 @@ function LeaguesContent() {
         </>
       )}
 
-      {/* ============= TOP LIGUES PUBLIQUES ============= */}
       <div className="mb-3.5">
         <h2 className="font-display text-[22px] font-bold tracking-[-0.02em]">
           Top ligues publiques
@@ -212,7 +210,6 @@ function LeaguesContent() {
         </div>
       )}
 
-      {/* ============= MODALES ============= */}
       <AnimatePresence>
         {modalOpen && (
           <CreateLeagueModal
@@ -252,6 +249,7 @@ function LeaguesContent() {
   );
 }
 
+/** Point d'entrée de la page ligues, enveloppé dans un Suspense pour useSearchParams. */
 export default function LeaguesPage() {
   return (
     <React.Suspense fallback={null}>

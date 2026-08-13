@@ -29,9 +29,6 @@ class Bet(models.Model):
 
     stake = models.DecimalField(max_digits=14, decimal_places=2)
 
-    # Cote totale figée au moment du pari (produit des cotes des jambes).
-    # Les cotes sont recalculées en continu, le gain doit utiliser la valeur
-    # prise à la création, pas la valeur actuelle.
     odd_value = models.DecimalField(max_digits=14, decimal_places=2)
 
     status = models.CharField(
@@ -45,9 +42,11 @@ class Bet(models.Model):
 
     @property
     def is_combo(self):
+        """Vrai si le ticket contient plusieurs sélections (pari combiné)."""
         return self.selections.count() > 1
 
     def __str__(self):
+        """Représentation lisible : utilisateur et numéro de ticket."""
         return f"{self.user} — ticket #{self.pk}"
 
 
@@ -74,11 +73,11 @@ class BetSelection(models.Model):
         related_name="bet_selections"
     )
 
-    # Cote figée de cette jambe au moment du pari.
     odd_value = models.DecimalField(max_digits=6, decimal_places=2)
 
     status = models.CharField(max_length=20, choices=STATUS, default="pending")
     settled_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
+        """Représentation lisible : ticket, match et sélection."""
         return f"#{self.bet_id} — {self.match} ({self.odd.selection})"

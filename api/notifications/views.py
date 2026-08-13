@@ -7,8 +7,8 @@ from drf_spectacular.utils import extend_schema, inline_serializer
 from .models import Notification
 from .serializers import NotificationSerializer
 
-# Nombre max de notifications renvoyées dans la liste.
 LIST_LIMIT = 30
+"""Nombre max de notifications renvoyées dans la liste."""
 
 
 class NotificationListView(APIView):

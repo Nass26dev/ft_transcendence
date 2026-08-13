@@ -3,6 +3,7 @@ import { Kops } from "@/components/ui/Kops";
 import { getPodiumColor } from "@/utils/styles";
 import type { LeagueBoardEntry } from "@/utils/types";
 
+/** Podium des 3 premiers du classement, affiché au-dessus du tableau complet. */
 export function Podium({ entries }: { entries: LeagueBoardEntry[] }) {
   return (
     <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-3">

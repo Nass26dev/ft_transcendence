@@ -5,7 +5,8 @@ import api from "@/utils/api";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 import type { ApiLeague, ApiLeagueInvitation } from "@/utils/types";
 
-/** Ligues de l'utilisateur, ligues publiques, invitations + actions associées. */
+/** Ligues de l'utilisateur, ligues publiques (toutes celles dont il n'est pas
+ *  déjà membre), invitations + actions associées. */
 export function useLeagues() {
   const { isAuthenticated, ready } = useProfile();
   const [myLeagues, setMyLeagues] = useState<ApiLeague[]>([]);
@@ -23,7 +24,6 @@ export function useLeagues() {
       const mineList = mine.data ?? [];
       const mineIds = new Set(mineList.map((l) => l.id));
       setMyLeagues(mineList);
-      // Ligues publiques = toutes les ligues sauf celles dont je suis déjà membre.
       setPublicLeagues((all.data ?? []).filter((l) => !mineIds.has(l.id)));
       setInvitations(invites.data ?? []);
     } catch (err) {

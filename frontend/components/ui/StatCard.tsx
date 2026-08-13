@@ -5,11 +5,15 @@ import React from "react";
 interface StatCardProps {
   label: string;
   value: string;
+  /** Variation affichée sous la valeur (ex. "+12 %"). */
   delta?: string;
+  /** Couleur du delta. */
   deltaKind?: "up" | "down" | "muted";
+  /** Couleur de la valeur principale. */
   valueKind?: "default" | "green";
 }
 
+/** Carte de statistique (label, valeur en évidence, variation optionnelle). */
 export function StatCard({
   label,
   value,

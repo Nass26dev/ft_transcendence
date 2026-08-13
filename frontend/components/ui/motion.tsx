@@ -4,12 +4,11 @@ import React from "react";
 import { MotionConfig, type Variants, type Transition } from "framer-motion";
 import { getPref, REDUCE_MOTION_EVENT } from "@/utils/prefs";
 
-// Courbe d'accélération maison (easeOut soutenu) — cohérente dans toute l'app.
+/** Courbe d'accélération maison (easeOut soutenu) — cohérente dans toute l'app. */
 export const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
+/** Transition ressort par défaut pour les apparitions avec rebond. */
 export const SPRING: Transition = { type: "spring", stiffness: 420, damping: 32 };
-
-// ---------- Variants réutilisables ----------
 
 /** Apparition douce depuis le bas. */
 export const fadeUp: Variants = {
@@ -71,8 +70,6 @@ export const slideOverVariants: Variants = {
   show: { opacity: 1, x: 0, transition: SPRING },
   exit: { opacity: 0, x: 32, transition: { duration: 0.18, ease: EASE } },
 };
-
-// ---------- Provider ----------
 
 /** Branche framer-motion sur la préférence « animations réduites » de l'app :
  *  quand elle est active, framer ne joue plus que des fondus (pas de transform). */

@@ -38,6 +38,11 @@ def notify(recipient_id, type, message, url="", actor=None, data=None):
 
 
 def _push(recipient_id, payload):
+    """Diffuse la notification sur le canal WebSocket du destinataire.
+
+    Toute exception est capturée et journalisée sans être relevée : un push
+    raté ne doit jamais faire échouer la requête HTTP qui l'a déclenché.
+    """
     layer = get_channel_layer()
     if layer is None:
         return
@@ -46,5 +51,5 @@ def _push(recipient_id, payload):
             f"notif_{recipient_id}",
             {"type": "notify", "data": payload},
         )
-    except Exception as exc:  # ne jamais casser la requête pour un push raté
+    except Exception as exc:
         logger.warning("Push notif échoué pour %s : %s", recipient_id, exc)

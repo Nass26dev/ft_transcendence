@@ -10,6 +10,7 @@ User = get_user_model()
 
 @pytest.fixture
 def basic_user():
+	"""Crée un utilisateur de base pour les tests."""
 	return User.objects.create_user(
 		email="test@example.com",
 		username="testuser",
@@ -18,6 +19,7 @@ def basic_user():
 
 @pytest.mark.django_db
 def test_user_creation(basic_user):
+	"""Vérifie les valeurs par défaut d'un utilisateur nouvellement créé."""
 	assert basic_user.wallet == 100.00
 	assert basic_user.status == "user"
 	assert basic_user.bio == ""
@@ -26,18 +28,22 @@ def test_user_creation(basic_user):
 
 @pytest.mark.django_db
 def test_user_wallet(basic_user):
+	"""Le solde initial est de 100."""
 	assert basic_user.wallet == 100.00
 
 @pytest.mark.django_db
 def test_user_status(basic_user):
+	"""Le statut par défaut est 'user'."""
 	assert basic_user.status == "user"
 
 @pytest.mark.django_db
 def test_user_str(basic_user):
+	"""La représentation texte de l'utilisateur est son email."""
 	assert str(basic_user) == "test@example.com"
 
 @pytest.mark.django_db
 def test_user_email_uniqueness(basic_user):
+	"""Un second compte avec le même email lève une IntegrityError."""
 	with pytest.raises(IntegrityError):
 		User.objects.create_user(
 			email="test@example.com",
@@ -47,6 +53,7 @@ def test_user_email_uniqueness(basic_user):
 
 @pytest.mark.django_db
 def test_user_mail_authentication(basic_user):
+	"""L'authentification par email + mot de passe fonctionne."""
 	user = authenticate(
 		email="test@example.com",
 		password="Testpassword123"
@@ -55,10 +62,12 @@ def test_user_mail_authentication(basic_user):
 
 @pytest.mark.django_db
 def test_user_password_stored_as_hash(basic_user):
+	"""Le mot de passe est stocké haché, mais reste vérifiable via check_password."""
 	assert basic_user.password != "Testpassword123"
 	assert basic_user.check_password("Testpassword123") == True
 
 def test_send_2fa_email_returns_true_on_success():
+	"""Renvoie True quand l'envoi via l'API Brevo réussit."""
 	with patch("users.services.sib_api_v3_sdk.TransactionalEmailsApi") as mock_api:
 		mock_instance = mock_api.return_value
 		mock_instance.send_transac_email.return_value = True
@@ -66,12 +75,14 @@ def test_send_2fa_email_returns_true_on_success():
 			assert send_2fa_email("test@example.com", "123456") == True
 
 def test_send_2fa_email_returns_false_when_no_api_key():
+	"""Renvoie False si la clé API Brevo n'est pas configurée."""
 	with patch.dict("os.environ", {}, clear=True):
 		assert send_2fa_email("test@example.com", "123456") == False
 
 
 
 def test_send_2fa_email_returns_false_on_api_exception():
+	"""Renvoie False si l'API Brevo lève une exception."""
 	with patch("users.services.sib_api_v3_sdk.TransactionalEmailsApi") as mock_api:
 		mock_instance = mock_api.return_value
 		mock_instance.send_transac_email.side_effect = ApiException()
@@ -80,9 +91,8 @@ def test_send_2fa_email_returns_false_on_api_exception():
 
 @pytest.mark.django_db
 def test_register_returns_201_on_valid_data():
+	"""L'inscription via la route officielle dj-rest-auth crée bien l'utilisateur (201)."""
 	client = APIClient()
-	# Route officielle (dj-rest-auth). L'ancienne /api/register/ dupliquait
-	# celle-ci sans passer `request` au serializer : supprimée.
 	response = client.post("/api/auth/registration/", {
 		"email": "test2@example.com",
 		"username": "testuser",

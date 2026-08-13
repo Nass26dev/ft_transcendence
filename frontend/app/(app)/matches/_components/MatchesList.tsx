@@ -10,6 +10,7 @@ interface MatchesListProps extends MatchHandlers {
   loading?: boolean;
 }
 
+/** Grille des matchs (à venir) avec état de chargement (skeletons) et message si vide. */
 export function MatchesList({
   matches,
   loading,

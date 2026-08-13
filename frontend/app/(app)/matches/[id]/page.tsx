@@ -9,6 +9,7 @@ import { MatchHero } from "./_components/MatchHero";
 import { MatchTimeline } from "./_components/MatchTimeline";
 import { MatchLineups } from "./_components/MatchLineups";
 
+/** Page de détail d'un match : bandeau principal, frise des faits de jeu et compositions. */
 export default function MatchDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
@@ -17,7 +18,6 @@ export default function MatchDetailPage() {
 
   return (
     <div className="max-w-[1480px] px-4 pb-15 pt-7 sm:px-6 lg:px-8">
-      {/* Back */}
       <button
         onClick={() => router.back()}
         className="mb-4 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-2 px-3 py-1.5 text-[12.5px] font-semibold text-text transition-colors hover:border-border-strong hover:bg-surface-3"

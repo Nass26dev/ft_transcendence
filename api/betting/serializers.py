@@ -6,16 +6,11 @@ from rest_framework import serializers
 from sports.models import Match, Odds
 from .models import Bet, BetSelection
 
-# Mapping front (1 / X / 2) -> sélection Odds en base (market 1N2)
 SELECTION_MAP = {"1": "home", "X": "draw", "2": "away"}
 
-# Garde-fous des paris (monnaie virtuelle, mais on borne pour éviter les
-# débordements de champ et le farming de Kops).
-MAX_STAKE = Decimal("10000000")            # mise max par pari : 10 M Kops
-MAX_COMBO_LEGS = 10                         # nombre max de matchs dans un combiné
-MAX_ODD_VALUE = Decimal("9999999999.99")   # cote totale max (anti-overflow)
-# Les paris en direct ferment en fin de rencontre : passé cette minute, le
-# résultat est quasi acquis, on bloque comme le font les books.
+MAX_STAKE = Decimal("10000000")
+MAX_COMBO_LEGS = 10
+MAX_ODD_VALUE = Decimal("9999999999.99")
 LIVE_BET_CUTOFF_MINUTE = 85
 
 
@@ -37,8 +32,14 @@ class SelectionInputSerializer(serializers.Serializer):
 
 
 class BetSerializer(serializers.ModelSerializer):
-    # Écriture : soit `selections` (liste, pour les combinés), soit le couple
-    # `match` + `selection` (pari simple, rétro-compat).
+    """Pari simple ou combiné.
+
+    En écriture, accepte soit `selections` (liste, pour les combinés), soit le
+    couple `match` + `selection` (pari simple, rétro-compatibilité). En
+    lecture, expose la cote totale, le gain potentiel, le type (simple ou
+    combiné) et le détail des jambes.
+    """
+
     selections = SelectionInputSerializer(many=True, write_only=True, required=False)
     match = serializers.PrimaryKeyRelatedField(
         queryset=Match.objects.all(), write_only=True, required=False
@@ -47,7 +48,6 @@ class BetSerializer(serializers.ModelSerializer):
         choices=list(SELECTION_MAP.keys()), write_only=True, required=False
     )
 
-    # Lecture : cote totale, gain potentiel, libellé du type et détail des jambes.
     odd_value = serializers.DecimalField(
         max_digits=10, decimal_places=2, read_only=True
     )
@@ -73,16 +73,17 @@ class BetSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ("status", "created_at", "settled_at")
 
-    # ---------- Lecture ----------
-
     def get_potential_win(self, obj) -> float:
+        """Gain potentiel : mise multipliée par la cote totale figée."""
         return round(obj.stake * obj.odd_value, 2)
 
     def get_kind(self, obj) -> str:
+        """Libellé du type de ticket : "Simple" ou "Combiné x<n>"."""
         n = obj.selections.count()
         return "Simple" if n <= 1 else f"Combiné x{n}"
 
     def get_picks(self, obj) -> list:
+        """Détail lisible de chaque jambe du ticket (match, pick, cote, statut)."""
         out = []
         for leg in obj.selections.select_related(
             "odd", "match__home_team", "match__away_team"
@@ -95,9 +96,8 @@ class BetSerializer(serializers.ModelSerializer):
             })
         return out
 
-    # ---------- Validation ----------
-
     def validate_stake(self, value):
+        """Rejette une mise nulle/négative ou dépassant MAX_STAKE."""
         if value <= 0:
             raise serializers.ValidationError("La mise doit être positive.")
         if value > MAX_STAKE:
@@ -107,7 +107,13 @@ class BetSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
-        # Normalise l'entrée en une liste de jambes {match, selection}.
+        """Normalise l'entrée en jambes, vérifie que chaque match est encore
+        ouvert aux paris et calcule la cote totale figée du ticket.
+
+        Un match reste ouvert tant qu'il est programmé ou en cours ; en
+        direct, les paris ferment à partir de LIVE_BET_CUTOFF_MINUTE (le
+        résultat est alors quasi acquis, comme sur les sites de paris).
+        """
         raw = attrs.get("selections")
         if not raw:
             if attrs.get("match") is None or attrs.get("selection") is None:
@@ -131,14 +137,10 @@ class BetSerializer(serializers.ModelSerializer):
         total_odd = Decimal("1")
         for leg in raw:
             match = leg["match"]
-            # On parie sur les matchs à venir ET en cours ; fermé une fois
-            # le match terminé ou annulé.
             if match.status not in ("scheduled", "live"):
                 raise serializers.ValidationError(
                     f"Les paris sont fermés pour {match}."
                 )
-            # En direct, on ferme les paris en fin de match (résultat quasi
-            # acquis) — comme sur les sites de paris.
             if (
                 match.status == "live"
                 and match.current_minute is not None
@@ -158,16 +160,17 @@ class BetSerializer(serializers.ModelSerializer):
             total_odd *= odd.value
 
         attrs["_legs"] = legs
-        attrs["odd_value"] = round(total_odd, 2)  # cote totale figée
+        attrs["odd_value"] = round(total_odd, 2)
         if attrs["odd_value"] > MAX_ODD_VALUE:
             raise serializers.ValidationError(
                 "Cote totale trop élevée pour ce combiné."
             )
         return attrs
 
-    # ---------- Création ----------
-
     def create(self, validated_data):
+        """Débite le portefeuille (verrouillé pour éviter les courses) et
+        crée le ticket avec ses sélections.
+        """
         legs = validated_data["_legs"]
         odd_value = validated_data["odd_value"]
         stake = validated_data["stake"]

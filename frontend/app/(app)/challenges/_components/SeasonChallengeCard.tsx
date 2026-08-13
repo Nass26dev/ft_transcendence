@@ -9,6 +9,7 @@ interface Props {
   claiming: boolean;
 }
 
+/** Carte d'un défi de saison : objectif long terme avec récompense à récupérer une fois complété. */
 export function SeasonChallengeCard({ c, onClaim, claiming }: Props) {
   return (
     <div className="rounded-[10px] border border-border bg-surface-1 p-4.5">

@@ -3,6 +3,7 @@ import { Kops } from "@/components/ui/Kops";
 import { getRankColor, getDeltaColor, getAvatarTextColor } from "@/utils/styles";
 import type { LeagueBoardEntry } from "@/utils/types";
 
+/** Ligne du tableau de classement : rang, avatar, pseudo, réussite, delta hebdo et total de kops. */
 export function LeaderboardRow({
   r,
   avatarColor,
