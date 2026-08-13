@@ -1,43 +1,41 @@
-"""Infrastructure partagée des tests E2E Selenium.
+"""Fixtures des tests E2E Selenium.
 
-Ces tests pilotent un vrai Chrome (conteneur `selenium`, cf.
-docker-compose.override.yml) contre la stack dev réelle
-(https://localhost:8443 via Caddy). Un seul navigateur est réutilisé pour
-toute la session (fixture `driver` session-scoped) : les fichiers
-test_01_*.py, test_02_*.py... s'exécutent dans l'ordre alphabétique et
-partagent la même session connectée, exactement comme un utilisateur qui
-parcourt le site.
+Ces tests pilotent un vrai Chrome contre la stack dev réelle
+(https://localhost:8443 via Caddy) : aucun mock, aucune base dédiée. Un seul
+navigateur est réutilisé pour toute la session (fixture `driver`
+session-scoped) et les fichiers test_01_*.py, test_02_*.py... s'exécutent
+dans l'ordre alphabétique : ils partagent donc la même session connectée,
+exactement comme un utilisateur qui parcourt le site du début à la fin.
 
-Lancer la suite : `./e2e/run.sh` (démarre selenium, installe les deps dans
-un venv local, exécute pytest, affiche où sont les screenshots).
+Deux navigateurs possibles (E2E_BROWSER) :
+
+- `remote` (défaut) : le conteneur `selenium` (profil e2e du compose). Rien à
+  installer, et on peut regarder l'écran du conteneur via noVNC sur
+  http://localhost:7900 (mot de passe : secret).
+- `local` : un Chrome installé sur la machine, fenêtre visible sur le bureau.
+
+Lancer la suite : `./e2e/run.sh` (voir `./e2e/run.sh --help` pour les modes
+démo/fenêtre visible).
 """
-import re
+import os
 import ssl
-import subprocess
 import time
 import urllib.request
 import uuid
-from pathlib import Path
 
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-REPO_ROOT = Path(__file__).resolve().parent.parent
-SCREENSHOT_DIR = Path(__file__).resolve().parent / "screenshots"
+from helpers import BASE_URL, ensure_account, has_session, screenshot, sign_in
 
-# Le conteneur `selenium` partage le netns de `caddy_dev` (network_mode:
-# service:caddy_dev, cf. docker-compose.override.yml) : "localhost" y
-# désigne donc caddy_dev, exactement comme dans un navigateur normal — ce
-# qui compte puisque le frontend a NEXT_PUBLIC_API_URL=https://localhost:8443
-# inlinée en dur au build (le SPA l'utilise pour TOUS ses appels API, pas
-# seulement la page chargée au départ).
-BASE_URL = "https://localhost:8443"
-SELENIUM_URL = "http://localhost:4444"
+SELENIUM_URL = os.getenv("E2E_SELENIUM_URL", "http://localhost:4444")
+BROWSER = os.getenv("E2E_BROWSER", "remote")
+WINDOW_SIZE = os.getenv("E2E_WINDOW_SIZE", "1440,1000")
 
 
 def _wait_for_server(url: str, timeout: int = 90) -> None:
-    """Attend que la stack dev réponde (le temps que Next.js/Django démarrent)."""
+    """Attend qu'une URL réponde (le temps que Next.js/Django/selenium démarrent)."""
     ctx = ssl.create_default_context()
     ctx.check_hostname = False
     ctx.verify_mode = ssl.CERT_NONE
@@ -54,6 +52,39 @@ def _wait_for_server(url: str, timeout: int = 90) -> None:
     raise RuntimeError(f"{url} injoignable après {timeout}s : {last_error}")
 
 
+def _chrome_options() -> Options:
+    options = Options()
+    options.set_capability("acceptInsecureCerts", True)
+    options.add_argument(f"--window-size={WINDOW_SIZE}")
+    # Certificat auto-signé de Caddy en dev + écrans de premier lancement de
+    # Chrome, qui voleraient le focus au démarrage d'une fenêtre locale.
+    options.add_argument("--ignore-certificate-errors")
+    options.add_argument("--no-first-run")
+    options.add_argument("--no-default-browser-check")
+    options.add_argument("--disable-search-engine-choice-screen")
+    return options
+
+
+def _remote_driver() -> webdriver.Remote:
+    """Chrome du conteneur `selenium` (docker compose --profile e2e up -d selenium)."""
+    _wait_for_server(f"{SELENIUM_URL}/status", timeout=120)
+
+    deadline = time.time() + 60
+    last_error = None
+    while time.time() < deadline:
+        try:
+            return webdriver.Remote(command_executor=SELENIUM_URL, options=_chrome_options())
+        except Exception as exc:  # noqa: BLE001 - le conteneur peut démarrer lentement
+            last_error = exc
+            time.sleep(2)
+    raise RuntimeError(f"Impossible de joindre selenium ({SELENIUM_URL}) : {last_error}")
+
+
+def _local_driver() -> webdriver.Chrome:
+    """Chrome de la machine, fenêtre visible (chromedriver géré par Selenium Manager)."""
+    return webdriver.Chrome(options=_chrome_options())
+
+
 @pytest.fixture(scope="session", autouse=True)
 def _server_ready():
     """S'assure que Caddy/Next/Django répondent avant de lancer le premier test."""
@@ -62,28 +93,15 @@ def _server_ready():
 
 @pytest.fixture(scope="session")
 def driver():
-    """Un unique navigateur distant (conteneur selenium) pour toute la session."""
-    options = Options()
-    options.set_capability("acceptInsecureCerts", True)
-    options.add_argument("--window-size=1440,1000")
+    """Un unique navigateur pour toute la session (le parcours est continu)."""
+    if BROWSER not in ("remote", "local"):
+        raise RuntimeError(f"E2E_BROWSER doit valoir 'remote' ou 'local', pas '{BROWSER}'")
 
-    _wait_for_server(f"{SELENIUM_URL}/status", timeout=120)
-
-    deadline = time.time() + 60
-    last_error = None
-    remote = None
-    while time.time() < deadline:
-        try:
-            remote = webdriver.Remote(command_executor=SELENIUM_URL, options=options)
-            break
-        except Exception as exc:  # noqa: BLE001 - le conteneur selenium peut démarrer lentement
-            last_error = exc
-            time.sleep(2)
-    if remote is None:
-        raise RuntimeError(f"Impossible de joindre selenium ({SELENIUM_URL}) : {last_error}")
-
-    yield remote
-    remote.quit()
+    browser = _local_driver() if BROWSER == "local" else _remote_driver()
+    try:
+        yield browser
+    finally:
+        browser.quit()
 
 
 @pytest.fixture(scope="session")
@@ -97,54 +115,31 @@ def credentials():
     }
 
 
-def screenshot(driver, name: str) -> Path:
-    """Sauvegarde une capture d'écran horodatée dans e2e/screenshots/."""
-    SCREENSHOT_DIR.mkdir(parents=True, exist_ok=True)
-    path = SCREENSHOT_DIR / f"{name}.png"
-    driver.save_screenshot(str(path))
-    return path
+@pytest.fixture
+def logged_in(driver, credentials):
+    """Garantit une session ouverte avant le test.
 
-
-def assert_page_healthy(driver) -> None:
-    """Vérifie l'absence des marqueurs d'erreur Next.js/Django dans le texte VISIBLE.
-
-    `driver.page_source` contient aussi les payloads RSC (`<script>
-    self.__next_f.push(...)</script>`) des routes préchargées par Next (liens
-    de la nav) : ces payloads peuvent légitimement embarquer le JSON d'un
-    boundary not-found pour une autre route, donc on ne scanne que le texte
-    du <body> réellement affiché, pas le HTML brut.
+    Dans le parcours complet elle vient déjà de test_01/test_02 et cette
+    fixture ne fait rien. Elle n'agit que si l'on rejoue un fichier isolément
+    (`./e2e/run.sh test_05_leagues.py`) : elle crée alors le compte et pose
+    les cookies, pour que chaque étape reste jouable seule.
     """
-    text = driver.find_element("tag name", "body").text
-    for marker in ("Application error", "This page could not be found", "Server Error (500)"):
-        assert marker not in text, f"« {marker} » détecté (visible) sur {driver.current_url}"
+    if has_session(driver):
+        return
+    ensure_account(**credentials)
+    sign_in(driver, credentials["email"])
 
 
-def get_otp_code(email: str, timeout: int = 20) -> str:
-    """Récupère le code 2FA depuis le cache Django, via `docker compose exec`.
-
-    Le code part par email (Brevo) en conditions réelles ; en test on n'a pas
-    de boîte mail à lire, donc on va le chercher là où LoginStep1View l'a
-    posé (cache `otp_<user_id>`, 5 min de TTL) en interrogeant directement le
-    conteneur backend.
-    """
-    script = (
-        "from django.contrib.auth import get_user_model;"
-        "from django.core.cache import cache;"
-        f"u = get_user_model().objects.get(email='{email}');"
-        "print(cache.get(f'otp_{u.id}') or '')"
-    )
-    deadline = time.time() + timeout
-    last_output = ""
-    while time.time() < deadline:
-        result = subprocess.run(
-            ["docker", "compose", "exec", "-T", "backend", "python3", "manage.py", "shell", "-c", script],
-            cwd=REPO_ROOT,
-            capture_output=True,
-            text=True,
-        )
-        last_output = (result.stdout or "") + (result.stderr or "")
-        match = re.search(r"^\d{6}$", result.stdout.strip(), re.MULTILINE)
-        if match:
-            return match.group(0)
-        time.sleep(1)
-    raise RuntimeError(f"Code OTP introuvable pour {email} après {timeout}s.\nSortie : {last_output}")
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Capture l'écran au moment précis où un test échoue (e2e/screenshots/echec_*)."""
+    report = yield
+    result = report.get_result()
+    if result.when != "call" or not result.failed:
+        return
+    browser = item.funcargs.get("driver")
+    if browser is not None:
+        try:
+            screenshot(browser, f"echec_{item.name}")
+        except Exception:  # noqa: BLE001 - ne jamais masquer l'échec d'origine
+            pass

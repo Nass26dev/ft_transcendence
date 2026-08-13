@@ -367,6 +367,29 @@ Au premier démarrage, `seed_if_empty` enchaîne `scrape_history` puis `scrape_u
 docker compose exec backend python3 -m pytest          # 12 tests, tous verts
 docker compose exec frontend npx tsc --noEmit          # typage strict
 docker compose exec frontend npm run lint
+./e2e/run.sh                                           # 14 tests E2E Selenium
 ```
 
 Il n'y a **pas de CI** : ces commandes sont à lancer à la main avant de pousser.
+
+### Tests E2E
+
+`e2e/` pilote un vrai Chrome contre la stack dev en cours d'exécution : neuf
+fichiers qui rejouent **un seul parcours continu** (inscription → connexion →
+paris → ligue → roue → chat → réglages → déconnexion) dans une même session de
+navigateur, avec une capture d'écran à chaque étape dans `e2e/screenshots/`.
+
+- `e2e/helpers.py` : URL de la stack, attentes et interactions (le bruit Selenium) ;
+- `e2e/conftest.py` : fixtures — navigateur (conteneur `selenium` ou Chrome local), compte jetable, session (`logged_in`, qui rend chaque fichier rejouable seul), capture automatique en cas d'échec ;
+- `./e2e/run.sh --headed --demo` : fenêtre visible + curseur animé, pour montrer le parcours.
+
+Deux points méritent d'être connus :
+
+- **La 2FA n'est couverte que jusqu'à l'écran de saisie du code.** Le code part
+  par email et vit dans le cache Django, qui est un `LocMemCache` propre au
+  process : un `manage.py shell` lancé à côté n'y a pas accès. Les tests
+  ouvrent donc la session en posant directement les cookies JWT
+  (`sign_in`), comme le ferait la vérification du code.
+- **Attendre `readyState === "complete"` ne suffit pas** : à ce moment le SPA
+  n'affiche encore que des squelettes. `visit()` attend en plus la disparition
+  des `.animate-pulse`, sans quoi on testerait des pages vides.

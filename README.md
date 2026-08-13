@@ -158,7 +158,29 @@ docker compose exec backend python3 manage.py createsuperuser
 docker compose exec backend python3 -m pytest              # backend tests
 docker compose exec frontend npx tsc --noEmit              # type checking
 docker compose exec frontend npm run lint
+
+./e2e/run.sh                                               # end-to-end tests (Selenium)
 ```
+
+### End-to-end tests
+
+[e2e/](e2e/) drives a real Chrome against the running dev stack — no mocks, no dedicated database. The nine files replay one continuous user journey (sign-up → login → betting → league → wheel → chat → settings → logout) in a single browser session, and drop a screenshot of each step in `e2e/screenshots/`.
+
+The stack must already be up (`docker compose up`), then:
+
+```bash
+./e2e/run.sh                    # Chrome inside the selenium container, headless-ish, fastest
+./e2e/run.sh --watch            # same, plus noVNC to watch it live
+./e2e/run.sh --headed           # Chrome from your machine, real window on the desktop
+./e2e/run.sh --headed --demo    # + visible cursor moving to each element, slowed down
+./e2e/run.sh --help             # all options
+
+cd e2e && ./run.sh --headed --demo test_03_home.py   # a single file
+```
+
+Each file can be replayed on its own: the `logged_in` fixture creates the account and opens the session when the earlier steps have not run.
+
+Two-factor authentication is covered up to the code entry screen only: the code is emailed and kept in Django's per-process cache, so the tests cannot read it. They open the session by setting the same JWT cookies the code verification would set (see `sign_in` in [e2e/helpers.py](e2e/helpers.py)).
 
 ### Production
 

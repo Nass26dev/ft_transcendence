@@ -1,25 +1,26 @@
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+"""Étape 8 : modification du profil depuis les paramètres."""
+from helpers import (
+    assert_page_healthy,
+    button,
+    css,
+    click,
+    fill,
+    screenshot,
+    visit,
+    wait_present,
+    wait_text,
+)
 
-from conftest import BASE_URL, assert_page_healthy, screenshot
 
-
-def test_settings_edit_bio(driver):
-    driver.get(f"{BASE_URL}/settings")
-    bio = WebDriverWait(driver, 15).until(
-        EC.presence_of_element_located(
-            (By.CSS_SELECTOR, "textarea[placeholder='Quelques mots sur toi…']")
-        )
-    )
+def test_settings_edit_bio(driver, logged_in):
+    visit(driver, "/settings")
+    bio = wait_present(driver, css("textarea[placeholder='Quelques mots sur toi…']"))
     assert_page_healthy(driver)
-    bio.clear()
-    bio.send_keys("Compte créé par la suite E2E Selenium.")
+
+    fill(driver, bio, "Compte créé par la suite E2E Selenium.", clear=True)
     screenshot(driver, "08_settings_form")
 
-    driver.find_element(By.XPATH, "//button[normalize-space()='Enregistrer']").click()
+    click(driver, button("Enregistrer"))
 
-    WebDriverWait(driver, 10).until(
-        EC.text_to_be_present_in_element((By.TAG_NAME, "body"), "Profil mis à jour")
-    )
+    wait_text(driver, "Profil mis à jour", timeout=10)
     screenshot(driver, "08_settings_saved")

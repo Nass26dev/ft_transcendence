@@ -1,32 +1,32 @@
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait
+"""Étape 6 : page défis et spin quotidien de la roue."""
+from helpers import (
+    assert_page_healthy,
+    button,
+    click,
+    screenshot,
+    visit,
+    wait_clickable,
+    wait_present,
+)
 
-from conftest import BASE_URL, assert_page_healthy, screenshot
 
-
-def test_challenges_page_loads(driver):
-    driver.get(f"{BASE_URL}/challenges")
-    WebDriverWait(driver, 15).until(lambda d: d.execute_script("return document.readyState") == "complete")
+def test_challenges_page_loads(driver, logged_in):
+    visit(driver, "/challenges")
     assert_page_healthy(driver)
     screenshot(driver, "06_challenges")
 
 
-def test_wheel_spin(driver):
-    driver.get(f"{BASE_URL}/wheel")
-    spin_button = WebDriverWait(driver, 15).until(
-        EC.element_to_be_clickable((By.XPATH, "//button[normalize-space()='Tourner la roue']"))
-    )
+def test_wheel_spin(driver, logged_in):
+    visit(driver, "/wheel")
+    spin_button = button("Tourner la roue")
+    wait_clickable(driver, spin_button)
     assert_page_healthy(driver)
     screenshot(driver, "06_wheel_before")
 
-    spin_button.click()
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, "//button[normalize-space()='La roue tourne…']"))
-    )
+    click(driver, spin_button)
+    wait_present(driver, button("La roue tourne…"), timeout=10)
+
     # SPIN_MS = 5200 côté front : on attend que la roue s'arrête et que le
     # bouton repasse en état final ("Reviens demain", spin quotidien consommé).
-    WebDriverWait(driver, 15).until(
-        EC.presence_of_element_located((By.XPATH, "//button[normalize-space()='Reviens demain']"))
-    )
+    wait_present(driver, button("Reviens demain"))
     screenshot(driver, "06_wheel_after")
