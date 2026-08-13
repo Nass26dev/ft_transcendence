@@ -1,12 +1,3 @@
-# ─────────────────────────────────────────────────────────────────────
-# DEV — appliqué automatiquement par `docker compose up` par-dessus
-# docker-compose.yml (prod). Hot-reload, serveurs de dev, ports exposés.
-# Ne PAS passer ce fichier en prod (utiliser -f docker-compose.yml --profile prod).
-#
-# Ici on ne touche QUE l'infra dev (montages code, ports, commandes).
-# Le mode dev de Django (DEBUG, hôtes, CORS) se règle via DJANGO_DEBUG=True
-# dans .env — aucune variable d'app n'est injectée dans le compose.
-# ─────────────────────────────────────────────────────────────────────
 services:
   db:
     ports:
@@ -20,23 +11,20 @@ services:
     volumes:
       - ./api:/app
 
-  # Reverse proxy TLS du dev : seule porte d'entrée du navigateur.
-  # Le sujet impose HTTPS pour toute connexion navigateur → backend, donc
-  # backend et frontend ne publient plus leurs ports sur l'hôte.
-  # Caddy genere son propre certificat local (CA interne, `tls internal`
-  # dans caddy/Caddyfile.dev) : plus besoin d'une image custom avec un
-  # cert auto-signe fabrique a la main.
   caddy_dev:
     image: caddy:2-alpine
     container_name: t_caddy_dev
     restart: "no"
-    # Ports hauts : Docker en mode rootless (courant sur les postes 42) ne
-    # peut pas se lier aux ports privilégiés 80/443. Caddy ecoute
-    # directement sur 8080/8443 (cf. http_port/https_port dans le
-    # Caddyfile), mapping hote:conteneur 1:1 — pas de remap a gerer.
     ports:
       - "8080:8080"
       - "8443:8443"
+      # Publiés ici (pas sur le service `selenium`) car il partage le netns
+      # de caddy_dev (cf. plus bas) : "localhost" y désigne donc caddy_dev,
+      # exactement comme dans le navigateur d'un vrai utilisateur — le
+      # frontend appelle NEXT_PUBLIC_API_URL=https://localhost:8443 en dur,
+      # peu importe le Host header de la page qui a fait la requête.
+      - "4444:4444"
+      - "7900:7900"
     volumes:
       - ./caddy/Caddyfile.dev:/etc/caddy/Caddyfile:ro
       - caddy_dev_data:/data
@@ -66,8 +54,21 @@ services:
       - /app/node_modules
     command: npm run dev
 
+  selenium:
+    image: selenium/standalone-chrome:latest
+    container_name: t_selenium
+    restart: "no"
+    shm_size: "2gb"
+    # Partage le netns de caddy_dev plutôt qu'un réseau propre : le frontend
+    # a NEXT_PUBLIC_API_URL=https://localhost:8443 inlinée en dur au build,
+    # donc Chrome doit voir EXACTEMENT le "localhost" de caddy_dev pour que
+    # les appels API du SPA (pas seulement la navigation initiale) marchent.
+    network_mode: "service:caddy_dev"
+    depends_on:
+      - caddy_dev
+    profiles:
+      - e2e
+
 volumes:
-  # CA locale de Caddy (dev) : persiste entre `docker compose down`/`up`
-  # pour ne pas re-generer un cert a chaque fois (re-avertissement navigateur).
   caddy_dev_data:
   caddy_dev_config:

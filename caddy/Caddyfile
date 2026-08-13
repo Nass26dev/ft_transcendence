@@ -1,19 +1,8 @@
-# ─────────────────────────────────────────────────────────────────────
-# Conf PROD — kop.life. Caddy obtient et renouvelle le certificat Let's
-# Encrypt automatiquement (HTTPS par defaut, aucune conf TLS a ecrire).
-# Les certs et l'etat ACME vivent dans les volumes caddy_data/caddy_config
-# (docker-compose.yml), pas sur le bind-mount de ce fichier.
-# La conf dev/local reste dans nginx/ (localhost, auto-signe, via nginx).
-# ─────────────────────────────────────────────────────────────────────
 {
 	email {$CADDY_EMAIL:comtact@kop.life}
 }
 
 kop.life, www.kop.life {
-	# ── Routes internes Next.js (posent/effacent les cookies httpOnly,
-	# cf. frontend/app/api/) : sous /api/ comme le reste, donc doivent
-	# matcher AVANT le handle /api/* general (Caddy prend le premier bloc
-	# qui matche), sinon elles finissent sur Django qui n'a pas ces routes.
 	handle /api/logout {
 		reverse_proxy frontend:3000
 	}
@@ -21,19 +10,14 @@ kop.life, www.kop.life {
 		reverse_proxy frontend:3000
 	}
 
-	# ── API REST Django ───────────────────────────────────────────────
 	handle /api/* {
 		reverse_proxy backend:8000
 	}
 
-	# ── WebSockets (chat + notifications, channels/daphne) ────────────
-	# reverse_proxy detecte et relaie l'upgrade WebSocket automatiquement,
-	# pas besoin d'entetes Connection/Upgrade explicites comme avec nginx.
 	handle /ws/* {
 		reverse_proxy backend:8000
 	}
 
-	# ── Admin & statiques Django (servis par WhiteNoise) ──────────────
 	handle /admin/* {
 		reverse_proxy backend:8000
 	}
@@ -41,14 +25,12 @@ kop.life, www.kop.life {
 		reverse_proxy backend:8000
 	}
 
-	# ── Medias uploades (photos de profil) ────────────────────────────
 	handle_path /media/* {
 		root * /media
 		file_server
 		header Cache-Control "public, max-age=604800"
 	}
 
-	# ── Frontend Next.js ───────────────────────────────────────────────
 	handle {
 		reverse_proxy frontend:3000
 	}

@@ -47,7 +47,6 @@ export function LeagueDetailModal({
         const res = await api.get(`/api/league/${league.id}/members/`);
         setMembers(res.data);
         } catch (error) {
-            console.log(league.id);
         console.error(error);
         }
     };

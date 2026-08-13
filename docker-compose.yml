@@ -1,21 +1,8 @@
-# ─────────────────────────────────────────────────────────────────────
-# Définition canonique = PROD.
-#   • Dev  : `docker compose up`                          (override.yml appliqué automatiquement)
-#   • Prod : `docker compose -f docker-compose.yml --profile prod up -d --build`
-# docker-compose.override.yml ramène les réglages dev par-dessus ce fichier.
-# caddy est sous le profil "prod" : il ne démarre qu'en prod.
-#
-# Toute la conf applicative vit ailleurs, JAMAIS injectée ici :
-#   • variables d'environnement      → .env (env_file)
-#   • DEBUG (bascule dev/prod)        → DJANGO_DEBUG dans .env
-#   • hôtes / origines CORS-CSRF      → api/core/settings.py (selon DEBUG)
-# ─────────────────────────────────────────────────────────────────────
 services:
   db:
     image: postgres:16
     container_name: t_db
     restart: always
-    # POSTGRES_DB/USER/PASSWORD lus depuis .env par l'image postgres.
     env_file: .env
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -32,7 +19,6 @@ services:
   celery_worker:
     build: ./api
     container_name: t_celery_w
-    # Attend que les migrations soient appliquées avant de consommer des tâches.
     command: >
       sh -c "until python3 manage.py migrate --check >/dev/null 2>&1; do echo 'worker: attente des migrations...'; sleep 2; done &&
              celery -A core worker -l info"
@@ -63,13 +49,11 @@ services:
     container_name: t_backend
     restart: always
     env_file: .env
-    # ASGI (daphne) car l'app utilise des websockets (chat + notifications).
     command: >
       sh -c "python3 manage.py migrate &&
              python3 manage.py collectstatic --noinput &&
              daphne -b 0.0.0.0 -p 8000 core.asgi:application"
     volumes:
-      # Médias uploadés (avatars) écrits dans MEDIA_ROOT=/app/media ; servis par Caddy en prod.
       - media:/app/media
     expose:
       - "8000"
@@ -83,8 +67,6 @@ services:
     build:
       context: ./frontend
       target: runner
-      # NEXT_PUBLIC_* sont inlinées au build. En prod le navigateur passe par
-      # Caddy (443) : pointer l'API sur https://kop.life (surchargeable via .env).
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL_PROD:-https://kop.life}
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}
@@ -99,27 +81,20 @@ services:
       - t_networks
 
   caddy:
-    # Reverse proxy prod : Caddy obtient et renouvelle le certificat Let's
-    # Encrypt automatiquement au demarrage (HTTPS par defaut, cf. caddy/Caddyfile),
-    # sans conf TLS manuelle ni etape certbot separee.
     image: caddy:2-alpine
     container_name: t_caddy
     restart: always
-    # Profil "prod" : ignoré par `docker compose up` (dev), démarré avec --profile prod.
     profiles:
       - prod
     environment:
-      # Email d'enregistrement Let's Encrypt (à définir dans .env).
       CADDY_EMAIL: ${CADDY_EMAIL}
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      # Certificats + etat ACME de Caddy (equivalent du volume letsencrypt).
       - caddy_data:/data
       - caddy_config:/config
-      # Médias uploadés (avatars) en lecture seule, servis via /media/*.
       - media:/media:ro
     depends_on:
       - frontend
