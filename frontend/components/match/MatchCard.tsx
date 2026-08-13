@@ -82,7 +82,7 @@ export const MatchCard = React.memo(function MatchCard({
           </>
         ) : (
           <div className="rounded-[3px] bg-surface-2 px-2.5 py-2 text-[11px] font-medium text-text-3">
-            Aucun pari pour l&apos;instant — sois le premier Kopiste à te lancer.
+            Aucun pari pour l&apos;instant. Sois le premier Kopiste à te lancer.
           </div>
         )}
       </div>

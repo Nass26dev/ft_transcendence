@@ -38,12 +38,12 @@ export function ProfileStats() {
       <StatCard
         label="Série actuelle"
         value={`${streak} V`}
-        delta={streak > 0 ? "↑ En cours" : "—"}
+        delta={streak > 0 ? "↑ En cours" : "-"}
         deltaKind={streak > 0 ? "up" : "muted"}
       />
       <StatCard
         label="Plus gros gain"
-        value={biggestWin ? biggestWin.toLocaleString("fr-FR") : "—"}
+        value={biggestWin ? biggestWin.toLocaleString("fr-FR") : "-"}
         valueKind="green"
         delta="Kops"
       />

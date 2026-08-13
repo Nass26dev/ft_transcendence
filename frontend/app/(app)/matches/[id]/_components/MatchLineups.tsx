@@ -158,7 +158,7 @@ export function MatchLineups({ lineups, homeName, awayName }: MatchLineupsProps)
       {hasXI && (
         <>
           <p className="mb-3 text-[11px] text-text-4">
-            Disposition indicative (4-3-3) — foot-live ne fournit pas les postes.
+            Disposition indicative (4-3-3) : foot-live ne fournit pas les postes.
           </p>
           <div className="mx-auto max-w-[460px]">
             <Pitch home={homeXI} away={awayXI} />

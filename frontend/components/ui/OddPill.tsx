@@ -42,7 +42,7 @@ export function OddPill({
       >
         {label}
       </span>
-      <span className="tnum">{typeof value === "number" ? value.toFixed(2) : "—"}</span>
+      <span className="tnum">{typeof value === "number" ? value.toFixed(2) : "-"}</span>
 
       {trend === "up" && (
         <span className="absolute -right-0.5 -top-0.5 grid h-3.5 w-3.5 place-items-center rounded-full bg-bg text-[9px] text-green">

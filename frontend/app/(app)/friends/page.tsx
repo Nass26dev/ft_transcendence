@@ -237,7 +237,7 @@ export default function FriendsPage() {
         <Card title="Mes amis" count={friends.length}>
           {friends.length === 0 ? (
             <div className="py-3 text-[13px] text-text-3">
-              Pas encore d&apos;amis — cherche des joueurs ci-dessus pour commencer.
+              Pas encore d&apos;amis. Cherche des joueurs ci-dessus pour commencer.
             </div>
           ) : (
             friends.map((f) => (

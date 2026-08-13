@@ -25,12 +25,12 @@ interface OnboardingProps {
 const ONBOARDING: OnboardingStep[] = [
   {
     title: "Bienvenue sur Kop.",
-    body: "Le pari sportif sans pognon. 100 % adrénaline, 0 % facture. Tu as 100 Kops pour démarrer — fais-les fructifier.",
+    body: "Le pari sportif sans pognon. 100 % adrénaline, 0 % facture. Tu as 100 Kops pour démarrer, fais-les fructifier.",
     accent: "logo",
   },
   {
     title: "Parie en Kops, pas en euros.",
-    body: "Place tes pronos sur les vrais matchs avec des cotes en temps réel. Gagne ou perds des Kops — la monnaie virtuelle de la plateforme. Aucun argent réel n'entre ni ne sort.",
+    body: "Place tes pronos sur les vrais matchs avec des cotes en temps réel. Gagne ou perds des Kops, la monnaie virtuelle de la plateforme. Aucun argent réel n'entre ni ne sort.",
     accent: "coin",
   },
   {

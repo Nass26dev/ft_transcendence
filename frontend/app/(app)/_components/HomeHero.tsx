@@ -66,7 +66,7 @@ export function HomeHero({ onOpen }: HomeHeroProps) {
           </div>
           {trending.length === 0 ? (
             <div className="rounded-lg border border-border bg-black/35 px-3 py-2.5 text-[12px] text-text-3">
-              Pas encore de tendance — lance le premier pari.
+              Pas encore de tendance. Lance le premier pari.
             </div>
           ) : (
             trending.map((t) => (

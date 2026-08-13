@@ -69,7 +69,7 @@ export function MatchTimeline({ events }: { events: MatchEvent[] }) {
           <div key={i} className="flex items-center gap-3">
             <EventSide ev={ev} side="home" />
             <span className="tnum w-10 shrink-0 text-center text-[11.5px] font-semibold text-text-3">
-              {ev.minute != null ? `${ev.minute}'` : "—"}
+              {ev.minute != null ? `${ev.minute}'` : "-"}
             </span>
             <EventSide ev={ev} side="away" />
           </div>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Conditions d'utilisation — Kop",
+  title: "Conditions d'utilisation | Kop",
   description:
     "Règles d'usage de Kop : compte, monnaie virtuelle, comportement, modération, limites de responsabilité.",
 };
@@ -151,8 +151,8 @@ export default function TermsPage() {
 
       <Section title="9. Jeu responsable">
         <p>
-          Kop reproduit volontairement les mécaniques du pari sportif — cotes, tension du
-          direct, combinés, bonus quotidiens — dans un cadre sans argent. Ces mécaniques
+          Kop reproduit volontairement les mécaniques du pari sportif (cotes, tension du
+          direct, combinés, bonus quotidiens) dans un cadre sans argent. Ces mécaniques
           restent conçues pour être captivantes. Si tu constates que tu y passes plus de
           temps que tu ne le souhaites, ou si le pari en argent réel te pose problème par
           ailleurs, des ressources d&apos;aide existent, notamment{" "}

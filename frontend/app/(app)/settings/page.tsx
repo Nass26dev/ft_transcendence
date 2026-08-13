@@ -374,7 +374,7 @@ export default function SettingsPage() {
 
         {/* Compte (lecture seule) */}
         <Card title="Compte">
-          <InfoRow label="Email" value={profile?.email ?? "—"} />
+          <InfoRow label="Email" value={profile?.email ?? "-"} />
           <InfoRow
             label="Solde Kops"
             value={(profile?.wallet ?? 0).toLocaleString("fr-FR")}

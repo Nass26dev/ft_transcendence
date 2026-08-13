@@ -34,7 +34,7 @@ export default function LegalLayout({
           <Link href="/terms" className="hover:text-text">
             Conditions d&apos;utilisation
           </Link>
-          <span className="ml-auto">Projet étudiant 42 — aucun argent réel.</span>
+          <span className="ml-auto">Projet étudiant 42, aucun argent réel.</span>
         </div>
       </footer>
     </div>

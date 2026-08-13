@@ -132,7 +132,7 @@ export function ChatWindow({
           </div>
         ) : messages.length === 0 ? (
           <div className="py-8 text-center text-[13px] text-text-3">
-            Aucun message pour l&apos;instant — lance la discussion ! 👋
+            Aucun message pour l&apos;instant. Lance la discussion ! 👋
           </div>
         ) : (
           <div className="flex flex-col gap-2">

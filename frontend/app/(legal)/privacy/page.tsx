@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Politique de confidentialité — Kop",
+  title: "Politique de confidentialité | Kop",
   description:
     "Quelles données Kop collecte, pourquoi, combien de temps, et comment exercer tes droits.",
 };
@@ -73,11 +73,11 @@ export default function PrivacyPage() {
         <p>Tes données ne sortent de la plateforme que vers deux prestataires techniques :</p>
         <ul>
           <li>
-            <strong>Brevo</strong> — reçoit ton adresse email pour t&apos;envoyer le code
+            <strong>Brevo</strong> : reçoit ton adresse email pour t&apos;envoyer le code
             de connexion à six chiffres. Aucune autre donnée ne lui est transmise.
           </li>
           <li>
-            <strong>Google</strong> — uniquement si tu choisis de te connecter avec ton
+            <strong>Google</strong> : uniquement si tu choisis de te connecter avec ton
             compte Google, selon la politique de confidentialité de Google.
           </li>
         </ul>
@@ -118,14 +118,14 @@ export default function PrivacyPage() {
       <Section title="7. Durée de conservation">
         <ul>
           <li>
-            <strong>Compte et activité</strong> — conservés tant que ton compte existe.
+            <strong>Compte et activité</strong> : conservés tant que ton compte existe.
           </li>
           <li>
-            <strong>Code de connexion</strong> — stocké 5 minutes, puis effacé
+            <strong>Code de connexion</strong> : stocké 5 minutes, puis effacé
             automatiquement.
           </li>
           <li>
-            <strong>Après suppression du compte</strong> — tes données personnelles sont
+            <strong>Après suppression du compte</strong> : tes données personnelles sont
             supprimées. Les messages que tu as envoyés dans une ligue peuvent subsister
             de façon anonymisée pour ne pas trouer les conversations des autres membres.
           </li>
@@ -160,11 +160,11 @@ export default function PrivacyPage() {
         </p>
         <ul>
           <li>
-            <strong>Consulter et rectifier</strong> — directement depuis la page
+            <strong>Consulter et rectifier</strong> : directement depuis la page
             Réglages, qui expose l&apos;essentiel de tes données de compte.
           </li>
           <li>
-            <strong>Effacer, exporter ou t&apos;opposer</strong> — écris à{" "}
+            <strong>Effacer, exporter ou t&apos;opposer</strong> : écris à{" "}
             <a href="mailto:contact@kop.life" className="text-kop-bright hover:underline">
               contact@kop.life
             </a>
