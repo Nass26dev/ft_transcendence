@@ -8,7 +8,7 @@ COPY nginx.conf /etc/nginx/conf.d/
 # de l'image : rien à committer, rien à installer sur le poste. Le navigateur
 # affichera un avertissement de certificat non reconnu au premier accès à
 # https://localhost — c'est attendu, il faut l'accepter une fois.
-# En production, c'est Let's Encrypt qui fournit le certificat (nginx.prod.conf).
+# En production, c'est Caddy qui fournit le certificat Let's Encrypt automatiquement (caddy/Caddyfile).
 RUN apk add --no-cache openssl && \
     mkdir -p /etc/nginx/certs && \
     openssl req -x509 -nodes -newkey rsa:2048 -days 825 \

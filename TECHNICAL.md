@@ -40,7 +40,7 @@ Le [README](README.md) est la porte d'entrée du projet ; ce document décrit **
 | Tâches | Celery + Celery Beat | 5.6 | Scraping, cotes, règlement |
 | Base | PostgreSQL | 16 | Transactions sur le solde |
 | Cache / broker / channel layer | Redis | 7 | Broker Celery, couche Channels, codes OTP (TTL 5 min) |
-| Reverse proxy | nginx | — | Terminaison TLS. Dev : image locale, certificat auto-signé, `https://localhost:8443`. Prod : `jonasal/nginx-certbot`, Let's Encrypt |
+| Reverse proxy | nginx (dev) / Caddy (prod) | — | Terminaison TLS. Dev : image nginx locale, certificat auto-signé, `https://localhost:8443`. Prod : Caddy, Let's Encrypt automatique |
 
 ### Pourquoi PostgreSQL et pas SQLite
 

@@ -98,25 +98,28 @@ services:
     networks:
       - t_networks
 
-  nginx:
-    # Image nginx + certbot : obtient et renouvelle le cert Let's Encrypt
-    # automatiquement au lancement (à partir des domaines de nginx.prod.conf).
-    image: jonasal/nginx-certbot:5-alpine
-    container_name: t_nginx
+  caddy:
+    # Reverse proxy prod : Caddy obtient et renouvelle le certificat Let's
+    # Encrypt automatiquement au demarrage (HTTPS par defaut, cf. caddy/Caddyfile),
+    # sans conf TLS manuelle ni etape certbot separee.
+    image: caddy:2-alpine
+    container_name: t_caddy
     restart: always
     # Profil "prod" : ignoré par `docker compose up` (dev), démarré avec --profile prod.
     profiles:
       - prod
     environment:
       # Email d'enregistrement Let's Encrypt (à définir dans .env).
-      CERTBOT_EMAIL: ${CERTBOT_EMAIL}
+      CADDY_EMAIL: ${CADDY_EMAIL}
     ports:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx/nginx.prod.conf:/etc/nginx/user_conf.d/kop.conf:ro
-      - letsencrypt:/etc/letsencrypt
-      # Médias uploadés (avatars) en lecture seule, servis via location /media/.
+      - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      # Certificats + etat ACME de Caddy (equivalent du volume letsencrypt).
+      - caddy_data:/data
+      - caddy_config:/config
+      # Médias uploadés (avatars) en lecture seule, servis via /media/*.
       - media:/media:ro
     depends_on:
       - frontend
@@ -126,7 +129,8 @@ services:
 
 volumes:
   postgres_data:
-  letsencrypt:
+  caddy_data:
+  caddy_config:
   media:
 
 networks:

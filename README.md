@@ -116,7 +116,7 @@ Then fill it in. Variable names must match **exactly** what the code reads — a
 | `BREVO_API_KEY` | Sending login codes by email |
 | `NEXT_PUBLIC_API_URL` | API URL called from the browser |
 | `API_URL` | API URL called from Next.js server routes, container to container |
-| `NEXT_PUBLIC_API_URL_PROD` / `CERTBOT_EMAIL` | Production only |
+| `NEXT_PUBLIC_API_URL_PROD` / `CADDY_EMAIL` | Production only |
 
 `DJANGO_DEBUG` alone drives `DEBUG`, `ALLOWED_HOSTS` and the CORS/CSRF origins. Those lists are written in [api/core/settings.py](api/core/settings.py) and never injected from the environment.
 
@@ -166,7 +166,7 @@ docker compose exec frontend npm run lint
 docker compose -f docker-compose.yml --profile prod up -d --build
 ```
 
-The `-f docker-compose.yml` flag is required, otherwise the development layer is applied. The `prod` profile starts nginx, which obtains and renews the Let's Encrypt certificate on its own for the domains listed in [nginx/nginx.prod.conf](nginx/nginx.prod.conf). Check beforehand that `DJANGO_DEBUG` is removed or `False`, that `CERTBOT_EMAIL` is set, and that DNS points to the machine.
+The `-f docker-compose.yml` flag is required, otherwise the development layer is applied. The `prod` profile starts Caddy, which obtains and renews the Let's Encrypt certificate on its own for the domains listed in [caddy/Caddyfile](caddy/Caddyfile). Check beforehand that `DJANGO_DEBUG` is removed or `False`, that `CADDY_EMAIL` is set, and that DNS points to the machine.
 
 ---
 
