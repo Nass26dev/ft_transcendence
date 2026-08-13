@@ -23,17 +23,24 @@ services:
   # Reverse proxy TLS du dev : seule porte d'entrée du navigateur.
   # Le sujet impose HTTPS pour toute connexion navigateur → backend, donc
   # backend et frontend ne publient plus leurs ports sur l'hôte.
-  nginx_dev:
-    build:
-      context: ./nginx
-      dockerfile: dockerfile
-    container_name: t_nginx_dev
+  # Caddy genere son propre certificat local (CA interne, `tls internal`
+  # dans caddy/Caddyfile.dev) : plus besoin d'une image custom avec un
+  # cert auto-signe fabrique a la main.
+  caddy_dev:
+    image: caddy:2-alpine
+    container_name: t_caddy_dev
     restart: "no"
     # Ports hauts : Docker en mode rootless (courant sur les postes 42) ne
-    # peut pas se lier aux ports privilégiés 80/443.
+    # peut pas se lier aux ports privilégiés 80/443. Caddy ecoute
+    # directement sur 8080/8443 (cf. http_port/https_port dans le
+    # Caddyfile), mapping hote:conteneur 1:1 — pas de remap a gerer.
     ports:
-      - "8080:80"
-      - "8443:443"
+      - "8080:8080"
+      - "8443:8443"
+    volumes:
+      - ./caddy/Caddyfile.dev:/etc/caddy/Caddyfile:ro
+      - caddy_dev_data:/data
+      - caddy_dev_config:/config
     depends_on:
       - backend
       - frontend
@@ -58,3 +65,9 @@ services:
       - ./frontend:/app
       - /app/node_modules
     command: npm run dev
+
+volumes:
+  # CA locale de Caddy (dev) : persiste entre `docker compose down`/`up`
+  # pour ne pas re-generer un cert a chaque fois (re-avertissement navigateur).
+  caddy_dev_data:
+  caddy_dev_config:

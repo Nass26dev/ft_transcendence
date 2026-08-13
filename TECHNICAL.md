@@ -40,7 +40,7 @@ Le [README](README.md) est la porte d'entrée du projet ; ce document décrit **
 | Tâches | Celery + Celery Beat | 5.6 | Scraping, cotes, règlement |
 | Base | PostgreSQL | 16 | Transactions sur le solde |
 | Cache / broker / channel layer | Redis | 7 | Broker Celery, couche Channels, codes OTP (TTL 5 min) |
-| Reverse proxy | nginx (dev) / Caddy (prod) | — | Terminaison TLS. Dev : image nginx locale, certificat auto-signé, `https://localhost:8443`. Prod : Caddy, Let's Encrypt automatique |
+| Reverse proxy | Caddy | 2 | Terminaison TLS. Dev : certificat local auto-genere (CA interne), `https://localhost:8443`. Prod : Let's Encrypt automatique |
 
 ### Pourquoi PostgreSQL et pas SQLite
 
@@ -58,9 +58,9 @@ Le socket doit savoir **qui** est connecté. `CookieJWTAuthMiddleware` relit le 
                           Navigateur
                               │
                     ┌─────────▼──────────┐
-                    │       nginx        │   TLS dans les deux cas
-                    │  dev  : auto-signé │   :8443
-                    │  prod : Let's Encr.│   :443
+                    │       Caddy         │   TLS dans les deux cas
+                    │  dev  : CA interne  │   :8443
+                    │  prod : Let's Encr. │   :443
                     └─────┬────────┬─────┘
                           │        │
               /  /_next   │        │  /api  /ws  /admin  /static  /media
@@ -84,7 +84,7 @@ Le socket doit savoir **qui** est connecté. `CookieJWTAuthMiddleware` relit le 
                                         └─────────────┘
 ```
 
-**En développement**, nginx tourne aussi (service `nginx_dev` de l'override) avec un certificat auto-signé généré à la construction de l'image. Le navigateur n'a qu'une entrée : `https://localhost:8443`. Les ports 3000 et 8000 ne sont pas publiés sur l'hôte, donc aucun accès en clair n'est possible.
+**En développement**, Caddy tourne aussi (service `caddy_dev` de l'override) avec un certificat local genere par sa CA interne (`tls internal`, cf. `caddy/Caddyfile.dev`). Le navigateur n'a qu'une entrée : `https://localhost:8443`. Les ports 3000 et 8000 ne sont pas publiés sur l'hôte, donc aucun accès en clair n'est possible.
 
 Les ports 8443 et 8080 remplacent 443 et 80 parce que Docker en mode rootless, fréquent sur les postes 42, ne peut pas se lier aux ports privilégiés.
 
@@ -345,7 +345,7 @@ Au premier démarrage, `seed_if_empty` enchaîne `scrape_history` puis `scrape_u
 À connaître avant la soutenance, ces points étaient annoncés dans l'ancienne spec :
 
 - Pas d'**Argon2** (le hasher Django par défaut reste correct, mais ce n'est pas ce qui était écrit)
-- Pas de **rate limiting** — ni au niveau nginx, ni via django-ratelimit. L'étape 1 du login est donc brute-forçable.
+- Pas de **rate limiting** — ni au niveau du reverse proxy, ni via django-ratelimit. L'étape 1 du login est donc brute-forçable.
 - Pas d'**audit log**
 - Pas de **CSP** ni d'en-têtes de sécurité durcis
 - Pas de **PKCE** explicite sur l'OAuth (délégué à allauth)

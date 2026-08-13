@@ -3,7 +3,7 @@
 #   • Dev  : `docker compose up`                          (override.yml appliqué automatiquement)
 #   • Prod : `docker compose -f docker-compose.yml --profile prod up -d --build`
 # docker-compose.override.yml ramène les réglages dev par-dessus ce fichier.
-# nginx est sous le profil "prod" : il ne démarre qu'en prod.
+# caddy est sous le profil "prod" : il ne démarre qu'en prod.
 #
 # Toute la conf applicative vit ailleurs, JAMAIS injectée ici :
 #   • variables d'environnement      → .env (env_file)
@@ -69,7 +69,7 @@ services:
              python3 manage.py collectstatic --noinput &&
              daphne -b 0.0.0.0 -p 8000 core.asgi:application"
     volumes:
-      # Médias uploadés (avatars) écrits dans MEDIA_ROOT=/app/media ; servis par nginx en prod.
+      # Médias uploadés (avatars) écrits dans MEDIA_ROOT=/app/media ; servis par Caddy en prod.
       - media:/app/media
     expose:
       - "8000"
@@ -84,7 +84,7 @@ services:
       context: ./frontend
       target: runner
       # NEXT_PUBLIC_* sont inlinées au build. En prod le navigateur passe par
-      # nginx (443) : pointer l'API sur https://localhost (surchargeable via .env).
+      # Caddy (443) : pointer l'API sur https://kop.life (surchargeable via .env).
       args:
         NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL_PROD:-https://kop.life}
         NEXT_PUBLIC_GOOGLE_CLIENT_ID: ${NEXT_PUBLIC_GOOGLE_CLIENT_ID}

@@ -1,19 +1,25 @@
 # ─────────────────────────────────────────────────────────────────────
-# Conf PROD — kop.life. Caddy obtient et renouvelle le certificat Let's
-# Encrypt automatiquement (HTTPS par defaut, aucune conf TLS a ecrire).
-# Les certs et l'etat ACME vivent dans les volumes caddy_data/caddy_config
-# (docker-compose.yml), pas sur le bind-mount de ce fichier.
-# La conf dev/local reste dans nginx/ (localhost, auto-signe, via nginx).
+# Conf DEV — https://localhost:8443, certificat local auto-genere par la
+# CA interne de Caddy (`tls internal`), mise en cache dans le volume
+# caddy_dev_data. Meme avertissement navigateur qu'avant (a accepter une
+# fois) : Caddy n'est pas une autorite publique, juste local.
+# Redirection HTTP->HTTPS ecrite a la main (auto_https ne construit pas
+# la bonne URL sur un port https non standard comme 8443) : meme genre
+# de hack que nginx avec son "$host:8443" code en dur.
+# La conf de prod est dans caddy/Caddyfile (kop.life, Let's Encrypt).
 # ─────────────────────────────────────────────────────────────────────
 {
-	email {$CADDY_EMAIL:comtact@kop.life}
+	auto_https disable_redirects
 }
 
-kop.life, www.kop.life {
-	# ── Routes internes Next.js (posent/effacent les cookies httpOnly,
-	# cf. frontend/app/api/) : sous /api/ comme le reste, donc doivent
-	# matcher AVANT le handle /api/* general (Caddy prend le premier bloc
-	# qui matche), sinon elles finissent sur Django qui n'a pas ces routes.
+:8080 {
+	redir https://{host}:8443{uri} permanent
+}
+
+localhost:8443 {
+	tls internal
+
+	# ── Routes internes Next.js (posent/effacent les cookies httpOnly) ──
 	handle /api/logout {
 		reverse_proxy frontend:3000
 	}
@@ -27,8 +33,6 @@ kop.life, www.kop.life {
 	}
 
 	# ── WebSockets (chat + notifications, channels/daphne) ────────────
-	# reverse_proxy detecte et relaie l'upgrade WebSocket automatiquement,
-	# pas besoin d'entetes Connection/Upgrade explicites comme avec nginx.
 	handle /ws/* {
 		reverse_proxy backend:8000
 	}
@@ -41,14 +45,16 @@ kop.life, www.kop.life {
 		reverse_proxy backend:8000
 	}
 
-	# ── Medias uploades (photos de profil) ────────────────────────────
-	handle_path /media/* {
-		root * /media
-		file_server
-		header Cache-Control "public, max-age=604800"
+	# ── Medias uploades ────────────────────────────────────────────────
+	# En dev c'est Django qui les sert (urls.py, bloc `if settings.DEBUG`),
+	# contrairement a la prod ou Caddy lit directement le volume.
+	handle /media/* {
+		reverse_proxy backend:8000
 	}
 
 	# ── Frontend Next.js ───────────────────────────────────────────────
+	# reverse_proxy relaie les WebSockets automatiquement (HMR de Next
+	# compris), pas besoin d'entetes Upgrade/Connection explicites.
 	handle {
 		reverse_proxy frontend:3000
 	}

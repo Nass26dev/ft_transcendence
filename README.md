@@ -73,7 +73,7 @@ Traditional sports-betting apps monetise addiction. Kop keeps the mechanics that
 
 ### Infrastructure
 
-**Docker Compose** for the whole stack (single-command startup), **nginx** with Let's Encrypt for TLS termination in production.
+**Docker Compose** for the whole stack (single-command startup), **Caddy** with automatic Let's Encrypt for TLS termination in production.
 
 ### Justification of the main technical choices
 
@@ -135,7 +135,7 @@ docker compose up --build
 | API | https://localhost:8443/api/ |
 | Django admin | https://localhost:8443/admin/ |
 
-Everything goes through **HTTPS**, including in development: an nginx reverse proxy terminates TLS with a self-signed certificate generated when its image is built. Your browser will warn about an unrecognised certificate on first visit — accept it once. Ports 3000 and 8000 are deliberately **not** published on the host, so there is no plaintext way into the application.
+Everything goes through **HTTPS**, including in development: a Caddy reverse proxy terminates TLS with a locally-generated certificate (Caddy's internal CA). Your browser will warn about an unrecognised certificate on first visit — accept it once. Ports 3000 and 8000 are deliberately **not** published on the host, so there is no plaintext way into the application.
 
 Ports 8443 and 8080 are used instead of 443 and 80 because rootless Docker, common on 42 workstations, cannot bind privileged ports.
 
@@ -262,7 +262,7 @@ PostgreSQL, managed through the Django ORM. Ten application modules, each owning
 | **Gamification** | Daily and season challenges with claimable rewards, badges unlocked by thresholds, 500-Kop daily bonus, daily wheel of fortune (−1 000 to +2 000, jackpot 10 000 at 1 %). | ynzue-es |
 | **Admin panel** | Reserved for `admin` and `owner`: global statistics, user search, inspection and editing of balance, friends and bets. | ynzue-es, nyousfi |
 | **Design system** | 21 reusable components: Avatar, Icon, Kops, Modal, OddPill, ProgressBar, Skeleton, StatCard, Tag, Toast, MatchCard, LiveTile, CompactRow, OddsRow, TeamBadge, MatchSkeleton, MatchSearchBar, LeagueFilterBar, BetSlip, TicketCard, Onboarding — plus mobile-first responsive layout. | ynzue-es, nyousfi |
-| **Infrastructure** | Docker Compose dev/prod split, multi-stage Dockerfiles, nginx and TLS, Celery worker and beat. | engiusep, nyousfi |
+| **Infrastructure** | Docker Compose dev/prod split, multi-stage Dockerfiles, Caddy and TLS, Celery worker and beat. | engiusep, nyousfi |
 
 ---
 
@@ -311,7 +311,7 @@ Public API with API key and rate limiting · Accessibility WCAG 2.1 AA · i18n �
 | Member | Role(s) | Responsibilities |
 |---|---|---|
 | **ynzue-es** | Tech Lead / Developer | Technical architecture, technology choices, review of critical changes. Owner of the sports domain (scraping, odds engine, settlement) and of most of the frontend. |
-| **engiusep** | Project Manager / Developer | Team coordination, planning, blocker tracking. Backend: authentication, friends, chat, leagues. Docker and nginx infrastructure. |
+| **engiusep** | Project Manager / Developer | Team coordination, planning, blocker tracking. Backend: authentication, friends, chat, leagues. Docker and Caddy infrastructure. |
 | **nyousfi** | Product Owner / Developer | Product vision, feature prioritisation, validation of delivered work. Frontend, settings and admin panel, Docker and deployment. |
 | **acancel** | Developer | Backend contributions on the users app, test setup (pytest) and dependency management. |
 
@@ -345,13 +345,13 @@ Sole author of the two most technical files in the project: [odds.py](api/sports
 
 ### engiusep — 26 commits
 
-`api/users`, `api/friends`, `api/chat`, `api/league`, `api/core`, plus `docker-compose.yml`, `nginx/` and `requirements.txt`.
+`api/users`, `api/friends`, `api/chat`, `api/league`, `api/core`, plus `docker-compose.yml`, `caddy/` and `requirements.txt`.
 
 Two-step authentication with Brevo, friends system, chat and leagues on the backend side. Infrastructure work: container definitions, reverse proxy, TLS.
 
 ### nyousfi — 31 commits
 
-`api/users`, `api/betting`, `api/friends`, `api/core`, frontend `app/`, `Dockerfile`, `nginx/`.
+`api/users`, `api/betting`, `api/friends`, `api/core`, frontend `app/`, `Dockerfile`, `caddy/`.
 
 Settings page, admin panel, mobile responsive work, deployment. Also the front-end text consistency pass and the environment configuration (`.env.example`, variable naming).
 
