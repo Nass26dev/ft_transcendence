@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework.authtoken',
+    'drf_spectacular',
     'django_filters',
     'allauth',
     'allauth.account',
@@ -104,7 +105,21 @@ AUTHENTICATION_BACKENDS = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'users.authentication.CookieJWTAuthentication',
-    )
+    ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Kop API',
+    'DESCRIPTION': "API de Kop : profils, amis, sport, paris, defis, ligues, chat et notifications.",
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+    # Le cookie JWT est posé par le login custom (voir users.authentication) ;
+    # on le documente ici pour que "Authorize" dans Swagger UI ait un sens.
+    'SECURITY': [{'cookieAuth': []}],
+    'SWAGGER_UI_SETTINGS': {
+        'persistAuthorization': True,
+    },
 }
 
 # Durées des tokens JWT. La durée du refresh doit couvrir celle du cookie

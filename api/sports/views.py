@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import action
 from django_filters import rest_framework as filters
 from rest_framework import mixins, viewsets
+from drf_spectacular.utils import extend_schema, extend_schema_view
 from .models import Match
 from .serializers import MatchDetailSerializer, MatchListSerializer, OddsSerializer
 
@@ -21,6 +22,26 @@ class MatchFilter(filters.FilterSet):
         fields = ["status", "competition", "date"]
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Sport"],
+        description=(
+            "Liste les matchs, avec pour chacun la répartition des paris par issue "
+            "1N2 (`bets_home`, `bets_draw`, `bets_away` — la « Confiance des "
+            "Kopistes »), calculée en comptant les sélections de paris liées à "
+            "chaque match. Filtrable par `status`, `competition` (slug) et `date` "
+            "(jour du coup d'envoi)."
+        ),
+    ),
+    retrieve=extend_schema(
+        tags=["Sport"],
+        description=(
+            "Détail d'un match, incluant ses événements et compositions "
+            "(`events`, `lineups`) ainsi que la répartition des paris par issue "
+            "1N2 (« Confiance des Kopistes »)."
+        ),
+    ),
+)
 class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     queryset = (
         Match.objects
@@ -49,6 +70,17 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
             qs = qs.prefetch_related("events", "lineups")
         return qs
 
+    @extend_schema(
+        summary="Matchs à venir",
+        description=(
+            "Liste les matchs programmés (`status='scheduled'`) dont le coup "
+            "d'envoi tombe dans les 7 prochains jours, triés par date de coup "
+            "d'envoi croissante. L'ordre explicite est nécessaire car l'annotation "
+            "des compteurs de paris introduit un GROUP BY qui écraserait sinon le "
+            "tri par défaut du modèle."
+        ),
+        tags=["Sport"],
+    )
     def upcoming(self, request):
         now = timezone.now()
         # order_by explicite : l'annotate(Count(...)) du get_queryset ajoute un
@@ -61,6 +93,17 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Matchs en direct",
+        description=(
+            "Liste les matchs actuellement en cours (`status='live'`) dont le coup "
+            "d'envoi remonte à moins de 4 heures, triés par date de coup d'envoi. "
+            "Ce filtre temporel couvre les matchs à cheval sur minuit tout en "
+            "écartant les matchs restés bloqués à tort au statut « live » "
+            "(kickoff trop ancien)."
+        ),
+        tags=["Sport"],
+    )
     def live(self, request):
         # Matchs réellement en cours : status=live démarré dans les dernières
         # heures. Couvre les matchs à cheval sur minuit et écarte les "live"
@@ -72,6 +115,11 @@ class MatchViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, viewsets.Ge
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Cotes d'un match",
+        description="Liste toutes les cotes (1N2 et éventuels autres marchés) disponibles pour le match identifié par `pk`.",
+        tags=["Sport"],
+    )
     def odds(self, request, pk=None):
         match = self.get_object()
         serializer = OddsSerializer(match.odds.all(), many=True)

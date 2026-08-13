@@ -10,6 +10,7 @@ from django.conf.urls.static import static
 from users.views import ProfileView, LoginStep1View, LoginStep2View
 from dj_rest_auth.registration.views import SocialLoginView
 from allauth.socialaccount.providers.google.views import GoogleOAuth2Adapter
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView, SpectacularRedocView
 
 
 class GoogleLoginView(SocialLoginView):
@@ -52,6 +53,11 @@ urlpatterns = [
 
     # Administration (owner / admin)
     path("api/admin/", include("users.admin_urls")),
+
+    # ── Documentation API (Swagger / Redoc) ─────────────────────────────
+    path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+    path("api/docs/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+    path("api/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
 
 ]
 

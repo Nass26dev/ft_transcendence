@@ -75,14 +75,14 @@ class BetSerializer(serializers.ModelSerializer):
 
     # ---------- Lecture ----------
 
-    def get_potential_win(self, obj):
+    def get_potential_win(self, obj) -> float:
         return round(obj.stake * obj.odd_value, 2)
 
-    def get_kind(self, obj):
+    def get_kind(self, obj) -> str:
         n = obj.selections.count()
         return "Simple" if n <= 1 else f"Combiné x{n}"
 
-    def get_picks(self, obj):
+    def get_picks(self, obj) -> list:
         out = []
         for leg in obj.selections.select_related(
             "odd", "match__home_team", "match__away_team"

@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 
@@ -45,14 +47,14 @@ class ConversationSerializer(serializers.ModelSerializer):
     def _me(self):
         return self.context['request'].user
 
-    def get_peer(self, obj):
+    def get_peer(self, obj) -> dict:
         # Propage le contexte (request) pour que l'URL de l'avatar soit absolue.
         return ChatUserSerializer(obj.other_user(self._me()), context=self.context).data
 
-    def get_last_message(self, obj):
+    def get_last_message(self, obj) -> str | None:
         last = obj.messages.order_by('-created_at').first()
         return last.content if last else None
 
-    def get_last_message_at(self, obj):
+    def get_last_message_at(self, obj) -> datetime:
         last = obj.messages.order_by('-created_at').first()
         return last.created_at if last else obj.created_at

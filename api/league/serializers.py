@@ -13,7 +13,7 @@ class LeagueSerializer(serializers.ModelSerializer):
         model = League
         fields = ["id", "name", "description", "creator", "members_count"]
 
-    def get_members_count(self, obj):
+    def get_members_count(self, obj) -> int:
         return obj.members.count()
 
 class LeagueInvitationSerializer(serializers.ModelSerializer):

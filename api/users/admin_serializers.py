@@ -64,7 +64,7 @@ class UserAdminDetailSerializer(serializers.ModelSerializer):
             "bets",
         ]
 
-    def get_friends(self, obj):
+    def get_friends(self, obj) -> list:
         from friends.models import Friendship
         # Récupère tous les users avec qui il a une amitié acceptée
         sent = Friendship.objects.filter(sender=obj, status="accepted").values_list("receiver", flat=True)
@@ -73,7 +73,7 @@ class UserAdminDetailSerializer(serializers.ModelSerializer):
         friends = User.objects.filter(id__in=friend_ids)
         return FriendSerializer(friends, many=True).data
 
-    def get_bets(self, obj):
+    def get_bets(self, obj) -> list:
         bets = Bet.objects.filter(user=obj).prefetch_related("selections").order_by("-created_at")
         return BetAdminSerializer(bets, many=True).data
 

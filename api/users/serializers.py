@@ -54,11 +54,11 @@ class UserSerializer(serializers.ModelSerializer):
             'status',
         ]
 
-    def get_daily_bonus_available(self, obj):
+    def get_daily_bonus_available(self, obj) -> bool:
         from django.utils import timezone
         return obj.last_daily_bonus != timezone.localdate()
 
-    def get_wheel_available(self, obj):
+    def get_wheel_available(self, obj) -> bool:
         from django.utils import timezone
         return obj.last_wheel_spin != timezone.localdate()
 

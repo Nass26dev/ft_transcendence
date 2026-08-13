@@ -1,8 +1,15 @@
 from django.db.models import Q, Sum
 from rest_framework import status
+from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import (
+    extend_schema,
+    inline_serializer,
+    OpenApiResponse,
+    OpenApiParameter,
+)
 
 from .models import User
 from .admin_serializers import (
@@ -32,6 +39,27 @@ class AdminUserSearchView(APIView):
     """
     permission_classes = [IsAdminOrOwner]
 
+    @extend_schema(
+        summary="Recherche/liste des utilisateurs (admin)",
+        description=(
+            "Sans le paramètre `q`, liste tous les utilisateurs (hors soi-même, triés par "
+            "username, max 100 résultats). Avec `q`, filtre par username OU email "
+            "(insensible à la casse, correspondance partielle). "
+            "Réservé aux comptes admin ou owner (permission `IsAdminOrOwner`) ; "
+            "un utilisateur standard ne peut pas accéder à cette route."
+        ),
+        tags=["Administration"],
+        parameters=[
+            OpenApiParameter(
+                name="q",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description="Terme de recherche (username ou email)",
+            ),
+        ],
+        responses={200: UserAdminListSerializer(many=True)},
+    )
     def get(self, request):
         q = request.query_params.get("q", "").strip()
 
@@ -52,6 +80,31 @@ class AdminStatsView(APIView):
     """
     permission_classes = [IsAdminOrOwner]
 
+    @extend_schema(
+        summary="Statistiques globales (dashboard admin)",
+        description=(
+            "Calcule en direct les métriques du dashboard admin : nombre total d'utilisateurs "
+            "et répartition par rôle (owner/admin/user), somme des soldes (wallet) de tous "
+            "les comptes (Kops en circulation), et compteurs de paris (total, en attente "
+            "`pending`, gagnés `won`). Réservé aux comptes admin ou owner."
+        ),
+        tags=["Administration"],
+        responses={
+            200: inline_serializer(
+                name="AdminStatsGetResponse",
+                fields={
+                    "total_users": serializers.IntegerField(),
+                    "owners": serializers.IntegerField(),
+                    "admins": serializers.IntegerField(),
+                    "users": serializers.IntegerField(),
+                    "total_wallet": serializers.FloatField(),
+                    "total_bets": serializers.IntegerField(),
+                    "pending_bets": serializers.IntegerField(),
+                    "won_bets": serializers.IntegerField(),
+                },
+            ),
+        },
+    )
     def get(self, request):
         from betting.models import Bet
 
@@ -87,12 +140,42 @@ class AdminUserDetailView(APIView):
         except User.DoesNotExist:
             return None
 
+    @extend_schema(
+        summary="Détail complet d'un utilisateur (admin)",
+        description=(
+            "Renvoie le profil complet de l'utilisateur ciblé (id de l'URL), la liste de ses "
+            "amis dont la relation est au statut `accepted`, et l'historique de ses paris. "
+            "Réservé aux comptes admin ou owner ; renvoie 404 si l'id ne correspond à aucun "
+            "utilisateur."
+        ),
+        tags=["Administration"],
+        responses={
+            200: UserAdminDetailSerializer,
+            404: OpenApiResponse(description="Utilisateur introuvable."),
+        },
+    )
     def get(self, request, pk):
         user = self._get_user(pk)
         if not user:
             return Response({"detail": "Utilisateur introuvable."}, status=404)
         return Response(UserAdminDetailSerializer(user).data)
 
+    @extend_schema(
+        summary="Modifie un utilisateur (admin)",
+        description=(
+            "Modifie username, email, bio et/ou status. "
+            "Un admin ne peut pas modifier un owner. "
+            "Seul un owner peut changer le rôle (status) d'un utilisateur."
+        ),
+        tags=["Administration"],
+        request=UserAdminUpdateSerializer,
+        responses={
+            200: UserAdminDetailSerializer,
+            400: OpenApiResponse(description="Données invalides (erreurs de validation)."),
+            403: OpenApiResponse(description="Action non autorisée (owner protégé ou changement de rôle réservé aux owners)."),
+            404: OpenApiResponse(description="Utilisateur introuvable."),
+        },
+    )
     def patch(self, request, pk):
         user = self._get_user(pk)
         if not user:
@@ -134,6 +217,28 @@ class AdminUserWalletView(APIView):
     """
     permission_classes = [IsAdminOrOwner]
 
+    @extend_schema(
+        summary="Modifie le solde (wallet) d'un utilisateur",
+        description=(
+            "Remplace intégralement le solde (wallet) de l'utilisateur par la valeur fournie "
+            "(ce n'est pas un crédit/débit relatif, la valeur précédente est écrasée). "
+            "Réservé aux comptes admin ou owner. Renvoie 400 si la valeur est invalide "
+            "(validation du serializer) et 404 si l'utilisateur n'existe pas."
+        ),
+        tags=["Administration"],
+        request=WalletUpdateSerializer,
+        responses={
+            200: inline_serializer(
+                name="AdminUserWalletPatchResponse",
+                fields={
+                    "id": serializers.IntegerField(),
+                    "wallet": serializers.FloatField(),
+                },
+            ),
+            400: OpenApiResponse(description="Données invalides (erreurs de validation)."),
+            404: OpenApiResponse(description="Utilisateur introuvable."),
+        },
+    )
     def patch(self, request, pk):
         try:
             user = User.objects.get(pk=pk)
@@ -159,6 +264,20 @@ class AdminUserFriendRemoveView(APIView):
     """
     permission_classes = [IsAdminOrOwner]
 
+    @extend_schema(
+        summary="Supprime une relation d'amitié entre deux utilisateurs (admin)",
+        description=(
+            "Supprime en base la relation `Friendship` entre les deux utilisateurs, peu "
+            "importe le sens (peu importe lequel des deux est `sender`/`receiver`) et peu "
+            "importe son statut (pending ou accepted). Réservé aux comptes admin ou owner. "
+            "Renvoie 404 si aucune relation n'existe entre ces deux utilisateurs."
+        ),
+        tags=["Administration"],
+        responses={
+            204: OpenApiResponse(description="Amitié supprimée."),
+            404: OpenApiResponse(description="Amitié introuvable."),
+        },
+    )
     def delete(self, request, pk, friend_pk):
         from friends.models import Friendship
 

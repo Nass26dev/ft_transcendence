@@ -19,7 +19,7 @@ class MatchListSerializer(serializers.ModelSerializer):
             "current_minute", "odds", "conf", "bets_total",
         ]
 
-    def get_odds(self, obj):
+    def get_odds(self, obj) -> dict[str, float]:
         mapping = {"home": "1", "draw": "X", "away": "2"}
         result = {}
         for o in obj.odds.all():
@@ -35,10 +35,10 @@ class MatchListSerializer(serializers.ModelSerializer):
             getattr(obj, "bets_away", 0) or 0,
         )
 
-    def get_bets_total(self, obj):
+    def get_bets_total(self, obj) -> int:
         return sum(self._bet_counts(obj))
 
-    def get_conf(self, obj):
+    def get_conf(self, obj) -> dict[str, int]:
         h, d, a = self._bet_counts(obj)
         total = h + d + a
         if total == 0:

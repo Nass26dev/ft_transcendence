@@ -4,8 +4,15 @@ from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework import serializers
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
+from drf_spectacular.utils import (
+    extend_schema,
+    inline_serializer,
+    OpenApiResponse,
+    OpenApiParameter,
+)
 from .models import Friendship
 from .serializers import FriendshipSerializer, UserSummarySerializer
 from betting.models import Bet
@@ -53,6 +60,48 @@ class FriendListView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Liste mes amis et mes demandes d'amitié",
+        description=(
+            "Parcourt toutes les relations `Friendship` où l'utilisateur courant est "
+            "`sender` ou `receiver` (triées par date de création décroissante) et les "
+            "répartit en trois listes : `friends` (statut `accepted`), `incoming` "
+            "(statut `pending` reçues, i.e. l'utilisateur courant est le receiver) et "
+            "`outgoing` (statut `pending` envoyées, i.e. l'utilisateur courant est le sender)."
+        ),
+        tags=["Amis"],
+        responses={
+            200: inline_serializer(
+                name="FriendListGetResponse",
+                fields={
+                    "friends": inline_serializer(
+                        name="FriendListFriendItem",
+                        fields={
+                            "friendship_id": serializers.IntegerField(),
+                            "user": UserSummarySerializer(),
+                        },
+                        many=True,
+                    ),
+                    "incoming": inline_serializer(
+                        name="FriendListIncomingItem",
+                        fields={
+                            "friendship_id": serializers.IntegerField(),
+                            "user": UserSummarySerializer(),
+                        },
+                        many=True,
+                    ),
+                    "outgoing": inline_serializer(
+                        name="FriendListOutgoingItem",
+                        fields={
+                            "friendship_id": serializers.IntegerField(),
+                            "user": UserSummarySerializer(),
+                        },
+                        many=True,
+                    ),
+                },
+            ),
+        },
+    )
     def get(self, request):
         user = request.user
         qs = (
@@ -81,6 +130,45 @@ class UserSearchView(APIView):
 
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Recherche de joueurs (hors soi-même)",
+        description=(
+            "Cherche des utilisateurs par username ou email (correspondance partielle, "
+            "insensible à la casse), hors soi-même, limité aux 20 premiers résultats "
+            "triés par username. Si `q` fait moins de 2 caractères, renvoie une liste "
+            "vide sans erreur. Chaque résultat est annoté avec le statut de la relation "
+            "d'amitié vis-à-vis de l'utilisateur courant (`none`, `friends`, "
+            "`pending_sent` si une demande a été envoyée, `pending_received` si une "
+            "demande a été reçue) et l'id de la relation le cas échéant."
+        ),
+        tags=["Amis"],
+        parameters=[
+            OpenApiParameter(
+                name="q",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                description="Terme de recherche (username ou email), minimum 2 caractères",
+            ),
+        ],
+        responses={
+            200: inline_serializer(
+                name="FriendUserSearchResponse",
+                fields={
+                    "id": serializers.IntegerField(),
+                    "username": serializers.CharField(),
+                    "email": serializers.EmailField(),
+                    "avatar": serializers.CharField(allow_null=True),
+                    "bio": serializers.CharField(allow_null=True),
+                    "status": serializers.ChoiceField(
+                        choices=["none", "friends", "pending_sent", "pending_received"]
+                    ),
+                    "friendship_id": serializers.IntegerField(allow_null=True),
+                },
+                many=True,
+            ),
+        },
+    )
     def get(self, request):
         q = request.query_params.get("q", "").strip()
         if len(q) < 2:
@@ -106,7 +194,29 @@ class UserSearchView(APIView):
 class SendFriendRequest(APIView):
     permission_classes = [IsAuthenticated]
 
-    def post(self, request):                         
+    @extend_schema(
+        summary="Envoie une demande d'ami",
+        description=(
+            "Crée une relation `Friendship` en statut `pending` de l'utilisateur courant "
+            "(sender) vers `receiver_id` (receiver), puis notifie le destinataire "
+            "(notification `friend_request`). Échoue avec 400 si `receiver_id` correspond "
+            "à l'utilisateur courant lui-même (auto-ajout impossible), ou si une demande a "
+            "déjà été envoyée par l'utilisateur courant vers ce destinataire (le contrôle "
+            "ne vérifie que le sens sender→receiver, pas l'inverse ni un statut déjà "
+            "accepté). Renvoie 404 si `receiver_id` ne correspond à aucun utilisateur."
+        ),
+        tags=["Amis"],
+        request=inline_serializer(
+            name="SendFriendRequestRequest",
+            fields={"receiver_id": serializers.IntegerField()},
+        ),
+        responses={
+            201: FriendshipSerializer,
+            400: OpenApiResponse(description="Auto-ajout impossible ou demande déjà envoyée."),
+            404: OpenApiResponse(description="Utilisateur introuvable."),
+        },
+    )
+    def post(self, request):
         receiver_id = request.data.get('receiver_id') 
 
         try:                                          
@@ -134,8 +244,25 @@ class SendFriendRequest(APIView):
 class AcceptFriendRequest(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Accepte une demande d'ami",
+        description=(
+            "Fait passer le statut de la relation `Friendship` ciblée (id dans l'URL) de "
+            "`pending` à `accepted`. Seul le destinataire (`receiver`) de la demande peut "
+            "l'accepter, sinon 403. Renvoie 400 si la demande n'est plus en statut "
+            "`pending` (déjà acceptée ou refusée/supprimée), et 404 si la relation n'existe pas."
+        ),
+        tags=["Amis"],
+        request=None,
+        responses={
+            200: FriendshipSerializer,
+            400: OpenApiResponse(description="Cette demande n'est plus en attente."),
+            403: OpenApiResponse(description="Tu n'es pas autorisé."),
+            404: OpenApiResponse(description="Demande introuvable."),
+        },
+    )
     def put(self,request,friendship_id):
-        
+
         try:
             friendship = Friendship.objects.get(id=friendship_id)
         except Friendship.DoesNotExist:
@@ -157,6 +284,26 @@ class AcceptFriendRequest(APIView):
 class DeclineFriendRequest(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Refuse une demande d'ami",
+        description=(
+            "Supprime définitivement la relation `Friendship` ciblée (id dans l'URL), ce qui "
+            "efface la demande et permettra d'en renvoyer une nouvelle plus tard. Seul le "
+            "destinataire (`receiver`) de la demande peut la refuser, sinon 403. Renvoie 400 "
+            "si la demande n'est plus en statut `pending` (déjà acceptée), et 404 si la "
+            "relation n'existe pas."
+        ),
+        tags=["Amis"],
+        responses={
+            200: inline_serializer(
+                name="DeclineFriendRequestResponse",
+                fields={"message": serializers.CharField()},
+            ),
+            400: OpenApiResponse(description="Cette demande n'est plus en attente."),
+            403: OpenApiResponse(description="Tu n'es pas autorisé."),
+            404: OpenApiResponse(description="Demande introuvable."),
+        },
+    )
     def delete(self, request, friendship_id):
 
         try:
@@ -176,6 +323,26 @@ class DeclineFriendRequest(APIView):
 class DeleteFriend(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Supprime un ami",
+        description=(
+            "Supprime définitivement la relation `Friendship` ciblée (id dans l'URL) — "
+            "rompt l'amitié. Le `sender` d'origine ou le `receiver` peuvent tous deux la "
+            "supprimer (n'importe lequel des deux amis), sinon 403 pour un tiers. Renvoie "
+            "400 si la relation n'est pas au statut `accepted` (ce n'est pas encore une "
+            "amitié confirmée), et 404 si la relation n'existe pas."
+        ),
+        tags=["Amis"],
+        responses={
+            200: inline_serializer(
+                name="DeleteFriendResponse",
+                fields={"message": serializers.CharField()},
+            ),
+            400: OpenApiResponse(description="Cette personne n'est pas votre ami."),
+            403: OpenApiResponse(description="Tu n'es pas autorisé."),
+            404: OpenApiResponse(description="Ami introuvable."),
+        },
+    )
     def delete(self, request, friendship_id):
 
         try:
@@ -203,6 +370,34 @@ class FriendsFeedView(APIView):
     permission_classes = [IsAuthenticated]
     LIMIT = 15
 
+    @extend_schema(
+        summary="Flux d'activité des amis (feed des potes)",
+        description=(
+            "Calcule la liste des amis dont la relation est `accepted`, puis renvoie leurs "
+            "15 derniers paris (hors paris annulés `cancelled`), filtrés aux utilisateurs "
+            "au profil public (`is_public=True`), du plus récent au plus ancien. Chaque "
+            "entrée décrit le pari (simple, combiné, gagné ou perdu) avec un texte généré "
+            "dynamiquement (mise, cote, équipe/sélection) et une durée relative en français "
+            "(« à l'instant », « 14 min », « hier », etc.). Renvoie une liste vide si "
+            "l'utilisateur n'a aucun ami accepté."
+        ),
+        tags=["Amis"],
+        responses={
+            200: inline_serializer(
+                name="FriendsFeedGetResponse",
+                fields={
+                    "id": serializers.IntegerField(),
+                    "user": serializers.CharField(),
+                    "avatar": serializers.CharField(allow_null=True),
+                    "when": serializers.CharField(),
+                    "desc": serializers.CharField(),
+                    "pick": serializers.CharField(),
+                    "kind": serializers.ChoiceField(choices=["won", "lost", "combo", "simple"]),
+                },
+                many=True,
+            ),
+        },
+    )
     def get(self, request):
         user = request.user
 

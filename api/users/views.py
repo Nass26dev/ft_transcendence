@@ -4,6 +4,8 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework import serializers
+from drf_spectacular.utils import extend_schema, inline_serializer, OpenApiResponse
 from .serializers import UserSerializer
 from rest_framework.permissions import AllowAny
 from .models import User, MAX_WALLET
@@ -16,6 +18,41 @@ from django.contrib.auth import authenticate
 class LoginStep1View(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        summary="Premiere etape du login (email + mot de passe)",
+        description=(
+            "Verifie les identifiants (email ou username + mot de passe) via "
+            "authenticate(). Si valides, genere un code OTP a 6 chiffres, le "
+            "stocke en cache sous la cle `otp_{user_id}` avec une expiration "
+            "de 5 minutes (300s), puis l'envoie par email (2FA). L'etape 2 "
+            "(LoginStep2View) devra recevoir ce meme code pour ouvrir la "
+            "session. Renvoie 401 si les identifiants sont invalides, et 500 "
+            "si l'envoi de l'email de code echoue (probleme technique cote "
+            "service mail) — dans ce dernier cas le code est deja en cache "
+            "mais l'utilisateur ne l'a pas recu."
+        ),
+        tags=["Authentification"],
+        request=inline_serializer(
+            name="LoginStep1PostRequest",
+            fields={
+                "email": serializers.EmailField(required=False),
+                "username": serializers.CharField(required=False),
+                "password": serializers.CharField(),
+            },
+        ),
+        responses={
+            200: inline_serializer(
+                name="LoginStep1PostResponse",
+                fields={
+                    "message": serializers.CharField(),
+                    "user_id": serializers.IntegerField(),
+                    "2fa_required": serializers.BooleanField(),
+                },
+            ),
+            401: OpenApiResponse(description="Identifiants invalides"),
+            500: OpenApiResponse(description="Probleme technique avec l'envoi du mail"),
+        },
+    )
     def post(self, request):
         email = request.data.get('email') or request.data.get('username')
         password = request.data.get('password')
@@ -41,6 +78,34 @@ class LoginStep1View(APIView):
 class LoginStep2View(APIView):
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        summary="Deuxieme etape du login (validation du code 2FA)",
+        description=(
+            "Compare le code saisi au code OTP stocke en cache pour ce "
+            "`user_id` (pose par LoginStep1View, valable 5 minutes). Si le "
+            "code correspond : supprime le code du cache (usage unique), "
+            "genere un JWT (access + refresh) et ouvre la session en posant "
+            "deux cookies httpOnly — `access_token` (5 min) et "
+            "`refresh_token` (7 jours) — marques `secure` en dehors du mode "
+            "DEBUG. Si le code ne correspond pas (ou a expire/n'existe plus "
+            "en cache), renvoie 400 sans ouvrir de session."
+        ),
+        tags=["Authentification"],
+        request=inline_serializer(
+            name="LoginStep2PostRequest",
+            fields={
+                "user_id": serializers.IntegerField(),
+                "code": serializers.CharField(),
+            },
+        ),
+        responses={
+            200: inline_serializer(
+                name="LoginStep2PostResponse",
+                fields={"user": UserSerializer()},
+            ),
+            400: OpenApiResponse(description="Code invalide"),
+        },
+    )
     def post(self, request):
         user_id = request.data.get('user_id')
         code_saisi = request.data.get('code')
@@ -92,11 +157,55 @@ class ProfileView(APIView):
     # Taille max de l'avatar : 5 Mo.
     MAX_AVATAR_SIZE = 5 * 1024 * 1024
 
+    @extend_schema(
+        summary="Recupere le profil de l'utilisateur connecte",
+        description=(
+            "Renvoie les donnees du profil de l'utilisateur authentifie "
+            "(via le JWT en cookie). L'URL de l'avatar est renvoyee en "
+            "absolu grace au contexte de la requete. Necessite d'etre "
+            "authentifie (401 sinon)."
+        ),
+        tags=["Profil"],
+        responses={200: UserSerializer},
+    )
     def get(self, request):
         # `context={"request"}` → l'URL de l'avatar est renvoyée en absolu.
         serializer = UserSerializer(request.user, context={"request": request})
         return Response(serializer.data)
 
+    @extend_schema(
+        summary="Met a jour le profil (avatar OU champs texte)",
+        description=(
+            "Deux modes exclusifs selon le contenu envoye, determines par "
+            "la presence du fichier `avatar` dans la requete :\n"
+            "- Mode avatar (multipart) : remplace la photo de profil. Le "
+            "fichier doit avoir un content-type `image/*` (sinon 400) et "
+            "peser au maximum 5 Mo (sinon 400). Les autres champs envoyes "
+            "dans la meme requete sont ignores.\n"
+            "- Mode champs texte (JSON) : mise a jour partielle (partial=True) "
+            "du prenom, nom, pseudo, bio et visibilite du profil via "
+            "ProfileUpdateSerializer. Renvoie 400 si la validation du "
+            "serializer echoue (ex. pseudo deja pris, champ invalide)."
+        ),
+        tags=["Profil"],
+        request=inline_serializer(
+            name="ProfilePatchRequest",
+            fields={
+                "avatar": serializers.FileField(required=False),
+                "first_name": serializers.CharField(required=False),
+                "last_name": serializers.CharField(required=False),
+                "username": serializers.CharField(required=False),
+                "bio": serializers.CharField(required=False),
+                "is_public": serializers.BooleanField(required=False),
+            },
+        ),
+        responses={
+            200: UserSerializer,
+            400: OpenApiResponse(
+                description="Fichier non-image, image trop lourde ou champs invalides"
+            ),
+        },
+    )
     def patch(self, request):
         """Met à jour le profil : photo (multipart, champ `avatar`) OU champs
         texte (prénom, nom, pseudo, bio, profil public) en JSON."""
@@ -126,6 +235,24 @@ DAILY_BONUS_AMOUNT = 500
 class DailyBonusView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Recupere le bonus quotidien",
+        description=(
+            f"Credite {DAILY_BONUS_AMOUNT} au solde (wallet) de l'utilisateur, "
+            "une seule fois par jour civil (date locale). La verification et "
+            "la mise a jour se font dans une transaction avec verrou "
+            "(`select_for_update`) pour eviter un double credit en cas de "
+            "requetes concurrentes. Si `last_daily_bonus` correspond deja a "
+            "la date du jour, renvoie 400 sans re-crediter. Le nouveau solde "
+            "est plafonne a MAX_WALLET (min(wallet + bonus, MAX_WALLET))."
+        ),
+        tags=["Profil"],
+        request=None,
+        responses={
+            200: UserSerializer,
+            400: OpenApiResponse(description="Bonus deja recupere aujourd'hui"),
+        },
+    )
     def post(self, request):
         from django.db import transaction
         from django.utils import timezone
@@ -148,6 +275,27 @@ class WheelView(APIView):
     """Configuration de la roue de la chance : cases + disponibilité du jour."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Configuration de la roue de la chance",
+        description=(
+            "Renvoie la liste publique des cases (segments) de la roue "
+            "ainsi qu'un booleen `available` indiquant si l'utilisateur "
+            "peut encore la faire tourner aujourd'hui (compare "
+            "`last_wheel_spin` a la date du jour). Ne modifie rien en base "
+            "et ne fait pas tourner la roue — c'est une simple lecture, a "
+            "utiliser avant d'appeler WheelSpinView."
+        ),
+        tags=["Profil"],
+        responses={
+            200: inline_serializer(
+                name="WheelGetResponse",
+                fields={
+                    "segments": serializers.ListField(child=serializers.DictField()),
+                    "available": serializers.BooleanField(),
+                },
+            ),
+        },
+    )
     def get(self, request):
         from django.utils import timezone
         from .wheel import public_segments
@@ -163,6 +311,36 @@ class WheelSpinView(APIView):
     """Tourne la roue (1×/jour). Crédite ou débite le solde du gagnant."""
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Tourne la roue de la chance",
+        description=(
+            "Effectue un tirage aleatoire (via `spin()`) qui determine un "
+            "segment et un montant (`delta`) a appliquer au solde de "
+            "l'utilisateur — credit ou debit selon le segment obtenu. "
+            "Limite a une fois par jour civil (date locale) : la "
+            "verification/mise a jour de `last_wheel_spin` se fait dans une "
+            "transaction avec verrou (`select_for_update`) pour eviter les "
+            "doubles tirages concurrents. Si la roue a deja ete tournee "
+            "aujourd'hui, renvoie 400 sans tirage ni impact sur le solde. "
+            "Le solde final est toujours borne a l'intervalle [0, "
+            "MAX_WALLET] : une perte importante ne peut pas rendre le "
+            "solde negatif."
+        ),
+        tags=["Profil"],
+        request=None,
+        responses={
+            200: inline_serializer(
+                name="WheelSpinPostResponse",
+                fields={
+                    "index": serializers.IntegerField(),
+                    "segment": serializers.DictField(),
+                    "delta": serializers.DecimalField(max_digits=12, decimal_places=2),
+                    "user": UserSerializer(),
+                },
+            ),
+            400: OpenApiResponse(description="La roue a deja ete tournee aujourd'hui"),
+        },
+    )
     def post(self, request):
         from decimal import Decimal
         from django.db import transaction
@@ -202,6 +380,18 @@ class WheelSpinView(APIView):
 class OnboardingCompleteView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @extend_schema(
+        summary="Marque l'onboarding comme termine",
+        description=(
+            "Passe `onboarding_completed` a True pour l'utilisateur "
+            "connecte, s'il ne l'est pas deja (aucune ecriture en base "
+            "sinon — appel idempotent). Renvoie dans tous les cas le "
+            "profil a jour de l'utilisateur."
+        ),
+        tags=["Profil"],
+        request=None,
+        responses={200: UserSerializer},
+    )
     def post(self, request):
         user = request.user
         if not user.onboarding_completed:

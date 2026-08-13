@@ -2,10 +2,16 @@ from datetime import timedelta
 
 from django.db.models import Count, Sum, F, Q, Case, When, Value, DecimalField
 from django.utils import timezone
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, serializers
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from drf_spectacular.utils import (
+    extend_schema,
+    extend_schema_view,
+    inline_serializer,
+    OpenApiParameter,
+)
 
 from friends.models import Friendship
 
@@ -13,10 +19,59 @@ from .models import Bet, BetSelection
 from .serializers import BetSerializer
 
 
+@extend_schema_view(
+    list=extend_schema(
+        tags=["Paris"],
+        description=(
+            "Liste les paris de l'utilisateur authentifié uniquement (`Bet.objects."
+            "filter(user=request.user)`), triés du plus récent au plus ancien, avec "
+            "les sélections, cotes et matchs associés préchargés."
+        ),
+    ),
+    retrieve=extend_schema(
+        tags=["Paris"],
+        description=(
+            "Détail d'un pari appartenant à l'utilisateur authentifié. Renvoie 404 si "
+            "le pari n'existe pas ou appartient à un autre utilisateur."
+        ),
+    ),
+    create=extend_schema(
+        tags=["Paris"],
+        description=(
+            "Crée un nouveau pari (simple ou combiné) pour l'utilisateur authentifié, "
+            "avec ses sélections de cotes. Le pari est automatiquement rattaché à "
+            "l'utilisateur courant, qui ne peut pas parier au nom d'un autre."
+        ),
+    ),
+    update=extend_schema(
+        tags=["Paris"],
+        description=(
+            "Remplace intégralement un pari existant de l'utilisateur authentifié. "
+            "Renvoie 404 si le pari n'appartient pas à l'utilisateur courant."
+        ),
+    ),
+    partial_update=extend_schema(
+        tags=["Paris"],
+        description=(
+            "Met à jour partiellement un pari existant de l'utilisateur authentifié. "
+            "Renvoie 404 si le pari n'appartient pas à l'utilisateur courant."
+        ),
+    ),
+    destroy=extend_schema(
+        tags=["Paris"],
+        description=(
+            "Supprime un pari appartenant à l'utilisateur authentifié. Renvoie 404 si "
+            "le pari n'appartient pas à l'utilisateur courant."
+        ),
+    ),
+)
 class BetViewSet(viewsets.ModelViewSet):
 
     serializer_class = BetSerializer
     permission_classes = [permissions.IsAuthenticated]
+    # Permet a drf-spectacular d'inferer le type du parametre d'URL "id"
+    # sans avoir a executer get_queryset() (qui depend de request.user).
+    queryset = Bet.objects.all()
 
     def get_queryset(self):
         return (
@@ -55,6 +110,36 @@ class TrendingBetsView(APIView):
 
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        summary="Paris les plus pris récemment (Tendances Kop)",
+        description=(
+            "Regroupe les sélections de paris (BetSelection) par match et par issue "
+            "1N2, et renvoie les combinaisons les plus prises. La fenêtre temporelle "
+            "s'élargit automatiquement (1h puis 24h puis tout l'historique) tant que "
+            "moins de {target} combinaisons distinctes sont trouvées, afin de ne "
+            "jamais renvoyer une liste vide quand le volume de paris est faible. "
+            "Limité à {limit} entrées. Endpoint public, aucune authentification "
+            "requise.".format(target=TRENDING_TARGET, limit=TRENDING_LIMIT)
+        ),
+        tags=["Paris"],
+        responses={
+            200: inline_serializer(
+                name="TrendingBetsResponseItem",
+                fields={
+                    "match_id": serializers.IntegerField(),
+                    "label": serializers.CharField(),
+                    "selection": serializers.CharField(),
+                    "count": serializers.IntegerField(),
+                    "share": serializers.IntegerField(),
+                    "odd": serializers.FloatField(),
+                    "home_team": serializers.CharField(),
+                    "away_team": serializers.CharField(),
+                    "window": serializers.CharField(),
+                },
+                many=True,
+            )
+        },
+    )
     def get(self, request):
         now = timezone.now()
         windows = [("1h", timedelta(hours=1)), ("24h", timedelta(hours=24)), ("all", None)]
@@ -133,6 +218,66 @@ class LeaderboardView(APIView):
 
     permission_classes = [AllowAny]
 
+    @extend_schema(
+        summary="Classement des joueurs par gains nets",
+        description=(
+            "Classe les joueurs selon leur bénéfice net (gains des paris gagnés moins "
+            "mises des paris perdus) : seuls les paris réglés (`status` = `won` ou "
+            "`lost`) sont comptabilisés. Le paramètre `period` restreint le calcul à "
+            "une fenêtre glissante (`week` = 7 jours, `month` = 30 jours, `season`/"
+            "`all` = tout l'historique). Le paramètre `scope` limite le classement aux "
+            "amis acceptés de l'utilisateur courant (plus lui-même) si `friends`, sinon "
+            "à tous les joueurs au profil public. Une colonne `week_net` (variation sur "
+            "7 jours glissants) est toujours calculée en plus, quelle que soit la "
+            "`period` choisie. Limité aux {limit} premiers. Endpoint public ; `scope="
+            "friends` renvoie une liste vide si l'utilisateur n'est pas authentifié."
+            .format(limit=LEADERBOARD_LIMIT)
+        ),
+        tags=["Paris"],
+        parameters=[
+            OpenApiParameter(
+                name="period",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                enum=["week", "month", "season", "all"],
+                default="week",
+                description="Fenêtre temporelle du classement (season = tous temps).",
+            ),
+            OpenApiParameter(
+                name="scope",
+                type=str,
+                location=OpenApiParameter.QUERY,
+                required=False,
+                enum=["world", "friends"],
+                default="world",
+                description="Portée du classement : tous les joueurs, ou amis acceptés + soi-même.",
+            ),
+        ],
+        responses={
+            200: inline_serializer(
+                name="LeaderboardResponse",
+                fields={
+                    "period": serializers.CharField(),
+                    "scope": serializers.CharField(),
+                    "entries": inline_serializer(
+                        name="LeaderboardEntry",
+                        fields={
+                            "rank": serializers.IntegerField(),
+                            "user_id": serializers.IntegerField(),
+                            "username": serializers.CharField(),
+                            "net": serializers.FloatField(),
+                            "week_net": serializers.FloatField(),
+                            "win_rate": serializers.IntegerField(),
+                            "bets": serializers.IntegerField(),
+                            "me": serializers.BooleanField(),
+                        },
+                        many=True,
+                    ),
+                },
+            )
+        },
+    )
     def get(self, request):
         period = request.query_params.get("period", "week")
         scope = request.query_params.get("scope", "world")
