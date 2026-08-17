@@ -11,12 +11,15 @@ export function MyLeagueCard({
   isOwner,
   onLeave,
   onInvite,
+  onEdit,
   onClick,
 }: {
   league: ApiLeague;
   isOwner: boolean;
   onLeave: (id: number) => void;
   onInvite: (league: ApiLeague) => void;
+  /** Ouvre la modale de modification/suppression (créateur uniquement). */
+  onEdit?: (league: ApiLeague) => void;
   onClick?: (league: ApiLeague) => void;
 }) {
   const count = league.members_count;
@@ -61,12 +64,22 @@ export function MyLeagueCard({
           )}
         </div>
         {isOwner ? (
-          <button
-            onClick={(e) => { e.stopPropagation(); onInvite(league); }}
-            className="inline-flex items-center gap-1 rounded-md border border-border-strong bg-transparent px-2.5 py-1 text-[12px] font-semibold text-text-2 transition-colors hover:border-kop hover:text-kop"
-          >
-            <Icon name="plus" size={12} /> Inviter
-          </button>
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={(e) => { e.stopPropagation(); onInvite(league); }}
+              className="inline-flex items-center gap-1 rounded-md border border-border-strong bg-transparent px-2.5 py-1 text-[12px] font-semibold text-text-2 transition-colors hover:border-kop hover:text-kop"
+            >
+              <Icon name="plus" size={12} /> Inviter
+            </button>
+            {onEdit && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onEdit(league); }}
+                className="rounded-md border border-border-strong bg-transparent px-2.5 py-1 text-[12px] font-semibold text-text-3 transition-colors hover:border-kop hover:text-kop"
+              >
+                Modifier
+              </button>
+            )}
+          </div>
         ) : (
           <button
             onClick={(e) => { e.stopPropagation(); onLeave(league.id); }}

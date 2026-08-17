@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import api from "@/utils/api";
-import { wsUrl } from "@/utils/chat";
+import { closeSocket, wsUrl } from "@/utils/chat";
 import { useProfile } from "@/app/(app)/_components/ProfileProvider";
 
 export type NotificationType =
@@ -84,7 +84,8 @@ export function useNotifications() {
     return () => {
       closedByUs = true;
       if (reconnectRef.current) clearTimeout(reconnectRef.current);
-      socketRef.current?.close();
+      closeSocket(socketRef.current);
+      socketRef.current = null;
     };
   }, [ready, isAuthenticated]);
 

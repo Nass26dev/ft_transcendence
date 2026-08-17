@@ -117,10 +117,6 @@ class LoginStep2View(APIView):
         code_saisi = request.data.get('code')
         code_attendu = cache.get(f"otp_{user_id}")
         
-        print(f"user_id: {user_id}")
-        print(f"code_saisi: {code_saisi} (type: {type(code_saisi)})")
-        print(f"code_attendu: {code_attendu} (type: {type(code_attendu)})")
-        
         if str(code_saisi) == str(code_attendu):
             user = User.objects.get(id=user_id)
             refresh = RefreshToken.for_user(user)

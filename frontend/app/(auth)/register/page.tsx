@@ -90,7 +90,10 @@ export default function RegisterPage() {
 
       <div className="relative z-10 w-full max-w-[400px]">
         <div className="mb-7 flex justify-center">
-          <Image src="/full-logo.png" alt="Kop" width={150} height={45} priority />
+          {/* 150x80 respecte le ratio reel du fichier (686x364). Avec des
+              dimensions au mauvais ratio, la hauteur auto de Tailwind en
+              contredit une, et Next logue un avertissement en console. */}
+          <Image src="/full-logo.png" alt="Kop" width={150} height={80} priority />
         </div>
 
         <div className="rounded-[16px] border border-border bg-surface-1 p-7 shadow-[0_24px_70px_-20px_rgba(0,0,0,0.7)]">

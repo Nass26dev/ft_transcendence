@@ -1,5 +1,3 @@
-import os
-from urllib.parse import parse_qs
 from http.cookies import SimpleCookie
 
 from django.conf import settings
@@ -34,9 +32,13 @@ def get_user_from_jwt(token_key):
             payload = jwt.decode(token_key, settings.SECRET_KEY, algorithms=["HS256"])
             user_id = payload.get("user_id")
 
-        return User.objects.get(id=user_id)
-    except Exception as e:
-        print(f"--- ERREUR DÉCODAGE JWT --- : {e}")
+        user = User.objects.get(id=user_id)
+        # Ouvrir un WebSocket est une preuve de présence au même titre qu'un
+        # appel HTTP : on met à jour `last_seen` ici aussi, sinon un utilisateur
+        # qui reste sur le chat sans naviguer paraîtrait hors ligne.
+        user.touch_last_seen()
+        return user
+    except Exception:
         return AnonymousUser()
 
 

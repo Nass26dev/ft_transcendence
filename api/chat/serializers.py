@@ -11,10 +11,11 @@ User = get_user_model()
 class ChatUserSerializer(serializers.ModelSerializer):
     """Infos minimales d'un utilisateur pour l'affichage dans le chat."""
     avatar = serializers.ImageField(read_only=True)
+    is_online = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
-        fields = ['id', 'username', 'avatar']
+        fields = ['id', 'username', 'avatar', 'is_online']
 
 
 class MessageSerializer(serializers.ModelSerializer):

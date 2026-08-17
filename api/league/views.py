@@ -10,6 +10,7 @@ from .models import League, LeagueInvitation
 from .serializers import (
     LeagueSerializer,
     LeagueInvitationSerializer,
+    LeagueUpdateSerializer,
     UserMiniSerializer
 )
 from notifications.services import notify
@@ -125,6 +126,100 @@ class LeagueDetail(APIView):
             )
 
         return Response(LeagueSerializer(league).data)
+
+    @extend_schema(
+        summary="Modifie une ligue",
+        description=(
+            "Met à jour le nom et/ou la description de la ligue (mise à jour partielle). "
+            "Réservé au créateur : renvoie 403 pour tout autre utilisateur, y compris un "
+            "membre. Renvoie 400 si le nom est vide ou déjà pris par une autre ligue, et "
+            "404 si la ligue n'existe pas."
+        ),
+        tags=["Ligues"],
+        request=LeagueUpdateSerializer,
+        responses={
+            200: LeagueSerializer,
+            400: OpenApiResponse(description="Nom invalide ou déjà pris"),
+            403: OpenApiResponse(description="Seul le créateur peut modifier la ligue"),
+            404: OpenApiResponse(description="League introuvable"),
+        },
+    )
+    def patch(self, request, league_id):
+        """Met à jour le nom / la description de la ligue (créateur uniquement)."""
+        try:
+            league = League.objects.get(id=league_id)
+        except League.DoesNotExist:
+            return Response(
+                {"error": "League introuvable"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if league.creator_id != request.user.id:
+            return Response(
+                {"error": "Seul le créateur peut modifier la ligue"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        serializer = LeagueUpdateSerializer(league, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        return Response(LeagueSerializer(league).data)
+
+    @extend_schema(
+        summary="Supprime une ligue",
+        description=(
+            "Supprime définitivement la ligue, ses invitations et ses messages de chat "
+            "(cascade). Réservé au créateur : renvoie 403 pour tout autre utilisateur. "
+            "Les membres sont simplement dissociés — la relation ManyToMany disparaît, "
+            "aucun compte n'est supprimé. Renvoie 404 si la ligue n'existe pas."
+        ),
+        tags=["Ligues"],
+        responses={
+            200: inline_serializer(
+                name="LeagueDeleteResponse",
+                fields={"message": serializers.CharField()},
+            ),
+            403: OpenApiResponse(description="Seul le créateur peut supprimer la ligue"),
+            404: OpenApiResponse(description="League introuvable"),
+        },
+    )
+    def delete(self, request, league_id):
+        """Supprime la ligue (créateur uniquement) et prévient les membres."""
+        try:
+            league = League.objects.get(id=league_id)
+        except League.DoesNotExist:
+            return Response(
+                {"error": "League introuvable"},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if league.creator_id != request.user.id:
+            return Response(
+                {"error": "Seul le créateur peut supprimer la ligue"},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        league_name = league.name
+        # Les destinataires sont collectés AVANT le delete : après, la table
+        # de liaison ManyToMany est vidée et la liste serait vide.
+        member_ids = [
+            member_id
+            for member_id in league.members.values_list("id", flat=True)
+            if member_id != request.user.id
+        ]
+        league.delete()
+
+        for member_id in member_ids:
+            notify(
+                member_id,
+                "league_deleted",
+                f"La ligue « {league_name} » a été supprimée par son créateur.",
+                url="/leagues",
+                actor=request.user,
+            )
+
+        return Response({"message": f"Ligue « {league_name} » supprimée"})
 
 
 class MemberInLeague(APIView):

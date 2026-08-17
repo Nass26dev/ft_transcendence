@@ -24,6 +24,21 @@ export interface Conversation {
   last_message_at: string;
 }
 
+/** Ferme un WebSocket sans polluer la console.
+ *
+ *  Appeler `close()` sur une socket encore en CONNECTING fait écrire au
+ *  navigateur « WebSocket is closed before the connection is established » —
+ *  ce qui arrive à chaque fois qu'on quitte une page avant la fin du
+ *  handshake. On attend donc l'ouverture pour refermer proprement. */
+export function closeSocket(socket: WebSocket | null | undefined): void {
+  if (!socket) return;
+  if (socket.readyState === WebSocket.CONNECTING) {
+    socket.addEventListener("open", () => socket.close(), { once: true });
+    return;
+  }
+  if (socket.readyState === WebSocket.OPEN) socket.close();
+}
+
 /** Construit l'URL WebSocket à partir de NEXT_PUBLIC_API_URL.
  *  Ex: http://localhost:8000/ + "ws/chat/3/" -> ws://localhost:8000/ws/chat/3/ */
 export function wsUrl(path: string): string {

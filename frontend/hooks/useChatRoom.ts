@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import api from "@/utils/api";
-import { wsUrl, type ChatMessage } from "@/utils/chat";
+import { closeSocket, wsUrl, type ChatMessage } from "@/utils/chat";
 
 export type ConnectionStatus = "connecting" | "open" | "closed";
 
@@ -125,7 +125,7 @@ export function useChatRoom(wsPath: string | null, historyUrl: string | null) {
     return () => {
       closedByUs = true;
       if (reconnectRef.current) clearTimeout(reconnectRef.current);
-      socketRef.current?.close();
+      closeSocket(socketRef.current);
       socketRef.current = null;
     };
   }, [wsPath, appendMessage]);

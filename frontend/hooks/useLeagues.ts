@@ -62,6 +62,24 @@ export function useLeagues() {
     [load],
   );
 
+  /** Renomme / redécrit une ligue (réservé au créateur côté backend). */
+  const updateLeague = useCallback(
+    async (id: number, name: string, description: string) => {
+      await api.patch(`/api/league/${id}/`, { name, description });
+      await load();
+    },
+    [load],
+  );
+
+  /** Supprime définitivement une ligue (réservé au créateur côté backend). */
+  const deleteLeague = useCallback(
+    async (id: number) => {
+      await api.delete(`/api/league/${id}/`);
+      await load();
+    },
+    [load],
+  );
+
   /** Invite un utilisateur dans une ligue (réservé au créateur côté backend). */
   const sendInvite = useCallback(async (leagueId: number, receiverId: number) => {
     await api.post("/api/league/invite/", {
@@ -93,6 +111,8 @@ export function useLeagues() {
     loading,
     createLeague,
     leaveLeague,
+    updateLeague,
+    deleteLeague,
     sendInvite,
     acceptInvitation,
     declineInvitation,

@@ -116,6 +116,18 @@ def credentials():
 
 
 @pytest.fixture
+def account(credentials):
+    """Garantit que le compte existe, et renvoie ses identifiants.
+
+    Dans le parcours complet c'est test_01 qui l'a créé via le formulaire ;
+    la fixture est alors sans effet. Elle sert à rejouer l'étape de connexion
+    seule, sans repasser par l'inscription.
+    """
+    ensure_account(**credentials)
+    return credentials
+
+
+@pytest.fixture
 def logged_in(driver, credentials):
     """Garantit une session ouverte avant le test.
 

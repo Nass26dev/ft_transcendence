@@ -40,11 +40,15 @@ class LeagueMessageHistory(APIView):
                 {"detail": "Vous n'êtes pas membre de cette ligue."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        messages = (
+        # Tri décroissant + LIMIT pour prendre les 50 messages les PLUS RÉCENTS,
+        # puis remise à l'endroit pour l'affichage. Trier par `created_at`
+        # croissant avant de découper renverrait les 50 plus anciens, et
+        # l'historique se figerait dès le 51e message.
+        messages = reversed(
             Message.objects
             .filter(league_id=league_id)
             .select_related("sender")
-            .order_by("created_at")[:50]
+            .order_by("-created_at")[:50]
         )
         serializer = MessageSerializer(messages, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -132,11 +136,13 @@ class DirectMessageHistory(APIView):
             return Response(
                 {"detail": "Accès refusé."}, status=status.HTTP_403_FORBIDDEN
             )
-        messages = (
+        # Même logique que pour le chat de ligue : les 50 plus récents, remis
+        # dans l'ordre chronologique pour l'affichage.
+        messages = reversed(
             DirectMessage.objects
             .filter(conversation=conv)
             .select_related("sender")
-            .order_by("created_at")[:50]
+            .order_by("-created_at")[:50]
         )
         serializer = DirectMessageSerializer(messages, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)

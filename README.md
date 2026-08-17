@@ -69,7 +69,7 @@ Traditional sports-betting apps monetise addiction. Kop keeps the mechanics that
 | Technology | Version | Why |
 |---|---|---|
 | **PostgreSQL** | 16 | The wallet requires real transactions. Bet placement and settlement run inside `transaction.atomic()` with `select_for_update()` row locks, so two concurrent bets cannot both spend the same balance. SQLite's single-writer model does not hold under the concurrent load expected at kick-off. |
-| **Redis** | 7 | Celery broker, Channels layer for WebSocket fan-out, and cache backend storing login codes with a 5-minute TTL |
+| **Redis** | 7 | Celery broker and Channels layer for WebSocket fan-out. It is deliberately *not* the Django cache backend: the only cached value is the login code, which never leaves the single process that serves the requests. |
 
 ### Infrastructure
 
@@ -277,8 +277,8 @@ PostgreSQL, managed through the Django ORM. Ten application modules, each owning
 | **Settlement** | Runs inside the 30-second live loop: finished matches resolve each selection, then each bet, then credit the winners. | ynzue-es |
 | **Confidence gauge & trends** | Per match, the share of users backing each outcome. "Kop trends" lists the most-backed bets over a window that widens (1 h → 24 h → all time) while volume is low. | ynzue-es |
 | **Leaderboards** | Filterable by period (week, month, season, all time) and scope (world, friends), computed by SQL aggregation over settled bets. | ynzue-es, nyousfi |
-| **Private leagues** | Creation, invitation of friends, accept/decline, internal leaderboard, leave, kick by the creator. | engiusep, ynzue-es |
-| **Friends** | User search, requests sent and received, acceptance, friends' activity feed. | engiusep, nyousfi |
+| **Private leagues** | Creation, rename and deletion by the creator, invitation of friends, accept/decline, internal leaderboard, leave, kick by the creator. | engiusep, ynzue-es |
+| **Friends** | User search, requests sent and received, acceptance, friends' activity feed. Online status derived from recent activity: `last_seen` is stamped on every authenticated request and WebSocket handshake, and a user counts as online for 5 minutes after it. Deriving presence rather than storing a boolean means a crashed tab or a lost connection cannot leave someone stuck "online". | engiusep, nyousfi |
 | **Chat** | Private conversations and one room per league, over WebSockets with persisted history. | engiusep, ynzue-es |
 | **Notifications** | Real-time push over WebSocket, notification bell, mark one or all as read. | ynzue-es |
 | **Gamification** | Daily and season challenges with claimable rewards, badges unlocked by thresholds, 500-Kop daily bonus, daily wheel of fortune (−1 000 to +2 000, jackpot 10 000 at 1 %). | ynzue-es |
@@ -302,10 +302,10 @@ Target: **14 points**. The table below reflects what is **actually working today
 | Web | ORM | Minor | 1 | Django ORM across all 10 apps, migrations versioned | all |
 | Web | Complete notification system | Minor | 1 | `Notification` model covering creation/update/deletion events, WebSocket push, read tracking | ynzue-es |
 | Web | Custom design system | Minor | 1 | 21 reusable components (well above the 10 required), colour palette and typography tokens in `globals.css`, custom icon set | ynzue-es, nyousfi |
-| User Mgmt | Standard user management | Major | 2 | Profile editing, avatar upload with default fallback, friends system, public profile page | nyousfi, engiusep |
-| User Mgmt | Organization system | Major | 2 | Private leagues: create, read, update membership, invite, kick, leave, internal leaderboard | engiusep, ynzue-es |
+| User Mgmt | Standard user management | Major | 2 | Profile editing, avatar upload with default fallback, friends system with **online status**, public profile page | nyousfi, engiusep |
+| User Mgmt | Organization system | Major | 2 | Private leagues: create, **rename/edit**, **delete**, invite, kick, leave, internal leaderboard | engiusep, ynzue-es |
 | User Mgmt | OAuth 2.0 | Minor | 1 | Google via allauth + dj-rest-auth, tokens landing in httpOnly cookies | engiusep, nyousfi |
-| User Mgmt | 2FA | Minor | 1 | Mandatory second step at every login: 6-digit code generated with `secrets`, stored in Redis with 5-minute TTL, emailed through Brevo | engiusep, acancel |
+| User Mgmt | 2FA | Minor | 1 | Mandatory second step at every login: 6-digit code generated with `secrets`, held in Django's cache under `otp_<user_id>` with a 5-minute TTL, emailed through Brevo | engiusep, acancel |
 | Gaming/UX | Gamification system | Minor | 1 | Four of the six listed mechanics: badges, leaderboards, daily challenges, rewards. All persisted in PostgreSQL, with progress bars and claim feedback. | ynzue-es |
 
 **Subtotal: 16 points**
@@ -393,10 +393,9 @@ Settings page, admin panel, mobile responsive work, deployment. Also the front-e
 
 Stated openly, because they are visible during evaluation:
 
-- **Online status** is not implemented, although the "Standard user management" module lists it among its requirements.
 - No CI pipeline, no rate limiting, no audit log.
 - The development TLS certificate is self-signed, so browsers show a warning on first visit.
-- Frontend test coverage is nonexistent; backend coverage is minimal (12 tests).
+- Frontend unit-test coverage is nonexistent. The backend has 252 tests and the user journey is covered end-to-end by 28 Selenium tests, but no component-level tests exist on the front.
 - The starting balance (100 Kops) is low relative to the daily bonus (500) and to the wheel's swings (up to ±10 000).
 
 ---

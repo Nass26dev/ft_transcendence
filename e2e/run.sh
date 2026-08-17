@@ -77,9 +77,36 @@ resolve_target() {
   printf '%s' "$arg"                       # options pytest (-k, -x…) : inchangées
 }
 
+HAS_TARGET=0
 for i in "${!PYTEST_ARGS[@]}"; do
-  [[ "${PYTEST_ARGS[$i]}" == -* ]] || PYTEST_ARGS[$i]="$(resolve_target "${PYTEST_ARGS[$i]}")"
+  [[ "${PYTEST_ARGS[$i]}" == -* ]] && continue
+  PYTEST_ARGS[$i]="$(resolve_target "${PYTEST_ARGS[$i]}")"
+  [ -e "${PYTEST_ARGS[$i]%%::*}" ] && HAS_TARGET=1
 done
+
+# Sans chemin explicite (`-k wheel`, `-x`…), il faut quand même cibler e2e/ :
+# pytest collecterait sinon depuis la racine du projet — donc les tests Django
+# de api/, et sans e2e/pytest.ini pour fixer sa rootdir.
+[ "$HAS_TARGET" -eq 0 ] && PYTEST_ARGS+=("$ROOT_DIR/e2e")
+
+# `docker compose up -d selenium` ne démarre que la chaîne de dépendances de
+# selenium (caddy_dev → backend/frontend → db/redis). Les services Celery n'en
+# font pas partie : si la stack n'a pas été lancée en entier, ils manquent
+# silencieusement — et comme le seed délègue tout le scraping à Celery, la base
+# reste vide de matchs et l'étape de pari se skippe sans raison apparente.
+warn_missing_services() {
+  local missing=() svc
+  for svc in $(docker compose config --services); do
+    docker compose ps --status running --services 2>/dev/null | grep -qx "$svc" || missing+=("$svc")
+  done
+  if [ "${#missing[@]}" -gt 0 ]; then
+    echo "⚠  Services arrêtés : ${missing[*]}"
+    echo "   L'application tourne en mode incomplet — sans celery_worker/celery_beat,"
+    echo "   aucun match n'est scrapé et le test de pari se skippe."
+    echo "   → docker compose up -d"
+    echo
+  fi
+}
 
 if [ "$USE_LOCAL_CHROME" -eq 1 ]; then
   export E2E_BROWSER=local
@@ -103,6 +130,8 @@ else
   fi
 fi
 
+warn_missing_services
+
 VENV_DIR="$ROOT_DIR/e2e/.venv"
 if [ ! -d "$VENV_DIR" ]; then
   echo "→ Création du venv e2e…"
@@ -113,6 +142,6 @@ fi
 "$VENV_DIR/bin/pip" install --quiet -r "$ROOT_DIR/e2e/requirements.txt"
 
 echo "→ Lancement des tests E2E…"
-"$VENV_DIR/bin/pytest" "${PYTEST_ARGS[@]:-$ROOT_DIR/e2e}"
+"$VENV_DIR/bin/pytest" "${PYTEST_ARGS[@]}"
 
 echo "→ Screenshots : $ROOT_DIR/e2e/screenshots/"

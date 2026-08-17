@@ -8,9 +8,6 @@ from league.models import League, LeagueInvitation
 
 User = get_user_model()
 
-# league/urls.py ne nomme aucune route (pas de `name=`) : on tape les
-# chemins en dur plutôt que reverse().
-
 
 @pytest.fixture
 def league(user):
@@ -301,3 +298,95 @@ def test_leaderboard_orders_by_wallet_desc(auth_client, league, user, other_user
 def test_leaderboard_404_unknown_league(auth_client):
     resp = auth_client.get("/api/league/999999/leaderboard/")
     assert resp.status_code == 404
+
+
+# ── Modification et suppression d'une ligue ──────────────────────────
+
+@pytest.mark.django_db
+def test_creator_can_rename_league(auth_client, league):
+    resp = auth_client.patch(
+        f"/api/league/{league.id}/",
+        {"name": "Nouveau nom", "description": "Nouvelle description"},
+        format="json",
+    )
+
+    assert resp.status_code == 200
+    league.refresh_from_db()
+    assert league.name == "Nouveau nom"
+    assert league.description == "Nouvelle description"
+
+
+@pytest.mark.django_db
+def test_update_is_partial(auth_client, league):
+    """Envoyer seulement la description ne doit pas effacer le nom."""
+    original = league.name
+
+    resp = auth_client.patch(
+        f"/api/league/{league.id}/", {"description": "Juste la description"}, format="json"
+    )
+
+    assert resp.status_code == 200
+    league.refresh_from_db()
+    assert league.name == original
+
+
+@pytest.mark.django_db
+def test_update_rejects_empty_name(auth_client, league):
+    resp = auth_client.patch(f"/api/league/{league.id}/", {"name": "   "}, format="json")
+    assert resp.status_code == 400
+
+
+@pytest.mark.django_db
+def test_update_rejects_name_already_taken(auth_client, league, other_user):
+    League.objects.create(name="Deja pris", creator=other_user)
+
+    resp = auth_client.patch(f"/api/league/{league.id}/", {"name": "Deja pris"}, format="json")
+
+    assert resp.status_code == 400
+
+
+@pytest.mark.django_db
+def test_member_cannot_update_league(api_client, league, other_user):
+    league.members.add(other_user)
+    api_client.force_authenticate(user=other_user)
+
+    resp = api_client.patch(f"/api/league/{league.id}/", {"name": "Pirate"}, format="json")
+
+    assert resp.status_code == 403
+
+
+@pytest.mark.django_db
+def test_creator_can_delete_league(auth_client, league):
+    league_id = league.id
+
+    resp = auth_client.delete(f"/api/league/{league_id}/")
+
+    assert resp.status_code == 200
+    assert not League.objects.filter(id=league_id).exists()
+
+
+@pytest.mark.django_db
+def test_member_cannot_delete_league(api_client, league, other_user):
+    league.members.add(other_user)
+    api_client.force_authenticate(user=other_user)
+
+    resp = api_client.delete(f"/api/league/{league.id}/")
+
+    assert resp.status_code == 403
+    assert League.objects.filter(id=league.id).exists()
+
+
+@pytest.mark.django_db
+def test_delete_notifies_other_members(auth_client, league, other_user):
+    from notifications.models import Notification
+
+    league.members.add(other_user)
+
+    auth_client.delete(f"/api/league/{league.id}/")
+
+    assert Notification.objects.filter(recipient=other_user, type="league_deleted").exists()
+
+
+@pytest.mark.django_db
+def test_delete_unknown_league_returns_404(auth_client):
+    assert auth_client.delete("/api/league/999999/").status_code == 404

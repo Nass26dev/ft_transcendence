@@ -19,19 +19,19 @@ from helpers import (
 )
 
 
-def test_login_asks_for_two_factor_code(driver, credentials):
+def test_login_asks_for_two_factor_code(driver, account):
     # On enchaîne depuis la redirection de l'inscription (/login?email=...) ;
     # si ce test est relancé seul, on y va directement.
     if "/login" not in driver.current_url:
-        visit(driver, f"/login?email={credentials['email']}")
+        visit(driver, f"/login?email={account['email']}")
 
     wait_present(driver, css("input[type=password]"))
     assert_page_healthy(driver)
 
     email_field = driver.find_element(*css("input[type=email]"))
-    if email_field.get_attribute("value") != credentials["email"]:
-        fill(driver, email_field, credentials["email"], clear=True)
-    fill(driver, css("input[type=password]"), credentials["password"])
+    if email_field.get_attribute("value") != account["email"]:
+        fill(driver, email_field, account["email"], clear=True)
+    fill(driver, css("input[type=password]"), account["password"])
     screenshot(driver, "02_login_step1")
 
     click(driver, button("Recevoir le code"))
@@ -41,8 +41,8 @@ def test_login_asks_for_two_factor_code(driver, credentials):
     screenshot(driver, "02_login_step2")
 
 
-def test_session_opens_on_home(driver, credentials):
-    sign_in(driver, credentials["email"])
+def test_session_opens_on_home(driver, account):
+    sign_in(driver, account["email"])
 
     visit(driver, "/")
     wait_url_matches(driver, rf"{BASE_URL}/?$")

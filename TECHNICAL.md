@@ -39,7 +39,7 @@ Le [README](README.md) est la porte d'entrée du projet ; ce document décrit **
 | Serveur ASGI | Daphne | 4.x | Sert HTTP **et** WebSocket |
 | Tâches | Celery + Celery Beat | 5.6 | Scraping, cotes, règlement |
 | Base | PostgreSQL | 16 | Transactions sur le solde |
-| Cache / broker / channel layer | Redis | 7 | Broker Celery, couche Channels, codes OTP (TTL 5 min) |
+| Broker / channel layer | Redis | 7 | Broker Celery, couche Channels |
 | Reverse proxy | Caddy | 2 | Terminaison TLS. Dev : certificat local auto-genere (CA interne), `https://localhost:8443`. Prod : Let's Encrypt automatique |
 
 ### Pourquoi PostgreSQL et pas SQLite
@@ -185,6 +185,7 @@ Pas de préfixe de version. Authentification par **cookie JWT httpOnly**, pas d'
 | POST | `/api/league/create/` | Créer une ligue |
 | GET | `/api/league/list/` · `/api/league/all-league/` | Mes ligues / toutes |
 | GET | `/api/league/<id>/` · `/members/` · `/leaderboard/` | Détail, membres, classement |
+| PATCH · DELETE | `/api/league/<id>/` | Renommer / supprimer une ligue (créateur uniquement) |
 | POST | `/api/league/<id>/leave/` · `/kick/<user_id>/` | Quitter, exclure |
 | POST | `/api/league/invite/` · `/invitations/<id>/accept\|decline/` | Invitations |
 | GET | `/api/chat/conversations/` · `/conversations/<id>/messages/` | Messagerie privée |
@@ -229,10 +230,29 @@ L'authentification se fait par **cookie**, pas par `?token=` en query string —
 
 ### Connexion en deux étapes
 
-1. `POST /api/auth/login/` — `authenticate(email, password)`. Si valide, un code à 6 chiffres est tiré avec `secrets.choice`, stocké dans le cache Redis sous `otp_<user_id>` avec un TTL de 300 s, puis envoyé par Brevo.
+1. `POST /api/auth/login/` — `authenticate(email, password)`. Si valide, un code à 6 chiffres est tiré avec `secrets.choice`, stocké dans le cache Django sous `otp_<user_id>` avec un TTL de 300 s, puis envoyé par Brevo.
 2. `POST /api/auth/login/verify/` — code comparé, puis génération du couple de tokens et pose des cookies.
 
 Le second facteur est **obligatoire à chaque connexion**, pas optionnel.
+
+#### Où vit le code, et ce que ça implique
+
+Aucun `CACHES` n'est configuré : le cache est donc le `LocMemCache` par défaut
+de Django, **propre au process**. C'est cohérent avec le déploiement actuel —
+`daphne -b 0.0.0.0 -p 8000` est mono-process, donc le code posé à l'étape 1 est
+toujours relu par le même process à l'étape 2.
+
+Deux conséquences assumées :
+
+- un redémarrage du conteneur entre les deux étapes invalide les codes en vol
+  (l'utilisateur redemande un code, TTL de 5 min) ;
+- passer Daphne en multi-process **casserait la 2FA** (code posé par un worker,
+  relu par un autre). Le jour où ça arrive, la bascule tient en un bloc
+  `CACHES` pointant sur le Redis déjà présent — aucun code applicatif à
+  toucher, les appels `cache.set/get/delete` sont identiques.
+
+C'est aussi la raison pour laquelle les tests E2E ne peuvent pas relire le code
+depuis un `manage.py shell` : ce process a son propre cache, vide (cf. § Tests E2E).
 
 ### Tokens
 
@@ -322,6 +342,25 @@ Au premier démarrage, `seed_if_empty` enchaîne `scrape_history` puis `scrape_u
 
 **Tendances Kop** (`TrendingBetsView`) : paris les plus pris sur une fenêtre glissante qui s'élargit — 1 h, puis 24 h, puis tout l'historique — tant que `TRENDING_TARGET = 3` paris distincts ne sont pas atteints. Objectif : ne jamais afficher une liste vide quand le volume est faible.
 
+### Statut en ligne
+
+La présence est **déduite**, pas stockée. `User.last_seen` est horodaté à chaque
+requête authentifiée (dans `CookieJWTAuthentication.authenticate`) et à chaque
+ouverture de WebSocket (dans le middleware Channels) ; `User.is_online` renvoie
+vrai si cette date a moins de `ONLINE_WINDOW` (5 min).
+
+Deux raisons de ne pas maintenir un booléen `is_online` en base :
+
+- **aucun événement ne signale la fermeture d'un onglet.** Un crash, une perte
+  de réseau ou un `kill -9` laisseraient l'utilisateur bloqué « en ligne »
+  indéfiniment ;
+- **rien à réparer au redémarrage.** Un booléen persisté devrait être remis à
+  zéro pour tout le monde au démarrage du serveur.
+
+L'écriture est throttlée à une par minute (`LAST_SEEN_REFRESH`) et passe par
+`queryset.update()` : sans cela, chaque requête authentifiée déclencherait un
+UPDATE pour une information dont la précision utile est la minute.
+
 ---
 
 ## 12. Sécurité — état réel
@@ -364,10 +403,10 @@ Au premier démarrage, `seed_if_empty` enchaîne `scrape_history` puis `scrape_u
 ### Outils de vérification
 
 ```bash
-docker compose exec backend python3 -m pytest          # 12 tests, tous verts
+docker compose exec backend python3 -m pytest          # 252 tests, tous verts
 docker compose exec frontend npx tsc --noEmit          # typage strict
 docker compose exec frontend npm run lint
-./e2e/run.sh                                           # 14 tests E2E Selenium
+./e2e/run.sh                                           # 28 tests E2E Selenium
 ```
 
 Il n'y a **pas de CI** : ces commandes sont à lancer à la main avant de pousser.

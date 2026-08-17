@@ -311,3 +311,35 @@ def _make_user(email, username):
     from django.contrib.auth import get_user_model
 
     return get_user_model().objects.create_user(email=email, username=username, password="Testpassword123")
+
+
+# ── Historique : les 50 PLUS RÉCENTS ─────────────────────────────────
+
+@pytest.mark.django_db
+def test_league_history_returns_the_50_most_recent(auth_client, league, user):
+    """Passé 50 messages, l'historique doit suivre — pas rester bloqué au début."""
+    for i in range(60):
+        Message.objects.create(league=league, sender=user, content=str(i))
+
+    resp = auth_client.get(f"/api/chat/leagues/{league.id}/messages/")
+
+    assert resp.status_code == 200
+    contents = [m["content"] for m in resp.data]
+    assert len(contents) == 50
+    # Les 50 derniers (10 à 59), et toujours du plus ancien au plus récent.
+    assert contents[0] == "10"
+    assert contents[-1] == "59"
+
+
+@pytest.mark.django_db
+def test_dm_history_returns_the_50_most_recent(auth_client, conversation, user):
+    for i in range(60):
+        DirectMessage.objects.create(conversation=conversation, sender=user, content=str(i))
+
+    resp = auth_client.get(f"/api/chat/conversations/{conversation.id}/messages/")
+
+    assert resp.status_code == 200
+    contents = [m["content"] for m in resp.data]
+    assert len(contents) == 50
+    assert contents[0] == "10"
+    assert contents[-1] == "59"

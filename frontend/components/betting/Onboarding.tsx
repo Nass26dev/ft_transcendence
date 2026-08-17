@@ -46,7 +46,7 @@ function ArtLogo() {
   return (
     <div className="absolute inset-0 grid place-items-center">
       <img
-        src="/assets/logo.png"
+        src="/logo.png"
         alt=""
         className="w-32 drop-shadow-[0_12px_30px_rgba(0,0,0,0.5)]"
       />

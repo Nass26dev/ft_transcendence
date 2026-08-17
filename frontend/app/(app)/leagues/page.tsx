@@ -12,6 +12,7 @@ import type { ApiLeague, Toast as ToastData } from "@/utils/types";
 import { MyLeagueCard } from "./_components/MyLeagueCard";
 import { PublicLeagueRow } from "./_components/PublicLeagueRow";
 import { CreateLeagueModal } from "./_components/CreateLeagueModal";
+import { EditLeagueModal } from "./_components/EditLeagueModal";
 import { InviteModal } from "./_components/InviteModal";
 import { LeagueDetailModal } from "./_components/LeagueDetailModal";
 
@@ -25,6 +26,8 @@ function LeaguesContent() {
     loading,
     createLeague,
     leaveLeague,
+    updateLeague,
+    deleteLeague,
     sendInvite,
     acceptInvitation,
     declineInvitation,
@@ -33,6 +36,7 @@ function LeaguesContent() {
   const searchParams = useSearchParams();
   const [modalOpen, setModalOpen] = React.useState(false);
   const [inviteLeague, setInviteLeague] = React.useState<ApiLeague | null>(null);
+  const [editLeague, setEditLeague] = React.useState<ApiLeague | null>(null);
   const [selectedLeague, setSelectedLeague] = React.useState<ApiLeague | null>(null);
   const [toast, setToast] = React.useState<ToastData | null>(null);
 
@@ -139,6 +143,7 @@ function LeaguesContent() {
               isOwner={l.creator === profile?.username}
               onLeave={handleLeave}
               onInvite={setInviteLeague}
+              onEdit={setEditLeague}
               onClick={setSelectedLeague}
             />
           ))}
@@ -228,6 +233,24 @@ function LeaguesContent() {
             league={inviteLeague}
             onClose={() => setInviteLeague(null)}
             onInvite={(receiverId) => sendInvite(inviteLeague.id, receiverId)}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {editLeague && (
+          <EditLeagueModal
+            league={editLeague}
+            onClose={() => setEditLeague(null)}
+            onUpdate={async (id, name, description) => {
+              await updateLeague(id, name, description);
+              showToast({ type: "ok", msg: "Ligue mise à jour." });
+            }}
+            onDelete={async (id) => {
+              await deleteLeague(id);
+              setSelectedLeague(null);
+              showToast({ type: "ok", msg: "Ligue supprimée." });
+            }}
           />
         )}
       </AnimatePresence>

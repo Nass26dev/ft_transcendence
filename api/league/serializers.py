@@ -19,6 +19,33 @@ class LeagueSerializer(serializers.ModelSerializer):
         """Nombre de membres de la ligue."""
         return obj.members.count()
 
+
+class LeagueUpdateSerializer(serializers.ModelSerializer):
+    """Champs qu'un créateur peut modifier sur sa ligue.
+
+    Volontairement limité au nom et à la description : `creator` et `members`
+    ne doivent jamais être réassignés par une simple mise à jour — on ne change
+    pas de propriétaire ni d'effectif via PATCH, mais via les routes dédiées
+    (invitation, kick, leave).
+    """
+
+    class Meta:
+        model = League
+        fields = ["name", "description"]
+        extra_kwargs = {
+            "name": {"required": False},
+            "description": {"required": False},
+        }
+
+    def validate_name(self, value):
+        """Rejette un nom vide ou déjà porté par une autre ligue."""
+        value = (value or "").strip()
+        if not value:
+            raise serializers.ValidationError("Le nom de la ligue ne peut pas être vide.")
+        if League.objects.filter(name=value).exclude(pk=self.instance.pk).exists():
+            raise serializers.ValidationError("Ce nom de ligue est déjà pris.")
+        return value
+
 class LeagueInvitationSerializer(serializers.ModelSerializer):
     """Représentation minimale d'une invitation de ligue reçue."""
 

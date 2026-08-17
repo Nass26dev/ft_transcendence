@@ -13,6 +13,18 @@ import {
 import { userInitials } from "@/utils/user";
 import { Avatar } from "@/components/ui/Avatar";
 
+/** Pastille de présence posée sur le coin de l'avatar. */
+function PresenceDot({ online }: { online: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-surface-1 ${
+        online ? "bg-green" : "bg-text-3"
+      }`}
+    />
+  );
+}
+
 /** Ligne d'un joueur (ami, demande ou résultat de recherche) avec une action contextuelle. */
 function PlayerRow({
   user,
@@ -23,14 +35,23 @@ function PlayerRow({
 }) {
   return (
     <div className="flex items-center gap-3 border-b border-border py-3 last:border-b-0">
-      <Avatar
-        src={user.avatar}
-        initials={userInitials(user)}
-        className="h-10 w-10 text-[13px]"
-      />
+      <div className="relative flex-none">
+        <Avatar
+          src={user.avatar}
+          initials={userInitials(user)}
+          className="h-10 w-10 text-[13px]"
+        />
+        <PresenceDot online={user.is_online} />
+      </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-[14px] font-semibold">{user.username || user.email}</div>
-        <div className="truncate text-[12px] text-text-3">{user.email}</div>
+        <div className="truncate text-[12px] text-text-3">
+          <span className={user.is_online ? "font-semibold text-green" : undefined}>
+            {user.is_online ? "En ligne" : "Hors ligne"}
+          </span>
+          {" · "}
+          {user.email}
+        </div>
       </div>
       <div className="flex-none">{action}</div>
     </div>

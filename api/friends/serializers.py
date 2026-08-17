@@ -6,9 +6,12 @@ User = get_user_model()
 
 class UserSummarySerializer(serializers.ModelSerializer):
     """Infos minimales d'un utilisateur pour l'affichage dans les listes d'amis."""
+    
+    is_online = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'email', 'avatar', 'bio']
+        fields = ['id', 'username', 'email', 'avatar', 'bio', 'is_online', 'last_seen']
 
 
 class FriendshipSerializer(serializers.ModelSerializer):

@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 from django.contrib.auth import get_user_model, authenticate
 from django.db import IntegrityError
@@ -114,3 +116,76 @@ def test_register_ignores_client_supplied_wallet():
 	})
 	assert response.status_code == 201
 	assert User.objects.get(email="test3@example.com").wallet == 100.00
+
+
+# ── Statut en ligne ──────────────────────────────────────────────────
+
+@pytest.mark.django_db
+def test_new_user_is_offline(user):
+	"""Un compte qui n'a jamais rien fait n'est pas en ligne."""
+	assert user.last_seen is None
+	assert user.is_online is False
+
+
+@pytest.mark.django_db
+def test_recent_activity_makes_user_online(user):
+	from django.utils import timezone
+	user.last_seen = timezone.now()
+	assert user.is_online is True
+
+
+@pytest.mark.django_db
+def test_old_activity_makes_user_offline(user):
+	"""Au-delà de la fenêtre, l'utilisateur redevient hors ligne sans action."""
+	from django.utils import timezone
+	from users.models import ONLINE_WINDOW
+	user.last_seen = timezone.now() - ONLINE_WINDOW - timedelta(seconds=1)
+	assert user.is_online is False
+
+
+@pytest.mark.django_db
+def test_touch_last_seen_writes_when_never_seen(user):
+	user.touch_last_seen()
+	user.refresh_from_db()
+	assert user.last_seen is not None
+
+
+@pytest.mark.django_db
+def test_touch_last_seen_is_throttled(user):
+	"""Deux appels rapprochés ne doivent produire qu'une seule écriture."""
+	from django.utils import timezone
+	user.touch_last_seen()
+	first = User.objects.get(pk=user.pk).last_seen
+
+	user.touch_last_seen()
+
+	assert User.objects.get(pk=user.pk).last_seen == first
+
+
+@pytest.mark.django_db
+def test_touch_last_seen_writes_again_after_the_refresh_delay(user):
+	from django.utils import timezone
+	from users.models import LAST_SEEN_REFRESH
+	stale = timezone.now() - LAST_SEEN_REFRESH - timedelta(seconds=1)
+	User.objects.filter(pk=user.pk).update(last_seen=stale)
+	user.last_seen = stale
+
+	user.touch_last_seen()
+
+	assert User.objects.get(pk=user.pk).last_seen > stale
+
+
+@pytest.mark.django_db
+def test_friend_list_exposes_online_status(auth_client, user, other_user):
+	"""Le front doit recevoir le statut pour l'afficher dans la liste d'amis."""
+	from django.utils import timezone
+	from friends.models import Friendship
+
+	Friendship.objects.create(sender=user, receiver=other_user, status="accepted")
+	other_user.last_seen = timezone.now()
+	other_user.save(update_fields=["last_seen"])
+
+	resp = auth_client.get("/api/friends/")
+
+	assert resp.status_code == 200
+	assert resp.data["friends"][0]["user"]["is_online"] is True

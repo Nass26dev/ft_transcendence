@@ -39,6 +39,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     daily_bonus_available = serializers.SerializerMethodField()
     wheel_available = serializers.SerializerMethodField()
+    is_online = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = User
@@ -57,6 +58,8 @@ class UserSerializer(serializers.ModelSerializer):
             'is_public',
             'date_joined',
             'status',
+            'is_online',
+            'last_seen',
         ]
 
     def get_daily_bonus_available(self, obj) -> bool:
