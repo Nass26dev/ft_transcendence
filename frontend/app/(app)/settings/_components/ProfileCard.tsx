@@ -25,9 +25,9 @@ export function ProfileCard() {
 
   const dirty = JSON.stringify(form) !== JSON.stringify(baseline);
 
-  /** Lu dans l'effet ci-dessous sans le faire dépendre de `dirty`. */
-  const dirtyRef = React.useRef(dirty);
-  dirtyRef.current = dirty;
+  /** Saisie en cours : lu dans l'effet ci-dessous sans le faire dépendre de `dirty`. */
+  const isUserEditingRef = React.useRef(dirty);
+  isUserEditingRef.current = dirty;
 
   React.useEffect(() => {
     if (!profile) return;
@@ -38,12 +38,7 @@ export function ProfileCard() {
       bio: profile.bio ?? "",
     };
     setBaseline(f);
-    // Le formulaire est affiché avant que le profil ne soit chargé : sans ce
-    // garde-fou, un profil qui arrive en retard (chargement initial, ou
-    // rafraîchissement déclenché par l'upload d'avatar) écrase ce que
-    // l'utilisateur est en train de taper — et le bouton, désactivé tant que
-    // rien n'a changé, redevient inerte sans le moindre message.
-    if (!dirtyRef.current) setForm(f);
+    if (!isUserEditingRef.current) setForm(f);
   }, [profile]);
 
   const setField = (k: keyof typeof form) => (v: string) =>
