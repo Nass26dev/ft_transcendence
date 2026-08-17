@@ -282,7 +282,7 @@ PostgreSQL, managed through the Django ORM. Ten application modules, each owning
 | **Chat** | Private conversations and one room per league, over WebSockets with persisted history. | engiusep, ynzue-es |
 | **Notifications** | Real-time push over WebSocket, notification bell, mark one or all as read. | ynzue-es |
 | **Gamification** | Daily and season challenges with claimable rewards, badges unlocked by thresholds, 500-Kop daily bonus, daily wheel of fortune (−1 000 to +2 000, jackpot 10 000 at 1 %). | ynzue-es |
-| **Admin panel** | Reserved for `admin` and `owner`: global statistics, user search, inspection and editing of balance, friends and bets. | ynzue-es, nyousfi |
+| **Admin panel** | Reserved for `admin` and `owner`: global statistics, user search, inspection and editing of profile, role, balance, friends and bets, and account deletion. Role hierarchy enforced server-side: an admin cannot touch an owner, and only an owner can edit roles or delete another admin. | ynzue-es, nyousfi |
 | **Design system** | 21 reusable components: Avatar, Icon, Kops, Modal, OddPill, ProgressBar, Skeleton, StatCard, Tag, Toast, MatchCard, LiveTile, CompactRow, OddsRow, TeamBadge, MatchSkeleton, MatchSearchBar, LeagueFilterBar, BetSlip, TicketCard, Onboarding — plus mobile-first responsive layout. | ynzue-es, nyousfi |
 | **Infrastructure** | Docker Compose dev/prod split, multi-stage Dockerfiles, Caddy and TLS, Celery worker and beat. | engiusep, nyousfi |
 
@@ -290,7 +290,7 @@ PostgreSQL, managed through the Django ORM. Ten application modules, each owning
 
 ## Modules
 
-Target: **14 points**. The table below reflects what is **actually working today**, not what was planned.
+Target: **14 points**. The table below reflects what is **actually working today**, not what was planned. Every claimed module was checked line by line against the subject's own wording; each one can be demonstrated live.
 
 ### Claimed — implemented
 
@@ -307,18 +307,37 @@ Target: **14 points**. The table below reflects what is **actually working today
 | User Mgmt | OAuth 2.0 | Minor | 1 | Google via allauth + dj-rest-auth, tokens landing in httpOnly cookies | engiusep, nyousfi |
 | User Mgmt | 2FA | Minor | 1 | Mandatory second step at every login: 6-digit code generated with `secrets`, held in Django's cache under `otp_<user_id>` with a 5-minute TTL, emailed through Brevo | engiusep, acancel |
 | Gaming/UX | Gamification system | Minor | 1 | Four of the six listed mechanics: badges, leaderboards, daily challenges, rewards. All persisted in PostgreSQL, with progress bars and claim feedback. | ynzue-es |
+| User Mgmt | Advanced permissions | Major | 2 | Three roles (`owner`/`admin`/`user`) with distinct views and actions, plus full user CRUD from the admin panel: read, edit (username, email, bio, role, balance) and **delete**. Deletion is guarded — nobody deletes their own account from the panel, an admin cannot delete an owner, and only an owner can delete another admin. | nyousfi, ynzue-es |
+| Web | Server-Side Rendering | Minor | 1 | Next.js App Router renders every route on the server. Verifiable without running any JavaScript: `curl -k https://localhost:8443/login` returns the fully rendered markup, not an empty shell. | ynzue-es |
+| Modules of choice | Odds engine | Major | 2 | See the justification below. | ynzue-es |
 
-**Subtotal: 16 points**
+**Subtotal: 21 points**
 
-### Candidates to reach the target more safely
+### Justification for the "Modules of choice" module — the odds engine
 
-| Module | Type | Pts | Current state |
+The subject requires a written justification for any custom module. Here it is.
+
+**Why we chose it.** Kop is a betting platform, so odds are not decoration: they are the core mechanic. We could not find a single free provider that exposes football odds — every one of them puts odds behind a paid tier, and the free tiers that do exist cap requests per day, which is incompatible with a 30-second refresh loop on live matches. Buying data was not an option and faking it would have made the whole product meaningless. So we built the engine.
+
+**What technical challenges it addresses.** Turning "who is likely to win?" into three numbers that behave like real bookmaker odds:
+
+- *Deriving probabilities from history.* For each team we compute a form score from its last 10 finished matches, which means the engine depends on the history scraper having run first — the seed command chains `scrape_history` before `scrape_upcoming` precisely for that reason. Without history, every team looks equally strong and the odds come out flat.
+- *Making the three probabilities usable.* Raw probabilities sum to 1, which would produce a zero-margin book. We apply a home advantage, a 7 % bookmaker margin and a probability floor so no outcome can ever return an absurd payout.
+- *Following the match live.* Once a match is under way, the odds are re-derived from the goal difference and the minute played, and betting closes near the end of the match.
+- *Not betraying the user.* Odds move every 30 seconds. `BetSelection` therefore stores a **snapshot** of the odds at the moment the bet was placed; settlement uses that snapshot, never the current value. Without this copy a user could be paid at a rate they never accepted.
+
+**How it adds value.** It makes the product independent: no API key to distribute across four developers, no third-party quota, no outage that empties the site. Every match in the database is bettable at any time.
+
+**Why it deserves Major status.** It is not a wrapper around an external call — it is a full pipeline: scraping, form computation, probability conversion, margin application, live adjustment, snapshotting, and settlement. It spans several Django apps (`sports`, `betting`), runs partly in Celery, and its output feeds the wallet, which is money-like state protected by row locks. Removing it would leave the application without its central feature.
+
+### Not claimed — partially present
+
+These are **not claimed**: they are partially present, and the subject counts an incomplete module as zero. They are listed so the gap is explicit rather than hidden.
+
+| Module | Type | Pts | What is missing |
 |---|---|---|---|
-| **Modules of choice — odds engine** | Major | 2 | Working. Would need a written justification: no free provider exposes odds, so probabilities are derived from team form, converted with a bookmaker margin, and re-derived live from the score. |
-| Web — SSR | Minor | 1 | Next.js App Router already server-renders every page; needs to be demonstrated as an explicit choice. |
-| Web — Advanced search | Minor | 1 | Match search and competition filters exist; sorting and pagination would need to be completed. |
-| Web — File upload | Minor | 1 | Avatar upload exists with dual validation; the module also asks for multiple file types, preview, deletion and a progress indicator. |
-| User Mgmt — Advanced permissions | Major | 2 | Three roles (`owner`/`admin`/`user`) and a working admin panel; the module also expects a `moderator` role and full user CRUD. |
+| Web — Advanced search | Minor | 1 | Search by team/competition and league filters exist, and results are paged progressively on the client. A user-facing **sort** control is missing. |
+| Web — File upload | Minor | 1 | Avatar upload has dual validation (type and size, client and server) and controlled storage. Missing: multiple file types, preview, progress indicator, and the ability to delete an uploaded file. |
 
 ### Not started
 
@@ -395,7 +414,7 @@ Stated openly, because they are visible during evaluation:
 
 - No CI pipeline, no rate limiting, no audit log.
 - The development TLS certificate is self-signed, so browsers show a warning on first visit.
-- Frontend unit-test coverage is nonexistent. The backend has 252 tests and the user journey is covered end-to-end by 28 Selenium tests, but no component-level tests exist on the front.
+- Frontend unit-test coverage is nonexistent. The backend has 260 tests and the user journey is covered end-to-end by 28 Selenium tests, but no component-level tests exist on the front.
 - The starting balance (100 Kops) is low relative to the daily bonus (500) and to the wheel's swings (up to ±10 000).
 
 ---

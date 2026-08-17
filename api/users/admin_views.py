@@ -205,6 +205,57 @@ class AdminUserDetailView(APIView):
         serializer.save()
         return Response(UserAdminDetailSerializer(user).data)
 
+    @extend_schema(
+        summary="Supprime un utilisateur (admin)",
+        description=(
+            "Supprime définitivement le compte ciblé et tout ce qui en dépend en cascade "
+            "(paris, relations d'amitié, messages, ligues créées). Trois garde-fous : on ne "
+            "peut pas supprimer son propre compte depuis cette route, un admin ne peut pas "
+            "supprimer un owner, et seul un owner peut supprimer un autre admin. "
+            "Renvoie 404 si l'id ne correspond à aucun utilisateur."
+        ),
+        tags=["Administration"],
+        responses={
+            200: inline_serializer(
+                name="AdminUserDeleteResponse",
+                fields={"detail": serializers.CharField()},
+            ),
+            403: OpenApiResponse(description="Action non autorisée (auto-suppression, owner protégé, ou admin supprimable seulement par un owner)."),
+            404: OpenApiResponse(description="Utilisateur introuvable."),
+        },
+    )
+    def delete(self, request, pk):
+        """Supprime le compte ciblé (protège l'auto-suppression, les owners et les admins)."""
+        user = self._get_user(pk)
+        if not user:
+            return Response({"detail": "Utilisateur introuvable."}, status=404)
+
+        # Se supprimer soi-même depuis le panneau d'administration reviendrait à
+        # retirer le dernier owner sans confirmation, et à invalider la session
+        # en cours de requête.
+        if user.id == request.user.id:
+            return Response(
+                {"detail": "Impossible de supprimer son propre compte depuis l'administration."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        if user.status == "owner" and request.user.status != "owner":
+            return Response(
+                {"detail": "Impossible de supprimer un owner."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Supprimer un pair est une décision de propriétaire, pas d'administrateur.
+        if user.status == "admin" and request.user.status != "owner":
+            return Response(
+                {"detail": "Seul un owner peut supprimer un admin."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        username = user.username
+        user.delete()
+        return Response({"detail": f"Compte « {username} » supprimé."})
+
 
 class AdminUserWalletView(APIView):
     """

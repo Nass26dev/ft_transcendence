@@ -201,6 +201,8 @@ Pas de préfixe de version. Authentification par **cookie JWT httpOnly**, pas d'
 | GET | `/api/badges/` | Badges débloqués |
 | GET | `/api/admin/stats/` | Statistiques globales |
 | GET | `/api/admin/users/` · `/users/<pk>/` | Recherche, fiche utilisateur |
+| PATCH | `/api/admin/users/<pk>/` | Éditer pseudo, email, bio, rôle |
+| DELETE | `/api/admin/users/<pk>/` | Supprimer un compte (garde-fous de hiérarchie) |
 | PATCH | `/api/admin/users/<pk>/wallet/` | Éditer un solde |
 | DELETE | `/api/admin/users/<pk>/friends/<friend_pk>/` | Retirer une amitié |
 
@@ -403,7 +405,7 @@ UPDATE pour une information dont la précision utile est la minute.
 ### Outils de vérification
 
 ```bash
-docker compose exec backend python3 -m pytest          # 252 tests, tous verts
+docker compose exec backend python3 -m pytest          # 260 tests, tous verts
 docker compose exec frontend npx tsc --noEmit          # typage strict
 docker compose exec frontend npm run lint
 ./e2e/run.sh                                           # 28 tests E2E Selenium

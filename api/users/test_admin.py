@@ -208,3 +208,78 @@ def test_friend_remove_success_either_direction(admin_client, user, other_user):
 def test_friend_remove_404_when_no_relation(admin_client, user, other_user):
     resp = admin_client.delete(reverse("admin-user-friend-remove", args=[user.id, other_user.id]))
     assert resp.status_code == 404
+
+
+# ── Suppression d'utilisateur (le D de CRUD) ──────────────────────────
+
+@pytest.mark.django_db
+def test_admin_can_delete_a_standard_user(admin_client, user):
+    user_id = user.id
+
+    resp = admin_client.delete(reverse("admin-user-detail", args=[user_id]))
+
+    assert resp.status_code == 200
+    assert not User.objects.filter(id=user_id).exists()
+
+
+@pytest.mark.django_db
+def test_delete_cascades_to_the_user_data(admin_client, user, other_user):
+    """Supprimer un compte doit emporter ses relations, pas laisser d'orphelins."""
+    Friendship.objects.create(sender=user, receiver=other_user, status="accepted")
+    user_id = user.id
+
+    admin_client.delete(reverse("admin-user-detail", args=[user_id]))
+
+    assert not Friendship.objects.filter(sender_id=user_id).exists()
+    assert User.objects.filter(id=other_user.id).exists()
+
+
+@pytest.mark.django_db
+def test_admin_cannot_delete_themselves(admin_client, admin_user):
+    resp = admin_client.delete(reverse("admin-user-detail", args=[admin_user.id]))
+
+    assert resp.status_code == 403
+    assert User.objects.filter(id=admin_user.id).exists()
+
+
+@pytest.mark.django_db
+def test_admin_cannot_delete_an_owner(admin_client, owner_user):
+    resp = admin_client.delete(reverse("admin-user-detail", args=[owner_user.id]))
+
+    assert resp.status_code == 403
+    assert User.objects.filter(id=owner_user.id).exists()
+
+
+@pytest.mark.django_db
+def test_admin_cannot_delete_another_admin(admin_client):
+    peer = User.objects.create_user(
+        email="peer@example.com", username="peer", password="Testpassword123", status="admin"
+    )
+
+    resp = admin_client.delete(reverse("admin-user-detail", args=[peer.id]))
+
+    assert resp.status_code == 403
+    assert User.objects.filter(id=peer.id).exists()
+
+
+@pytest.mark.django_db
+def test_owner_can_delete_an_admin(owner_client, admin_user):
+    admin_id = admin_user.id
+
+    resp = owner_client.delete(reverse("admin-user-detail", args=[admin_id]))
+
+    assert resp.status_code == 200
+    assert not User.objects.filter(id=admin_id).exists()
+
+
+@pytest.mark.django_db
+def test_plain_user_cannot_delete_anyone(auth_client, other_user):
+    resp = auth_client.delete(reverse("admin-user-detail", args=[other_user.id]))
+
+    assert resp.status_code == 403
+    assert User.objects.filter(id=other_user.id).exists()
+
+
+@pytest.mark.django_db
+def test_delete_404_unknown_user(admin_client):
+    assert admin_client.delete(reverse("admin-user-detail", args=[999999])).status_code == 404

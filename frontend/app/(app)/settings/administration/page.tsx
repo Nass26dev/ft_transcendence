@@ -9,17 +9,19 @@ import { num, fmt, initialsOf, errMessage } from "./_components/helpers";
 import { Card, InfoRow, StatusBadge, StatCard } from "./_components/primitives";
 import { WalletEditor } from "./_components/WalletEditor";
 import { DataEditor } from "./_components/DataEditor";
+import { AccountDeleter } from "./_components/AccountDeleter";
 import { FriendsManager } from "./_components/FriendsManager";
 import { BetsViewer } from "./_components/BetsViewer";
 import type { UserListItem, UserDetail, Stats } from "./_components/types";
 
-type Tab = "data" | "wallet" | "friends" | "bets";
+type Tab = "data" | "wallet" | "friends" | "bets" | "danger";
 
 const TABS: { id: Tab; label: string; icon: IconName }[] = [
   { id: "data", label: "Données", icon: "user" },
   { id: "wallet", label: "Wallet", icon: "wallet" },
   { id: "friends", label: "Amis", icon: "users" },
   { id: "bets", label: "Paris", icon: "trending-up" },
+  { id: "danger", label: "Compte", icon: "shield" },
 ];
 
 /** Panneau d'administration (owner/admin) : recherche, dashboard global et gestion complète d'un utilisateur. */
@@ -289,6 +291,20 @@ export default function AdminPage() {
           {tab === "bets" && (
             <Card title={`Paris (${selected.bets.length})`} icon="trending-up">
               <BetsViewer bets={selected.bets} />
+            </Card>
+          )}
+
+          {tab === "danger" && (
+            <Card title="Supprimer le compte" icon="shield">
+              <AccountDeleter
+                user={selected}
+                isOwner={!!isOwner}
+                currentUserId={profile?.id ?? 0}
+                onDeleted={() => {
+                  setSelected(null);
+                  loadUsers(query.trim());
+                }}
+              />
             </Card>
           )}
         </div>
