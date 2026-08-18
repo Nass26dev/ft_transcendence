@@ -48,6 +48,25 @@ Two choices worth stating up front: **Next.js** because auth relies on httpOnly 
 
 ---
 
+## Database Schema
+
+PostgreSQL through the Django ORM — 10 apps, ~20 tables. Full ER diagram in [MCD-Kop.pdf](MCD-Kop.pdf); field-level detail in [TECHNICAL.md](TECHNICAL.md#4-schéma-de-données).
+
+| App | Main tables | Key relations |
+|---|---|---|
+| users | `User` (wallet, role, 2FA state, avatar) | referenced by almost every other table |
+| friends | `Friendship` | sender / receiver → User, status |
+| league | `League`, `LeagueInvitation` | creator → User, members M2M |
+| sports | `Sport` → `Competition` → `Team`, `Match`, `Odds`, `MatchEvent`, `MatchLineup` | Match → teams / competition; Odds unique per (match, market, selection) |
+| betting | `Bet`, `BetSelection` | Bet → User; BetSelection → Bet / Match / Odds |
+| chat | `Message`, `Conversation`, `DirectMessage` | → League / Users |
+| notifications | `Notification` | recipient / actor → User |
+| challenges | `Challenge`, `Badge`, `ChallengeClaim`, `UserBadge` | claims → User |
+
+**Key design decision:** `BetSelection.odd_value` stores a *snapshot* of the odds at bet time — odds move every 30 s, so settlement pays at the rate the user accepted, never the current one.
+
+---
+
 ## Getting started
 
 **Prerequisites**: Docker 24+ and Compose v2. Nothing else: Python, Node and PostgreSQL run in containers. No sports API key is needed. A Google OAuth client and a Brevo API key are required for the full login flow.
@@ -104,7 +123,7 @@ docker compose exec frontend npm run lint
 
 ## Modules
 
-Target **14 points**, **21 claimed**. The table reflects what works today; each module can be demonstrated live.
+Target **14 points**, **21 claimed**. The table reflects what works today; each module can be demonstrated live. A module-by-module check against the subject is in [recap_points_modules.pdf](recap_points_modules.pdf).
 
 | Category | Module | Type | Pts | Implementation |
 |---|---|---|---|---|
@@ -152,7 +171,7 @@ Not started: public API, WCAG 2.1 AA, i18n, RTL, AI modules, cybersecurity (WAF/
 | **engiusep** | Project Manager / Developer | Coordination and planning. Backend auth (Brevo 2FA), friends, chat, leagues. Docker and Caddy infrastructure. | 42 |
 | **nyousfi** | Product Owner / Developer | Product vision and prioritisation. Settings page, admin panel, responsive work, deployment, environment configuration. | 40 |
 
-**Working method**: GitHub for repository and tracking, Discord day to day, a single `main` branch with conventional commits. No weekly ritual: the team worked in the same room around each major push (auth, betting, leagues, real-time), so decisions and reviews happened live. Work was split by vertical slice (model → endpoints → UI) rather than by layer, which kept merge conflicts down.
+**Working method**: GitHub for repository and tracking, Discord day to day, a single `main` branch with conventional commits, and a [weekly roadmap](roadmap_hebdomadaire.pdf) for planning. No weekly ritual: the team worked in the same room around each major push (auth, betting, leagues, real-time), so decisions and reviews happened live. Work was split by vertical slice (model → endpoints → UI) rather than by layer, which kept merge conflicts down.
 
 **What was hard**: nobody had shipped Django or Next.js before, so the early weeks went as much into documentation as into code, and several first drafts were rewritten. The team also **started as four and finished as three**: scope was redistributed, frontend-oriented members took on backend work, and the uneven commit counts above are a direct consequence.
 
