@@ -1,0 +1,85 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="kop-architecture" name="Architecture Kop">
+    <mxGraphModel dx="1344" dy="798" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1120" pageHeight="760" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;fontSize=20;fontStyle=1;align=left;verticalAlign=middle;" value="Kop — Architecture" vertex="1">
+          <mxGeometry height="30" width="300" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="zone-ext" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;fillColor=none;strokeColor=#B85450;verticalAlign=top;fontStyle=2;fontColor=#B85450;" value="Services externes" vertex="1">
+          <mxGeometry height="255" width="240" x="840" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="browser" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;" value="Navigateur&#xa;client web" vertex="1">
+          <mxGeometry height="50" width="180" x="430" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="caddy" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;" value="Caddy&#xa;reverse proxy · HTTPS" vertex="1">
+          <mxGeometry height="50" width="200" x="420" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="next" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Next.js&#xa;interface web (SSR)" vertex="1">
+          <mxGeometry height="60" width="200" x="80" y="260" as="geometry" />
+        </mxCell>
+        <mxCell id="daphne" parent="1" style="swimlane;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;startSize=26;fontStyle=1;" value="Daphne — serveur ASGI" vertex="1">
+          <mxGeometry height="150" width="380" x="400" y="250" as="geometry" />
+        </mxCell>
+        <mxCell id="django" parent="daphne" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaffea;strokeColor=#82b366;" value="Django + DRF&#xa;API REST" vertex="1">
+          <mxGeometry height="80" width="160" x="20" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="channels" parent="daphne" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#eaffea;strokeColor=#82b366;" value="Django Channels&#xa;temps réel (WebSockets)" vertex="1">
+          <mxGeometry height="80" width="160" x="200" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="celery" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Celery&#xa;tâches de fond (scraping, cotes, règlement)" vertex="1">
+          <mxGeometry height="60" width="380" x="680" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="postgres" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#fff2cc;strokeColor=#d6b656;" value="PostgreSQL&#xa;base de données" vertex="1">
+          <mxGeometry height="80" width="170" x="380" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="redis" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#fff2cc;strokeColor=#d6b656;" value="Redis&#xa;broker Celery + WebSockets" vertex="1">
+          <mxGeometry height="80" width="170" x="620" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="google" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Google OAuth&#xa;connexion" vertex="1">
+          <mxGeometry height="50" width="200" x="860" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="brevo" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Brevo&#xa;emails (codes 2FA)" vertex="1">
+          <mxGeometry height="50" width="200" x="860" y="220" as="geometry" />
+        </mxCell>
+        <mxCell id="footlive" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="foot-live&#xa;source des matchs (scraping)" vertex="1">
+          <mxGeometry height="60" width="200" x="860" y="290" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="browser" style="endArrow=block;html=1;fontSize=11;" target="caddy" value="HTTPS">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="browser" style="endArrow=block;html=1;fontSize=11;dashed=1;" target="google" value="OAuth">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="caddy" style="endArrow=block;html=1;fontSize=11;" target="next">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="caddy" style="endArrow=block;html=1;fontSize=11;" target="daphne">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="next" style="endArrow=block;html=1;fontSize=11;dashed=1;" target="daphne" value="proxy cookies">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="django" style="endArrow=classic;startArrow=classic;html=1;fontSize=11;" target="postgres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="channels" style="endArrow=classic;startArrow=classic;html=1;fontSize=11;" target="redis">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="django" style="endArrow=block;html=1;fontSize=11;" target="brevo" value="2FA">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="celery" style="endArrow=classic;startArrow=classic;html=1;fontSize=11;" target="redis">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="celery" style="endArrow=classic;startArrow=classic;html=1;fontSize=11;" target="postgres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="celery" style="endArrow=block;html=1;fontSize=11;" target="footlive" value="scraping">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
