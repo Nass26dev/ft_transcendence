@@ -1,6 +1,6 @@
 import React from "react";
 
-/** Barre de progression (vert) — pourcentage borné à 100. */
+/** Barre de progression (vert), pourcentage borné à 100. */
 export function ProgressBar({
   progress,
   total,

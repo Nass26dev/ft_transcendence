@@ -317,7 +317,7 @@ def _make_user(email, username):
 
 @pytest.mark.django_db
 def test_league_history_returns_the_50_most_recent(auth_client, league, user):
-    """Passé 50 messages, l'historique doit suivre — pas rester bloqué au début."""
+    """Passé 50 messages, l'historique doit suivre, sans rester bloqué au début."""
     for i in range(60):
         Message.objects.create(league=league, sender=user, content=str(i))
 

@@ -30,7 +30,7 @@ class MatchFilter(filters.FilterSet):
         tags=["Sport"],
         description=(
             "Liste les matchs, avec pour chacun la répartition des paris par issue "
-            "1N2 (`bets_home`, `bets_draw`, `bets_away` — la « Confiance des "
+            "1N2 (`bets_home`, `bets_draw`, `bets_away`, soit la « Confiance des "
             "Kopistes »), calculée en comptant les sélections de paris liées à "
             "chaque match. Filtrable par `status`, `competition` (slug) et `date` "
             "(jour du coup d'envoi)."

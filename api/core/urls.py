@@ -1,5 +1,5 @@
 """
-core/urls.py  — version complète avec endpoints matches
+core/urls.py : version complète avec endpoints matches
 """
 
 from django.urls import include, path

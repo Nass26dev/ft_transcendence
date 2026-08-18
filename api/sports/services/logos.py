@@ -2,7 +2,7 @@
 
 API publique gratuite (cle de test "3", documentee et destinee aux projets
 hobby/perso : https://www.thesportsdb.com/free_sports_api). On ne prend que
-des donnees fournies par cette API sous licence pour cet usage — pas de
+des donnees fournies par cette API sous licence pour cet usage, jamais du
 scraping d'un site tiers (ex. operateur de paris) dont les logos de clubs
 seraient utilises sans autorisation.
 
@@ -11,7 +11,7 @@ club sans rapport en premiere position, ex. "Paris SG" -> "Torcy") : on ne
 retient un resultat que si son nom (ou un de ses noms alternatifs) correspond
 exactement, a la casse/accents pres, au nom cherche. Un club non trouve reste
 avec logo_url vide, et le frontend retombe sur un maillot colore avec les
-couleurs officielles si on les a, sinon un visuel generique — mieux vaut
+couleurs officielles si on les a, sinon un visuel generique : mieux vaut
 moins d'infos qu'une info fausse.
 
 La fiche club renvoyee par l'API contient aussi ses couleurs (strColour1/2) :
@@ -130,7 +130,7 @@ def fetch_team_logos() -> int:
         try:
             result = _search_team(team.name)
         except requests.RequestException as exc:
-            logger.warning("TheSportsDB indisponible pour %r : %s — arret du passage", team.name, exc)
+            logger.warning("TheSportsDB indisponible pour %r : %s, arret du passage", team.name, exc)
             break
 
         team.logo_checked_at = timezone.now()

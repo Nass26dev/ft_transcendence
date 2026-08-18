@@ -12,7 +12,7 @@ LIST_LIMIT = 30
 
 
 class NotificationListView(APIView):
-    """GET /api/notifications/ — dernières notifs + nombre de non-lues."""
+    """GET /api/notifications/ : dernières notifs + nombre de non-lues."""
 
     permission_classes = [IsAuthenticated]
 
@@ -47,7 +47,7 @@ class NotificationListView(APIView):
 
 
 class MarkAllReadView(APIView):
-    """POST /api/notifications/read-all/ — marque tout comme lu."""
+    """POST /api/notifications/read-all/ : marque tout comme lu."""
 
     permission_classes = [IsAuthenticated]
 
@@ -78,7 +78,7 @@ class MarkAllReadView(APIView):
 
 
 class MarkReadView(APIView):
-    """POST /api/notifications/<id>/read/ — marque une notif comme lue."""
+    """POST /api/notifications/<id>/read/ : marque une notif comme lue."""
 
     permission_classes = [IsAuthenticated]
 
@@ -89,7 +89,7 @@ class MarkReadView(APIView):
             "elle appartient a l'utilisateur connecte (`recipient`) et "
             "qu'elle n'est pas deja lue. `updated` vaut 1 si la mise a jour "
             "a eu lieu, 0 sinon (notification inexistante, appartenant a un "
-            "autre utilisateur, ou deja marquee comme lue) — aucune erreur "
+            "autre utilisateur, ou deja marquee comme lue) : aucune erreur "
             "404/403 n'est levee dans ces cas, la reponse reste 200 avec "
             "`updated: 0`. `unread` renvoie dans tous les cas le nombre "
             "total de notifications non lues restantes pour l'utilisateur."

@@ -103,7 +103,7 @@ class Match(models.Model):
 
     def __str__(self):
         """Représentation lisible : équipes et date/heure du coup d'envoi."""
-        return f"{self.home_team} vs {self.away_team} — {self.kickoff_at:%Y-%m-%d %H:%M}"
+        return f"{self.home_team} vs {self.away_team} ({self.kickoff_at:%Y-%m-%d %H:%M})"
 
 
 class MatchEvent(models.Model):
@@ -138,7 +138,7 @@ class MatchEvent(models.Model):
 
     def __str__(self):
         """Représentation lisible : minute, type d'événement et joueur."""
-        return f"{self.minute}' {self.get_type_display()} — {self.player}"
+        return f"{self.minute}' {self.get_type_display()} : {self.player}"
 
 
 class MatchLineup(models.Model):
@@ -191,4 +191,4 @@ class Odds(models.Model):
 
     def __str__(self):
         """Représentation lisible : match, marché/sélection et valeur de la cote."""
-        return f"{self.match} — {self.market}/{self.selection} @ {self.value}"
+        return f"{self.match} : {self.market}/{self.selection} @ {self.value}"

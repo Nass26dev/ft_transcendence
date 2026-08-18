@@ -8,7 +8,7 @@ Deux modes d'interaction, pilotés par variables d'environnement :
 - normal : les clics/saisies vont au plus court (suite CI, rapide) ;
 - démo (`E2E_DEMO=1`) : un curseur rouge est injecté dans la page et se
   déplace vers chaque élément avant de cliquer, avec une pause entre
-  chaque action — c'est ce qu'on regarde quand on veut *voir* le test
+  chaque action : c'est ce qu'on regarde quand on veut *voir* le test
   jouer (fenêtre Chrome locale ou noVNC du conteneur).
 
 Variables reconnues :
@@ -88,7 +88,7 @@ def wait(driver, timeout: int = DEFAULT_TIMEOUT) -> WebDriverWait:
 
     Par défaut `WebDriverWait` n'ignore que NoSuchElementException : si le
     nœud est remplacé entre le find et la vérification (ce qui arrive tout le
-    temps ici — scores live, toasts, hydratation), la condition remonte une
+    temps ici : scores live, toasts, hydratation), la condition remonte une
     StaleElementReferenceException au lieu de simplement retenter. On l'ignore
     donc explicitement, c'est le sens même d'un « until ».
     """
@@ -196,7 +196,7 @@ def _interact(driver, target, action, timeout: int) -> WebElement:
 
     React re-rend en permanence (données live, toasts, hydratation) : entre le
     moment où on résout l'élément et celui où on agit dessus, le nœud peut
-    avoir été remplacé — d'autant plus en mode démo, où l'on s'attarde. Tant
+    avoir été remplacé, d'autant plus en mode démo, où l'on s'attarde. Tant
     qu'on a un locator (et pas un WebElement déjà résolu par le test), on le
     re-résout et on rejoue l'action au lieu d'échouer.
     """
@@ -347,7 +347,7 @@ def assert_page_healthy(driver) -> None:
 # --------------------------------------------------------------------------
 # Le second facteur ne peut pas être automatisé de bout en bout : le code part
 # par email (Brevo) vers une adresse jetable qu'on ne relève pas, et il est
-# stocké dans le cache Django — un LocMemCache, donc propre au process qui
+# stocké dans le cache Django, un LocMemCache, donc propre au process qui
 # sert l'application. Un `manage.py shell` lancé à côté ouvre son PROPRE cache,
 # vide : le code y est structurellement introuvable.
 #

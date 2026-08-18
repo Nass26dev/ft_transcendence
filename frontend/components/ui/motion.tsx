@@ -4,7 +4,7 @@ import React from "react";
 import { MotionConfig, type Variants, type Transition } from "framer-motion";
 import { getPref, REDUCE_MOTION_EVENT } from "@/utils/prefs";
 
-/** Courbe d'accélération maison (easeOut soutenu) — cohérente dans toute l'app. */
+/** Courbe d'accélération maison (easeOut soutenu), cohérente dans toute l'app. */
 export const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
 
 /** Transition ressort par défaut pour les apparitions avec rebond. */

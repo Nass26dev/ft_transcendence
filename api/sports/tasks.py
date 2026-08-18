@@ -147,7 +147,7 @@ def settle_bets() -> dict:
 
 @shared_task(name="sports.scrape_history")
 def scrape_history() -> dict:
-    """Historique — J-180 à J-1.
+    """Historique : de J-180 à J-1.
 
     À lancer uniquement une fois au démarrage :
     python manage.py shell -c "from sports.tasks import scrape_history; scrape_history.delay()"

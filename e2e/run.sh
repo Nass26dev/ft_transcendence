@@ -62,7 +62,7 @@ done
 # Un chemin de test peut être donné relativement au dossier d'appel
 # (`./run.sh test_03_home.py` depuis e2e/) ou à la racine
 # (`./e2e/run.sh e2e/test_03_home.py`) : on le rend absolu dans les deux cas,
-# sinon pytest ne le trouve plus après le `cd` — et perd au passage
+# sinon pytest ne le trouve plus après le `cd`, et perd au passage
 # e2e/pytest.ini, qui fixe sa rootdir.
 resolve_target() {
   local arg="$1" path rest="" candidate
@@ -85,14 +85,14 @@ for i in "${!PYTEST_ARGS[@]}"; do
 done
 
 # Sans chemin explicite (`-k wheel`, `-x`…), il faut quand même cibler e2e/ :
-# pytest collecterait sinon depuis la racine du projet — donc les tests Django
+# pytest collecterait sinon depuis la racine du projet, donc les tests Django
 # de api/, et sans e2e/pytest.ini pour fixer sa rootdir.
 [ "$HAS_TARGET" -eq 0 ] && PYTEST_ARGS+=("$ROOT_DIR/e2e")
 
 # `docker compose up -d selenium` ne démarre que la chaîne de dépendances de
 # selenium (caddy_dev → backend/frontend → db/redis). Les services Celery n'en
 # font pas partie : si la stack n'a pas été lancée en entier, ils manquent
-# silencieusement — et comme le seed délègue tout le scraping à Celery, la base
+# silencieusement, et comme le seed délègue tout le scraping à Celery, la base
 # reste vide de matchs et l'étape de pari se skippe sans raison apparente.
 warn_missing_services() {
   local missing=() svc
@@ -101,7 +101,7 @@ warn_missing_services() {
   done
   if [ "${#missing[@]}" -gt 0 ]; then
     echo "⚠  Services arrêtés : ${missing[*]}"
-    echo "   L'application tourne en mode incomplet — sans celery_worker/celery_beat,"
+    echo "   L'application tourne en mode incomplet : sans celery_worker/celery_beat,"
     echo "   aucun match n'est scrapé et le test de pari se skippe."
     echo "   → docker compose up -d"
     echo

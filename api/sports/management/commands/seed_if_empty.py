@@ -31,7 +31,7 @@ class Command(BaseCommand):
         l'échec est loggé sans faire échouer le démarrage du conteneur.
         """
         if Match.objects.exists():
-            self.stdout.write("Matchs déjà présents — seed ignoré.")
+            self.stdout.write("Matchs déjà présents : seed ignoré.")
             return
 
         from celery import chain

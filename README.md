@@ -1,131 +1,61 @@
-*This project has been created as part of the 42 curriculum by ynzue-es, engiusep, nyousfi, acancel.*
+*This project has been created as part of the 42 curriculum by ynzue-es, engiusep, nyousfi.*
 
 # Kop
 
 > Betting without the stake. You predict, you win Kops, you dominate your friends.
 
-## Description
+**Kop** is a web platform for football predictions **with no real money involved**. Users bet **Kops** (a virtual, worthless, non-convertible currency) on real matches, compete in private leagues and climb the leaderboards. The point is not money, it is bragging rights.
 
-**Kop** is a web platform for football predictions **with no real money involved**. Users bet **Kops** — a virtual, worthless, non-convertible currency — on real football matches, compete in private leagues, and climb the leaderboards.
+Odds are not bought from a provider: they are computed by our own engine from the recent form of both teams, and they move live with the score.
 
-The point is not money. It is bragging rights.
-
-Traditional sports-betting apps monetise addiction. Kop keeps the mechanics that make betting fun — reading the odds, the tension of a live match, the thrill of an accumulator — and removes the financial risk entirely. No real money ever enters or leaves the platform.
-
-### Key features
-
-- **Simple and combo bets** on real matches, with odds computed by our own engine from recent team form
-- **Live odds** that shift with the score while a match is being played
-- **Automatic settlement** of bets as soon as a match finishes
-- **Community confidence gauge**: the share of users backing each outcome, per match
-- **Private leagues** with invitations, internal leaderboards and a dedicated chat room
-- **Real-time chat and notifications** over WebSockets
-- **Daily bonus, wheel of fortune, challenges and badges**
-- **Two-step authentication**: password, then a 6-digit code sent by email
+> Architecture, data model, endpoints, odds engine and security are documented in **[TECHNICAL.md](TECHNICAL.md)**.
 
 ---
 
-## Table of contents
+## Features
 
-- [Technical Stack](#technical-stack)
-- [Instructions](#instructions)
-- [Database Schema](#database-schema)
-- [Features List](#features-list)
-- [Modules](#modules)
-- [Team Information](#team-information)
-- [Project Management](#project-management)
-- [Individual Contributions](#individual-contributions)
-- [Known limitations](#known-limitations)
-- [Resources](#resources)
+Everything listed here is implemented and demonstrable.
 
----
-
-## Technical Stack
-
-### Frontend
-
-| Technology | Version | Why |
-|---|---|---|
-| **Next.js** (App Router) | 16 | Server-side rendering for first paint and SEO, file-based routing, server routes used as a proxy so JWT cookies never transit through client-side JavaScript |
-| **React** | 19 | Component model, required by Next.js |
-| **TypeScript** | 5 (strict) | Types shared across the whole data layer, catches API contract drift at build time |
-| **Tailwind CSS** | 4 | Utility-first styling, no CSS file to maintain in parallel, design tokens centralised in `globals.css` |
-| **Framer Motion** | 12 | Page and component transitions, with a "reduced motion" preference honoured app-wide |
-| **Axios** | 1.x | HTTP client with interceptors for automatic token refresh |
-
-### Backend
-
-| Technology | Version | Why |
-|---|---|---|
-| **Django** | 5.2 | Batteries included: ORM, migrations, admin, mature auth ecosystem |
-| **Django REST Framework** | 3.x | Serialisers, viewsets, permission classes |
-| **Django Channels** + channels-redis | 4.x | WebSockets natively inside Django: one auth system, one deployment, no separate service |
-| **Daphne** | 4.x | ASGI server handling HTTP and WebSocket traffic in the same process |
-| **Celery** + Celery Beat | 5.x | Scheduled scraping, odds recomputation and bet settlement outside the request cycle |
-| **simplejwt** / dj-rest-auth / allauth | — | JWT in httpOnly cookies, Google OAuth 2.0 |
-
-### Data
-
-| Technology | Version | Why |
-|---|---|---|
-| **PostgreSQL** | 16 | The wallet requires real transactions. Bet placement and settlement run inside `transaction.atomic()` with `select_for_update()` row locks, so two concurrent bets cannot both spend the same balance. SQLite's single-writer model does not hold under the concurrent load expected at kick-off. |
-| **Redis** | 7 | Celery broker and Channels layer for WebSocket fan-out. It is deliberately *not* the Django cache backend: the only cached value is the login code, which never leaves the single process that serves the requests. |
-
-### Infrastructure
-
-**Docker Compose** for the whole stack (single-command startup), **Caddy** with automatic Let's Encrypt for TLS termination in production.
-
-### Justification of the main technical choices
-
-**Why Next.js rather than plain React** — authentication relies on httpOnly cookies, which client-side JavaScript cannot read by design. Next.js server routes (`app/api/*`) let the server exchange those cookies with Django, so no token ever reaches the browser's JavaScript context.
-
-**Why Channels rather than a separate WebSocket service** — a socket must know *who* is connected. With Channels, a middleware validates the same JWT cookie used by the REST API and injects the Django user into the consumer scope. A separate Node service would have meant duplicating authentication and keeping two user models in sync.
-
-**Why scraping rather than a sports API** — free tiers of sports APIs cap requests per day, which is incompatible with a 30-second refresh loop on live matches. Scraping foot-live gives unlimited refresh, full match sheets (line-ups, events, referee, venue) and no API key to distribute across four developers.
-
-**Why computing our own odds** — no free provider exposes odds, and the app must work at any time regardless of a third party's uptime. The engine derives odds from the recent form of both teams, adds a home advantage, applies a bookmaker margin, and adjusts live according to the score and the minute played.
-
----
-
-## Instructions
-
-### Prerequisites
-
-- **Docker 24+** and **Docker Compose v2**
-- Nothing else: Python, Node and PostgreSQL all run inside containers
-- **No sports API key needed** — match data comes from scraping, odds are computed locally
-- A **Google OAuth client** (Google Cloud Console) and a **Brevo API key** (transactional emails for login codes) are required for the full authentication flow
-
-### Environment setup
-
-Credentials live in a single `.env` file at the root, ignored by Git. [.env.example](.env.example) is the commented reference.
-
-```bash
-cp .env.example .env
-```
-
-Then fill it in. Variable names must match **exactly** what the code reads — a misnamed variable is silently ignored, or stops the backend from starting.
-
-| Variable | Purpose |
+| Area | What it does |
 |---|---|
-| `DJANGO_SECRET_KEY` | Django secret. **Wrap it in single quotes**: if it contains a `$`, Docker Compose would interpolate it. |
-| `DJANGO_DEBUG` | The only dev/prod switch. `True` locally. Absent means `False`, and only the kop.life domains are then accepted. |
-| `POSTGRES_DB` / `_USER` / `_PASSWORD` / `_HOST` / `_PORT` | Database, read both by the postgres image and by Django |
-| `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Google OAuth |
-| `NEXT_PUBLIC_GOOGLE_CLIENT_ID` | Same value as `GOOGLE_CLIENT_ID`, needed in the browser |
-| `BREVO_API_KEY` | Sending login codes by email |
-| `NEXT_PUBLIC_API_URL` | API URL called from the browser |
-| `API_URL` | API URL called from Next.js server routes, container to container |
-| `NEXT_PUBLIC_API_URL_PROD` / `CADDY_EMAIL` | Production only |
+| **Authentication** | Email/password or Google OAuth 2.0, then a mandatory second step: 6-digit code emailed via Brevo, valid 5 min. JWT in httpOnly cookies, silent refresh through a Next.js server route. |
+| **Profile & settings** | Avatar upload (5 MB max, validated both sides), username, bio, public-profile toggle, reduced-motion preference. |
+| **Matches** | Celery scraping of foot-live: live matches every 30 s, upcoming daily, plus history and full match sheets (line-ups, events, referee, venue, half-time score). |
+| **Odds engine** | Odds derived from each team's last 10 finished matches, home advantage, 7 % margin, probability floor. Re-derived live from goal difference and minute played. |
+| **Betting** | Floating bet slip, simple and combo bets, stake presets, potential-gain preview, atomic debit under row lock. |
+| **Settlement** | Automatic inside the 30-second live loop: selections resolve, then bets, then winners are credited, always at the odds snapshotted when the bet was placed. |
+| **Community** | Confidence gauge per match (share of users on each outcome) and "Kop trends" over a window that widens while volume is low. |
+| **Leaderboards** | Filterable by period (week / month / season / all time) and scope (world / friends), computed by SQL aggregation over settled bets. |
+| **Private leagues** | Create, rename, delete, invite friends, accept/decline, kick, leave, internal leaderboard and dedicated chat room. |
+| **Friends** | Search, requests, activity feed, and online status derived from `last_seen` (5-minute window) so a crashed tab never leaves anyone stuck "online". |
+| **Chat & notifications** | Private conversations and league rooms over WebSockets with persisted history, real-time notification push, bell, mark one/all as read. |
+| **Gamification** | Daily and season challenges with claimable rewards, badges, 500-Kop daily bonus, daily wheel of fortune (−1 000 to +2 000, 10 000 jackpot at 1 %). |
+| **Admin panel** | Global stats, user search, edition of profile / role / balance / bets and account deletion. Hierarchy enforced server-side: an admin cannot touch an owner, only an owner edits roles. |
+| **Design system** | 21 reusable components, design tokens in `globals.css`, custom icon set, mobile-first responsive layout. |
 
-`DJANGO_DEBUG` alone drives `DEBUG`, `ALLOWED_HOSTS` and the CORS/CSRF origins. Those lists are written in [api/core/settings.py](api/core/settings.py) and never injected from the environment.
+---
 
-### Running the project
+## Stack
+
+| Layer | Technologies |
+|---|---|
+| **Frontend** | Next.js 16 (App Router, SSR + server routes as a cookie proxy), React 19, TypeScript strict, Tailwind CSS 4, Framer Motion, Axios |
+| **Backend** | Django 5.2 + DRF, Django Channels + Redis (WebSockets), Daphne, Celery + Beat, simplejwt / dj-rest-auth / allauth |
+| **Data** | PostgreSQL 16 for the wallet's real transactions (`transaction.atomic()` + `select_for_update()`); Redis 7 for the Celery broker and the Channels layer |
+| **Infra** | Docker Compose (dev/prod split), Caddy with automatic TLS |
+
+Two choices worth stating up front: **Next.js** because auth relies on httpOnly cookies that client-side JS cannot read, so the exchange with Django happens in server routes; **Channels** rather than a separate WebSocket service, so one middleware validates the same JWT cookie as the REST API instead of duplicating authentication.
+
+---
+
+## Getting started
+
+**Prerequisites**: Docker 24+ and Compose v2. Nothing else: Python, Node and PostgreSQL run in containers. No sports API key is needed. A Google OAuth client and a Brevo API key are required for the full login flow.
 
 ```bash
 git clone git@github.com:Nass26dev/ft_transcendence.git
 cd ft_transcendence
-cp .env.example .env      # then fill it in
+cp .env.example .env      # then fill it in (see the comments in .env.example)
 docker compose up --build
 ```
 
@@ -135,336 +65,125 @@ docker compose up --build
 | API | https://localhost:8443/api/ |
 | Django admin | https://localhost:8443/admin/ |
 
-Everything goes through **HTTPS**, including in development: a Caddy reverse proxy terminates TLS with a locally-generated certificate (Caddy's internal CA). Your browser will warn about an unrecognised certificate on first visit — accept it once. Ports 3000 and 8000 are deliberately **not** published on the host, so there is no plaintext way into the application.
+Everything goes through HTTPS, including in development: Caddy terminates TLS with its internal CA, so the browser warns once about the certificate; accept it. Ports 3000 and 8000 are deliberately not published. 8443/8080 are used instead of 443/80 because rootless Docker cannot bind privileged ports.
 
-Ports 8443 and 8080 are used instead of 443 and 80 because rootless Docker, common on 42 workstations, cannot bind privileged ports.
+On first launch the database is empty: `seed_if_empty` scrapes the last 180 days then the next 7. Allow a few minutes before matches and odds appear.
 
-On first launch the database is empty: the `seed_if_empty` command automatically triggers a scrape of the last 180 days, then of the next 7 days. Allow a few minutes before matches and odds appear — the Celery worker logs its progress.
-
-`docker compose up` automatically layers **docker-compose.override.yml** on top, switching the project to development mode: code mounted as volumes, hot reload, `runserver` and `next dev`, exposed ports. `docker-compose.yml` alone describes production.
-
-### Useful commands
-
-There is no Makefile; everything goes through Docker Compose.
-
-```bash
-docker compose up --build           # start the stack (dev)
-docker compose down                 # stop
-docker compose down -v              # stop and drop the database
-docker compose logs -f backend      # follow one service's logs
-
-docker compose exec backend python3 manage.py migrate
-docker compose exec backend python3 manage.py createsuperuser
-docker compose exec backend python3 -m pytest              # backend tests
-docker compose exec frontend npx tsc --noEmit              # type checking
-docker compose exec frontend npm run lint
-
-./e2e/run.sh                                               # end-to-end tests (Selenium)
-```
-
-### End-to-end tests
-
-[e2e/](e2e/) drives a real Chrome against the running dev stack — no mocks, no dedicated database. The nine files replay one continuous user journey (sign-up → login → betting → league → wheel → chat → settings → logout) in a single browser session, and drop a screenshot of each step in `e2e/screenshots/`.
-
-The stack must already be up (`docker compose up`), then:
-
-```bash
-./e2e/run.sh                    # Chrome inside the selenium container, headless-ish, fastest
-./e2e/run.sh --watch            # same, plus noVNC to watch it live
-./e2e/run.sh --headed           # Chrome from your machine, real window on the desktop
-./e2e/run.sh --headed --demo    # + visible cursor moving to each element, slowed down
-./e2e/run.sh --help             # all options
-
-cd e2e && ./run.sh --headed --demo test_03_home.py   # a single file
-```
-
-Each file can be replayed on its own: the `logged_in` fixture creates the account and opens the session when the earlier steps have not run.
-
-Two-factor authentication is covered up to the code entry screen only: the code is emailed and kept in Django's per-process cache, so the tests cannot read it. They open the session by setting the same JWT cookies the code verification would set (see `sign_in` in [e2e/helpers.py](e2e/helpers.py)).
-
-### Production
+`docker compose up` layers `docker-compose.override.yml` on top (volumes, hot reload, exposed ports). `docker-compose.yml` alone describes production:
 
 ```bash
 docker compose -f docker-compose.yml --profile prod up -d --build
 ```
 
-The `-f docker-compose.yml` flag is required, otherwise the development layer is applied. The `prod` profile starts Caddy, which obtains and renews the Let's Encrypt certificate on its own for the domains listed in [caddy/Caddyfile](caddy/Caddyfile). Check beforehand that `DJANGO_DEBUG` is removed or `False`, that `CADDY_EMAIL` is set, and that DNS points to the machine.
+### Commands
 
----
-
-## Database Schema
-
-PostgreSQL, managed through the Django ORM. Ten application modules, each owning its tables.
-
-```
-                    ┌──────────────────┐
-                    │      User        │
-                    │ email (unique)   │
-                    │ username, bio    │
-                    │ wallet DECIMAL   │
-                    │ status enum      │
-                    │ avatar, is_public│
-                    └────────┬─────────┘
-                             │
-   ┌──────────┬──────────────┼──────────────┬─────────────┐
-   │          │              │              │             │
-┌──▼───────┐ ┌▼───────────┐ ┌▼──────────┐ ┌─▼──────────┐ ┌▼────────────┐
-│Friendship│ │   League   │ │    Bet    │ │Notification│ │ChallengeClaim│
-│sender    │ │ creator    │ │ stake     │ │ recipient  │ │ user         │
-│receiver  │ │ members M2M│ │ odd_value │ │ actor      │ │ challenge    │
-│status    │ │ name, desc │ │ status    │ │ type, data │ │ period       │
-└──────────┘ └─────┬──────┘ └─────┬─────┘ └────────────┘ └──────────────┘
-                   │              │
-          ┌────────▼───────┐ ┌────▼──────────┐
-          │LeagueInvitation│ │ BetSelection  │
-          │sender/receiver │ │ bet FK        │
-          │status          │ │ match FK      │
-          └────────────────┘ │ odd FK        │
-                             │ odd_value     │
-                             │ status        │
-                             └────┬──────────┘
-                                  │
-  ┌──────────┐   ┌─────────────┐  │  ┌──────────────┐
-  │  Sport   │──▶│ Competition │──┼─▶│    Match     │
-  │ name     │   │ name, season│  │  │ home/away FK │
-  │ slug     │   │ country     │  └─▶│ kickoff_at   │
-  └──────────┘   └──────┬──────┘     │ status       │
-                        │            │ scores       │
-                   ┌────▼────┐       │ current_min  │
-                   │  Team   │──────▶│ referee,venue│
-                   │ name    │       └───┬──────┬───┘
-                   │ logo_url│           │      │
-                   └─────────┘     ┌─────▼──┐ ┌─▼──────────┐
-                                   │  Odds  │ │ MatchEvent │
-                                   │ market │ │ MatchLineup│
-                                   │ value  │ └────────────┘
-                                   └────────┘
+```bash
+docker compose down -v                                     # stop and drop the database
+docker compose logs -f backend                             # follow one service
+docker compose exec backend python3 manage.py migrate
+docker compose exec backend python3 manage.py createsuperuser
+docker compose exec backend python3 -m pytest              # 260 backend tests
+docker compose exec frontend npx tsc --noEmit
+docker compose exec frontend npm run lint
+./e2e/run.sh                                               # end-to-end (Selenium)
 ```
 
-### Main tables
+### End-to-end tests
 
-| Table | Key fields | Relations |
-|---|---|---|
-| `users_user` | `email` unique, `username`, `wallet` DECIMAL(14,2) default 100, `status` enum (`owner`/`admin`/`user`), `avatar` image, `bio`, `is_public` bool, `last_daily_bonus` date, `last_wheel_spin` date, `onboarding_completed` bool | Referenced by nearly every other table |
-| `friends_friendship` | `status` (`pending`/`accepted`), `created_at` | `sender` → User, `receiver` → User |
-| `league_league` | `name`, `description`, `created_at` | `creator` → User, `members` M2M User |
-| `league_leagueinvitation` | `status`, `created_at` | `league`, `sender`, `receiver` |
-| `sports_sport` / `sports_competition` / `sports_team` | `name`, `slug`, `season`, `country`, `logo_url`, `external_id` | Sport ← Competition ← Team |
-| `sports_match` | `kickoff_at`, `status` (`scheduled`/`live`/`finished`), `home_score`, `away_score`, `current_minute`, `external_id` unique, `footlive_id`, `referee`, `venue`, `ht_*_score` | `competition`, `home_team`, `away_team` |
-| `sports_matchevent` / `sports_matchlineup` | `minute`, `type`, `team_side`, `player`, `role`, `number` | → Match |
-| `sports_odds` | `market` (1N2), `selection` (`home`/`draw`/`away`), `value` DECIMAL, `updated_at` | → Match, unique per (match, market, selection) |
-| `betting_bet` | `stake` DECIMAL, `odd_value` (combined odds), `status` (`pending`/`won`/`lost`), `created_at`, `settled_at` | `user` → User |
-| `betting_betselection` | `odd_value` snapshot at placement, `status`, `settled_at` | `bet`, `match`, `odd` |
-| `chat_message` | `content`, `created_at` | `league`, `sender` |
-| `chat_conversation` / `chat_directmessage` | `content`, `created_at` | `user_a`/`user_b`, then `conversation`, `sender` |
-| `notifications_notification` | `type`, `message`, `url`, `data` JSONB, `is_read`, `created_at` | `recipient`, `actor` |
-| `challenges_challenge` / `_badge` | `code` slug, `kind` (`daily`/`season`), `metric`, `target`, `reward`, `threshold` | Catalogue tables |
-| `challenges_challengeclaim` / `_userbadge` | `period` (ISO date or `season`), `claimed_at`, `unlocked_at` | `user`, `challenge`/`badge` |
+[e2e/](e2e/) drives a real Chrome against the running dev stack, with no mocks. Eleven files replay one continuous journey (sign-up → login → betting → league → wheel → chat → settings → logout) in a single session, screenshotting each step into `e2e/screenshots/`. Each file can also run alone thanks to the `logged_in` fixture.
 
-**Key design decision** — `BetSelection.odd_value` stores a *snapshot* of the odds at the moment the bet is placed. Odds move every 30 seconds; without this copy, settling a bet would use a different value from the one the user accepted.
+```bash
+./e2e/run.sh --watch            # + noVNC to watch it live
+./e2e/run.sh --headed --demo    # real window, visible cursor, slowed down
+./e2e/run.sh --help
+```
 
----
-
-## Features List
-
-| Feature | Description | Main contributors |
-|---|---|---|
-| **Authentication** | Sign-up by email/password or Google OAuth 2.0. Two-step login: password, then a 6-digit code emailed via Brevo, valid 5 minutes. JWT stored in httpOnly cookies, access 5 min / refresh 7 days, silent refresh through a Next.js server route. | engiusep, nyousfi, acancel |
-| **Profile & settings** | Avatar upload (any image, 5 MB max, validated client and server side), first/last name, username, bio, public-profile toggle, reduced-motion preference. | nyousfi, ynzue-es |
-| **Match scraping** | Celery pipeline against foot-live: live matches every 30 s, upcoming matches daily at midnight, plus history and detailed sheets (line-ups, events, referee, venue, half-time score). | ynzue-es, engiusep |
-| **Odds engine** | Odds computed from each team's last 10 finished matches, home advantage, a 7 % bookmaker margin and a probability floor. Live adjustment based on goal difference and minute played. | ynzue-es |
-| **Betting** | Floating bet slip, simple and combo bets, quick stake presets, potential-gain preview, atomic balance debit under row lock. | ynzue-es, nyousfi |
-| **Settlement** | Runs inside the 30-second live loop: finished matches resolve each selection, then each bet, then credit the winners. | ynzue-es |
-| **Confidence gauge & trends** | Per match, the share of users backing each outcome. "Kop trends" lists the most-backed bets over a window that widens (1 h → 24 h → all time) while volume is low. | ynzue-es |
-| **Leaderboards** | Filterable by period (week, month, season, all time) and scope (world, friends), computed by SQL aggregation over settled bets. | ynzue-es, nyousfi |
-| **Private leagues** | Creation, rename and deletion by the creator, invitation of friends, accept/decline, internal leaderboard, leave, kick by the creator. | engiusep, ynzue-es |
-| **Friends** | User search, requests sent and received, acceptance, friends' activity feed. Online status derived from recent activity: `last_seen` is stamped on every authenticated request and WebSocket handshake, and a user counts as online for 5 minutes after it. Deriving presence rather than storing a boolean means a crashed tab or a lost connection cannot leave someone stuck "online". | engiusep, nyousfi |
-| **Chat** | Private conversations and one room per league, over WebSockets with persisted history. | engiusep, ynzue-es |
-| **Notifications** | Real-time push over WebSocket, notification bell, mark one or all as read. | ynzue-es |
-| **Gamification** | Daily and season challenges with claimable rewards, badges unlocked by thresholds, 500-Kop daily bonus, daily wheel of fortune (−1 000 to +2 000, jackpot 10 000 at 1 %). | ynzue-es |
-| **Admin panel** | Reserved for `admin` and `owner`: global statistics, user search, inspection and editing of profile, role, balance, friends and bets, and account deletion. Role hierarchy enforced server-side: an admin cannot touch an owner, and only an owner can edit roles or delete another admin. | ynzue-es, nyousfi |
-| **Design system** | 21 reusable components: Avatar, Icon, Kops, Modal, OddPill, ProgressBar, Skeleton, StatCard, Tag, Toast, MatchCard, LiveTile, CompactRow, OddsRow, TeamBadge, MatchSkeleton, MatchSearchBar, LeagueFilterBar, BetSlip, TicketCard, Onboarding — plus mobile-first responsive layout. | ynzue-es, nyousfi |
-| **Infrastructure** | Docker Compose dev/prod split, multi-stage Dockerfiles, Caddy and TLS, Celery worker and beat. | engiusep, nyousfi |
+2FA is covered up to the code entry screen only: the code is emailed and kept in Django's per-process cache, so the tests open the session by setting the same JWT cookies the verification would set.
 
 ---
 
 ## Modules
 
-Target: **14 points**. The table below reflects what is **actually working today**, not what was planned. Every claimed module was checked line by line against the subject's own wording; each one can be demonstrated live.
+Target **14 points**, **21 claimed**. The table reflects what works today; each module can be demonstrated live.
 
-### Claimed — implemented
+| Category | Module | Type | Pts | Implementation |
+|---|---|---|---|---|
+| Web | Framework front + back | Major | 2 | Next.js 16 App Router and Django 5 + DRF |
+| Web | Real-time WebSockets | Major | 2 | Channels + Redis, 3 consumers (league chat, DM, notifications), JWT-cookie middleware |
+| Web | User interaction | Major | 2 | Chat DM + league, profile pages, full friends system |
+| Web | ORM | Minor | 1 | Django ORM across the 10 apps, migrations versioned |
+| Web | Notification system | Minor | 1 | `Notification` model, WebSocket push, read tracking |
+| Web | Custom design system | Minor | 1 | 21 components (10 required), tokens and custom icon set |
+| Web | Server-Side Rendering | Minor | 1 | Every route rendered server-side: `curl -k https://localhost:8443/login` returns real markup |
+| User Mgmt | Standard user management | Major | 2 | Profile editing, avatar, friends with online status, public profile |
+| User Mgmt | Organization system | Major | 2 | Private leagues: create, edit, delete, invite, kick, leave, leaderboard |
+| User Mgmt | Advanced permissions | Major | 2 | Roles `owner`/`admin`/`user`, full user CRUD from the panel with guarded deletion |
+| User Mgmt | OAuth 2.0 | Minor | 1 | Google via allauth + dj-rest-auth, tokens into httpOnly cookies |
+| User Mgmt | 2FA | Minor | 1 | 6-digit code (`secrets`), cached 5 min, emailed through Brevo |
+| Gaming/UX | Gamification | Minor | 1 | Badges, leaderboards, daily challenges, rewards |
+| Choice | **Odds engine** | Major | 2 | See below |
 
-| Category | Module | Type | Pts | How it was implemented | Who |
-|---|---|---|---|---|---|
-| Web | Framework front + back | Major | 2 | Next.js 16 App Router (SSR + server routes) and Django 5 + DRF | all |
-| Web | Real-time via WebSockets | Major | 2 | Django Channels, Redis layer, 3 consumers (league chat, DM, notifications), JWT-cookie middleware, graceful disconnect handling | ynzue-es, engiusep |
-| Web | User interaction | Major | 2 | Chat (DM + league), profile pages, full friends system | engiusep, ynzue-es |
-| Web | ORM | Minor | 1 | Django ORM across all 10 apps, migrations versioned | all |
-| Web | Complete notification system | Minor | 1 | `Notification` model covering creation/update/deletion events, WebSocket push, read tracking | ynzue-es |
-| Web | Custom design system | Minor | 1 | 21 reusable components (well above the 10 required), colour palette and typography tokens in `globals.css`, custom icon set | ynzue-es, nyousfi |
-| User Mgmt | Standard user management | Major | 2 | Profile editing, avatar upload with default fallback, friends system with **online status**, public profile page | nyousfi, engiusep |
-| User Mgmt | Organization system | Major | 2 | Private leagues: create, **rename/edit**, **delete**, invite, kick, leave, internal leaderboard | engiusep, ynzue-es |
-| User Mgmt | OAuth 2.0 | Minor | 1 | Google via allauth + dj-rest-auth, tokens landing in httpOnly cookies | engiusep, nyousfi |
-| User Mgmt | 2FA | Minor | 1 | Mandatory second step at every login: 6-digit code generated with `secrets`, held in Django's cache under `otp_<user_id>` with a 5-minute TTL, emailed through Brevo | engiusep, acancel |
-| Gaming/UX | Gamification system | Minor | 1 | Four of the six listed mechanics: badges, leaderboards, daily challenges, rewards. All persisted in PostgreSQL, with progress bars and claim feedback. | ynzue-es |
-| User Mgmt | Advanced permissions | Major | 2 | Three roles (`owner`/`admin`/`user`) with distinct views and actions, plus full user CRUD from the admin panel: read, edit (username, email, bio, role, balance) and **delete**. Deletion is guarded — nobody deletes their own account from the panel, an admin cannot delete an owner, and only an owner can delete another admin. | nyousfi, ynzue-es |
-| Web | Server-Side Rendering | Minor | 1 | Next.js App Router renders every route on the server. Verifiable without running any JavaScript: `curl -k https://localhost:8443/login` returns the fully rendered markup, not an empty shell. | ynzue-es |
-| Modules of choice | Odds engine | Major | 2 | See the justification below. | ynzue-es |
+### Custom module: the odds engine
 
-**Subtotal: 21 points**
+The subject requires a written justification for a module of choice.
 
-### Justification for the "Modules of choice" module — the odds engine
+**Why.** Odds are the core mechanic of a betting platform, and no free provider exposes football odds: the free tiers that exist cap requests per day, which is incompatible with a 30-second live refresh. Buying data was not an option and faking it would have emptied the product of meaning.
 
-The subject requires a written justification for any custom module. Here it is.
+**What it solves.** A full pipeline, not a wrapper around an API call: form score over each team's last 10 finished matches, conversion into probabilities, home advantage, bookmaker margin and probability floor so no payout is absurd, live re-derivation from the score and the minute, and a **snapshot** of the odds inside `BetSelection` so settlement pays at the rate the user accepted rather than the current one.
 
-**Why we chose it.** Kop is a betting platform, so odds are not decoration: they are the core mechanic. We could not find a single free provider that exposes football odds — every one of them puts odds behind a paid tier, and the free tiers that do exist cap requests per day, which is incompatible with a 30-second refresh loop on live matches. Buying data was not an option and faking it would have made the whole product meaningless. So we built the engine.
+**What it buys us.** Independence: no API key to distribute, no third-party quota, no outage. Every match in the database is bettable at any time. It spans `sports` and `betting`, runs partly in Celery, and feeds the wallet, which is money-like state protected by row locks.
 
-**What technical challenges it addresses.** Turning "who is likely to win?" into three numbers that behave like real bookmaker odds:
+### Not claimed
 
-- *Deriving probabilities from history.* For each team we compute a form score from its last 10 finished matches, which means the engine depends on the history scraper having run first — the seed command chains `scrape_history` before `scrape_upcoming` precisely for that reason. Without history, every team looks equally strong and the odds come out flat.
-- *Making the three probabilities usable.* Raw probabilities sum to 1, which would produce a zero-margin book. We apply a home advantage, a 7 % bookmaker margin and a probability floor so no outcome can ever return an absurd payout.
-- *Following the match live.* Once a match is under way, the odds are re-derived from the goal difference and the minute played, and betting closes near the end of the match.
-- *Not betraying the user.* Odds move every 30 seconds. `BetSelection` therefore stores a **snapshot** of the odds at the moment the bet was placed; settlement uses that snapshot, never the current value. Without this copy a user could be paid at a rate they never accepted.
+Deliberately left out, since the subject scores an incomplete module as zero:
 
-**How it adds value.** It makes the product independent: no API key to distribute across four developers, no third-party quota, no outage that empties the site. Every match in the database is bettable at any time.
+- **Advanced search**: team/competition search and league filters exist, a user-facing sort control does not.
+- **File upload**: avatar upload is validated and stored, but without multiple types, preview, progress or deletion.
 
-**Why it deserves Major status.** It is not a wrapper around an external call — it is a full pipeline: scraping, form computation, probability conversion, margin application, live adjustment, snapshotting, and settlement. It spans several Django apps (`sports`, `betting`), runs partly in Celery, and its output feeds the wallet, which is money-like state protected by row locks. Removing it would leave the application without its central feature.
+Not started: public API, WCAG 2.1 AA, i18n, RTL, AI modules, cybersecurity (WAF/Vault), games, DevOps (ELK, Prometheus, microservices), analytics, GDPR, blockchain.
 
-### Not claimed — partially present
+---
 
-These are **not claimed**: they are partially present, and the subject counts an incomplete module as zero. They are listed so the gap is explicit rather than hidden.
+## Team
 
-| Module | Type | Pts | What is missing |
+| Member | Role(s) | Scope | Commits |
 |---|---|---|---|
-| Web — Advanced search | Minor | 1 | Search by team/competition and league filters exist, and results are paged progressively on the client. A user-facing **sort** control is missing. |
-| Web — File upload | Minor | 1 | Avatar upload has dual validation (type and size, client and server) and controlled storage. Missing: multiple file types, preview, progress indicator, and the ability to delete an uploaded file. |
+| **ynzue-es** | Tech Lead / Developer | Architecture and technology choices. Sports domain: scraping, [odds engine](api/sports/services/odds.py), [settlement](api/sports/services/settle.py). Most of the frontend, plus gamification, match sheets and search. | 60 |
+| **engiusep** | Project Manager / Developer | Coordination and planning. Backend auth (Brevo 2FA), friends, chat, leagues. Docker and Caddy infrastructure. | 42 |
+| **nyousfi** | Product Owner / Developer | Product vision and prioritisation. Settings page, admin panel, responsive work, deployment, environment configuration. | 40 |
 
-### Not started
+**Working method**: GitHub for repository and tracking, Discord day to day, a single `main` branch with conventional commits. No weekly ritual: the team worked in the same room around each major push (auth, betting, leagues, real-time), so decisions and reviews happened live. Work was split by vertical slice (model → endpoints → UI) rather than by layer, which kept merge conflicts down.
 
-Public API with API key and rate limiting · Accessibility WCAG 2.1 AA · i18n · RTL · AI modules · Cybersecurity (WAF/Vault) · Games · DevOps (ELK, Prometheus, microservices) · Analytics dashboard · GDPR · Blockchain
-
-> The final point total must be arbitrated by the team before the defence. Only fully functional modules count — a partial module scores zero.
-
----
-
-## Team Information
-
-| Member | Role(s) | Responsibilities |
-|---|---|---|
-| **ynzue-es** | Tech Lead / Developer | Technical architecture, technology choices, review of critical changes. Owner of the sports domain (scraping, odds engine, settlement) and of most of the frontend. |
-| **engiusep** | Project Manager / Developer | Team coordination, planning, blocker tracking. Backend: authentication, friends, chat, leagues. Docker and Caddy infrastructure. |
-| **nyousfi** | Product Owner / Developer | Product vision, feature prioritisation, validation of delivered work. Frontend, settings and admin panel, Docker and deployment. |
-| **acancel** | Developer | Backend contributions on the users app, test setup (pytest) and dependency management. |
-
-> Roles listed above are the ones each member ended up holding. The team started as four and finished as three: scope was redistributed along the way, so several people worked well outside their initial role — in particular, frontend-oriented members took on backend work. See [Project Management](#project-management).
-
----
-
-## Project Management
-
-**Tools** — **GitHub** for the repository, history and task tracking; **Discord** for day-to-day communication.
-
-**Meetings** — no fixed weekly ritual. The team worked **together, in the same room, around each major push of the project**: every significant milestone (authentication, betting engine, leagues, real-time features) was built during shared working sessions rather than split up asynchronously. Decisions were therefore taken live, and code review happened by talking over the change as it was written.
-
-**Work distribution** — the split follows domain ownership: one person owns a vertical slice (model, endpoints, UI) rather than a horizontal layer. This limits merge conflicts and avoids one member being blocked waiting for another's layer.
-
-**Mid-project reorganisation** — the team started as four and **finished as three**. Roles and scope were redistributed among the remaining members, which is the main reason the commit counts below are uneven and why several people ended up working outside their initial role (frontend developers taking on backend work, and vice versa).
-
-**Version control** — a single `main` branch, conventional commit messages (`feat:`, `fix:`, `responsive:`).
-
----
-
-## Individual Contributions
-
-Figures below come from `git log` over 132 commits.
-
-### ynzue-es — 52 commits
-
-Frontend `app/` and `components/` (the bulk of the interface), `api/sports`, `api/users`, `api/betting`, `api/notifications`, `api/challenges`.
-
-Sole author of the two most technical files in the project: [odds.py](api/sports/services/odds.py), which derives odds from team form and adjusts them live, and [settle.py](api/sports/services/settle.py), which settles bets under transaction. Also the wheel of fortune, match sheets (line-ups, timeline), match search and the gamification system.
-
-### engiusep — 26 commits
-
-`api/users`, `api/friends`, `api/chat`, `api/league`, `api/core`, plus `docker-compose.yml`, `caddy/` and `requirements.txt`.
-
-Two-step authentication with Brevo, friends system, chat and leagues on the backend side. Infrastructure work: container definitions, reverse proxy, TLS.
-
-### nyousfi — 31 commits
-
-`api/users`, `api/betting`, `api/friends`, `api/core`, frontend `app/`, `Dockerfile`, `caddy/`.
-
-Settings page, admin panel, mobile responsive work, deployment. Also the front-end text consistency pass and the environment configuration (`.env.example`, variable naming).
-
-### acancel — 8 commits
-
-`api/users`, `pytest.ini`, `requirements.txt`, contributions to `api/users/tests.py`.
-
-### Challenges faced
-
-**Learning an unfamiliar stack.** Nobody on the team had shipped a Django or Next.js application before. The Common Core is C and C++; here everything was new at once — an ORM, migrations, an async server, React's rendering model, a type system on the frontend. The early weeks went as much into reading documentation as into writing code, and several first drafts were rewritten once the team actually understood the tools. Working in the same room helped: a blocker on one screen was usually something someone else had already hit.
-
-**Finishing at three instead of four.** Partway through, the team lost a member and had to absorb their scope. Roles were redistributed: people who had positioned themselves on the frontend picked up backend work, and the initial split stopped matching who actually did what. The uneven commit counts above (52 / 31 / 26 / 8) are a direct consequence — the distribution among the three remaining members is balanced, and the team is prepared to explain the reorganisation during the defence.
+**What was hard**: nobody had shipped Django or Next.js before, so the early weeks went as much into documentation as into code, and several first drafts were rewritten. The team also **started as four and finished as three**: scope was redistributed, frontend-oriented members took on backend work, and the uneven commit counts above are a direct consequence.
 
 ---
 
 ## Known limitations
 
-Stated openly, because they are visible during evaluation:
-
 - No CI pipeline, no rate limiting, no audit log.
-- The development TLS certificate is self-signed, so browsers show a warning on first visit.
-- Frontend unit-test coverage is nonexistent. The backend has 260 tests and the user journey is covered end-to-end by 28 Selenium tests, but no component-level tests exist on the front.
-- The starting balance (100 Kops) is low relative to the daily bonus (500) and to the wheel's swings (up to ±10 000).
+- Self-signed development certificate, so browsers warn on first visit.
+- No frontend unit tests: 260 backend tests and 11 end-to-end journeys, nothing at component level.
+- The starting balance (100 Kops) is low next to the daily bonus (500) and the wheel's swings.
+- Privacy Policy and Terms of Service pages still have to be written.
 
 ---
 
 ## Resources
 
-### Documentation used
+**Documentation**: [Django 5](https://docs.djangoproject.com/), [DRF](https://www.django-rest-framework.org/), [Channels](https://channels.readthedocs.io/), [Celery](https://docs.celeryq.dev/), [Next.js 16](https://nextjs.org/docs), [Tailwind 4](https://tailwindcss.com/docs), [dj-rest-auth](https://dj-rest-auth.readthedocs.io/), [allauth](https://docs.allauth.org/), [Brevo](https://developers.brevo.com/).
 
-- [Django 5](https://docs.djangoproject.com/) and [Django REST Framework](https://www.django-rest-framework.org/)
-- [Django Channels](https://channels.readthedocs.io/) — WebSocket consumers and middleware
-- [Celery](https://docs.celeryq.dev/) — periodic tasks and beat scheduling
-- [Next.js 16 App Router](https://nextjs.org/docs) — server components, server routes
-- [Tailwind CSS 4](https://tailwindcss.com/docs)
-- [dj-rest-auth](https://dj-rest-auth.readthedocs.io/) and [django-allauth](https://docs.allauth.org/) — JWT cookies and Google OAuth
-- [Brevo API](https://developers.brevo.com/) — transactional email
+**Data**: foot-live (matches, scores, line-ups, events, scraped), Brevo (login codes).
 
-### Data sources
+**Inspiration**: [Omada](https://www.omadagame.com/) for the virtual-betting concept, Winamax for the art direction.
 
-- **foot-live** — matches, scores, line-ups, events (scraped)
-- **Brevo** — delivery of login codes
+**Visual identity**: dark only. Deep black background, Kop red `#D90000`, electric green `#A3FF12` for odds and winnings. Inter Tight, Space Grotesk, JetBrains Mono.
 
-### Product inspiration
-
-- [Omada](https://www.omadagame.com/) — virtual betting concept
-- Winamax — art direction
-
-### Visual identity
-
-Dark only. Deep black background, Kop red `#D90000` as the accent, electric green `#A3FF12` for odds and winnings. Inter Tight (UI), Space Grotesk (headings), JetBrains Mono (figures).
-
-### Use of AI
-
-The team used Claude (Anthropic) for:
-
-- **Design** — generation of the initial interactive HTML prototype used as a visual reference
-- **Brainstorming** — identifying which ft_transcendence modules fitted the product idea
-- **Debugging** — occasional help on Django Channels bugs and WebSocket authentication
-- **Documentation and copy** — docstrings, comments, consistency pass over the interface texts, and this README
-- **Configuration** — diagnosing environment-variable mismatches between `.env` and the code
-
-AI did not write critical business logic. Bet settlement, wallet transactions, the odds engine, authentication and security were written and are understood by team members. Every member can explain the parts they delivered.
+**Use of AI**: Claude (Anthropic) was used for the initial HTML prototype, module brainstorming, occasional debugging on Channels and WebSocket auth, docstrings and documentation, and environment-variable diagnostics. Bet settlement, wallet transactions, the odds engine, authentication and security were written and are understood by team members; each one can explain what they delivered.
 
 ---
 
-## Privacy
+## Privacy & license
 
-Kop simulates sports betting **with virtual currency only**. No real money is ever staked, exchanged or paid out. Kops hold no monetary value and cannot be converted.
+Kop simulates sports betting **with virtual currency only**. No real money is ever staked, exchanged or paid out, and Kops cannot be converted. Collected data is limited to email, username, an optional profile picture and in-app activity.
 
-Collected data is limited to email address, username, optional profile picture and in-app activity. **Dedicated Privacy Policy and Terms of Service pages still have to be written** (see [Known limitations](#known-limitations)).
-
-## License
-
-To be defined by the team.
+License to be defined by the team.

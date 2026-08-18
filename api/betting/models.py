@@ -47,7 +47,7 @@ class Bet(models.Model):
 
     def __str__(self):
         """Représentation lisible : utilisateur et numéro de ticket."""
-        return f"{self.user} — ticket #{self.pk}"
+        return f"{self.user} (ticket #{self.pk})"
 
 
 class BetSelection(models.Model):
@@ -80,4 +80,4 @@ class BetSelection(models.Model):
 
     def __str__(self):
         """Représentation lisible : ticket, match et sélection."""
-        return f"#{self.bet_id} — {self.match} ({self.odd.selection})"
+        return f"#{self.bet_id} : {self.match} ({self.odd.selection})"

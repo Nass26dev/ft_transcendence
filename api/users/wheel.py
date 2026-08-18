@@ -1,4 +1,4 @@
-"""Roue de la chance — configuration et tirage.
+"""Roue de la chance : configuration et tirage.
 
 Une seule source de vérité pour les lots : l'ordre des cases (rendu visuel
 côté front) ET les probabilités (poids) sont définis ici. Le backend renvoie

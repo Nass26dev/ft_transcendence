@@ -8,7 +8,7 @@ def merge_duplicate_teams(apps, schema_editor):
     Des tâches de scraping concurrentes pouvaient créer plusieurs Team
     identiques (get_or_create sans contrainte d'unicité). On garde la plus
     ancienne (plus petit id), on y rattache ses matchs, puis on supprime les
-    doublons — préalable indispensable à la contrainte d'unicité (0005).
+    doublons : préalable indispensable à la contrainte d'unicité (0005).
     """
     Team = apps.get_model("sports", "Team")
     Match = apps.get_model("sports", "Match")

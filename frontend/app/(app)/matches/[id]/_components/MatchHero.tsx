@@ -21,7 +21,7 @@ function InfoChip({ label, value }: { label: string; value: string }) {
 }
 
 /**
- * Bandeau principal d'un match : compétition, équipes (domicile — score — extérieur),
+ * Bandeau principal d'un match : compétition, équipes (domicile, score, extérieur),
  * minute en direct, score à la mi-temps, cotes et infos complémentaires (stade, arbitre).
  */
 export function MatchHero({ match, onPick, isPicked }: MatchHeroProps) {

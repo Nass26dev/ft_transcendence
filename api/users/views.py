@@ -30,7 +30,7 @@ class LoginStep1View(APIView):
             "(LoginStep2View) devra recevoir ce meme code pour ouvrir la "
             "session. Renvoie 401 si les identifiants sont invalides, et 500 "
             "si l'envoi de l'email de code echoue (probleme technique cote "
-            "service mail) — dans ce dernier cas le code est deja en cache "
+            "service mail) ; dans ce dernier cas le code est deja en cache "
             "mais l'utilisateur ne l'a pas recu."
         ),
         tags=["Authentification"],
@@ -90,8 +90,8 @@ class LoginStep2View(APIView):
             "`user_id` (pose par LoginStep1View, valable 5 minutes). Si le "
             "code correspond : supprime le code du cache (usage unique), "
             "genere un JWT (access + refresh) et ouvre la session en posant "
-            "deux cookies httpOnly — `access_token` (5 min) et "
-            "`refresh_token` (7 jours) — marques `secure` en dehors du mode "
+            "deux cookies httpOnly : `access_token` (5 min) et "
+            "`refresh_token` (7 jours), marques `secure` en dehors du mode "
             "DEBUG. Si le code ne correspond pas (ou a expire/n'existe plus "
             "en cache), renvoie 400 sans ouvrir de session."
         ),
@@ -288,7 +288,7 @@ class WheelView(APIView):
             "ainsi qu'un booleen `available` indiquant si l'utilisateur "
             "peut encore la faire tourner aujourd'hui (compare "
             "`last_wheel_spin` a la date du jour). Ne modifie rien en base "
-            "et ne fait pas tourner la roue — c'est une simple lecture, a "
+            "et ne fait pas tourner la roue : c'est une simple lecture, a "
             "utiliser avant d'appeler WheelSpinView."
         ),
         tags=["Profil"],
@@ -323,7 +323,7 @@ class WheelSpinView(APIView):
         description=(
             "Effectue un tirage aleatoire (via `spin()`) qui determine un "
             "segment et un montant (`delta`) a appliquer au solde de "
-            "l'utilisateur — credit ou debit selon le segment obtenu. "
+            "l'utilisateur, credit ou debit selon le segment obtenu. "
             "Limite a une fois par jour civil (date locale) : la "
             "verification/mise a jour de `last_wheel_spin` se fait dans une "
             "transaction avec verrou (`select_for_update`) pour eviter les "
@@ -393,7 +393,7 @@ class OnboardingCompleteView(APIView):
         description=(
             "Passe `onboarding_completed` a True pour l'utilisateur "
             "connecte, s'il ne l'est pas deja (aucune ecriture en base "
-            "sinon — appel idempotent). Renvoie dans tous les cas le "
+            "sinon, appel idempotent). Renvoie dans tous les cas le "
             "profil a jour de l'utilisateur."
         ),
         tags=["Profil"],

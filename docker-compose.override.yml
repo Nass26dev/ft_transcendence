@@ -20,7 +20,7 @@ services:
       - "8443:8443"
       # Publiés ici (pas sur le service `selenium`) car il partage le netns
       # de caddy_dev (cf. plus bas) : "localhost" y désigne donc caddy_dev,
-      # exactement comme dans le navigateur d'un vrai utilisateur — le
+      # exactement comme dans le navigateur d'un vrai utilisateur : le
       # frontend appelle NEXT_PUBLIC_API_URL=https://localhost:8443 en dur,
       # peu importe le Host header de la page qui a fait la requête.
       - "4444:4444"

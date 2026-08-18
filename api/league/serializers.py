@@ -24,7 +24,7 @@ class LeagueUpdateSerializer(serializers.ModelSerializer):
     """Champs qu'un créateur peut modifier sur sa ligue.
 
     Volontairement limité au nom et à la description : `creator` et `members`
-    ne doivent jamais être réassignés par une simple mise à jour — on ne change
+    ne doivent jamais être réassignés par une simple mise à jour : on ne change
     pas de propriétaire ni d'effectif via PATCH, mais via les routes dédiées
     (invitation, kick, leave).
     """

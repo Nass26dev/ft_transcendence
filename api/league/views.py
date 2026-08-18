@@ -171,7 +171,7 @@ class LeagueDetail(APIView):
         description=(
             "Supprime définitivement la ligue, ses invitations et ses messages de chat "
             "(cascade). Réservé au créateur : renvoie 403 pour tout autre utilisateur. "
-            "Les membres sont simplement dissociés — la relation ManyToMany disparaît, "
+            "Les membres sont simplement dissociés : la relation ManyToMany disparaît, "
             "aucun compte n'est supprimé. Renvoie 404 si la ligue n'existe pas."
         ),
         tags=["Ligues"],
@@ -618,7 +618,7 @@ class AllLeague(APIView):
 
 
 class LeagueLeaderboard(APIView):
-    """GET /api/league/<id>/leaderboard/ — membres de la ligue classés par Kops.
+    """GET /api/league/<id>/leaderboard/ : membres de la ligue classés par Kops.
 
     Le score est le solde Kops courant (wallet) de chaque membre, du plus riche
     au moins riche. Renvoie nom de ligue, effectif et classement.

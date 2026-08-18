@@ -1,7 +1,7 @@
 """Accès simultanés : le sujet exige qu'aucune course ne corrompe les données.
 
 Ces tests lancent de vrais threads contre la vraie base (pas de mock, pas de
-transaction de test enveloppante — d'où `transaction=True`) pour vérifier que
+transaction de test enveloppante, d'où `transaction=True`) pour vérifier que
 les verrous `select_for_update()` tiennent réellement leur promesse.
 
 Sans ces verrous, chaque scénario ci-dessous produit le bug classique du

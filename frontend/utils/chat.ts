@@ -27,7 +27,7 @@ export interface Conversation {
 /** Ferme un WebSocket sans polluer la console.
  *
  *  Appeler `close()` sur une socket encore en CONNECTING fait écrire au
- *  navigateur « WebSocket is closed before the connection is established » —
+ *  navigateur « WebSocket is closed before the connection is established »,
  *  ce qui arrive à chaque fois qu'on quitte une page avant la fin du
  *  handshake. On attend donc l'ouverture pour refermer proprement. */
 export function closeSocket(socket: WebSocket | null | undefined): void {

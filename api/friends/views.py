@@ -56,7 +56,7 @@ def _relationship_map(user):
 
 
 class FriendListView(APIView):
-    """GET /api/friends/ — amis acceptés + demandes reçues/envoyées."""
+    """GET /api/friends/ : amis acceptés + demandes reçues/envoyées."""
 
     permission_classes = [IsAuthenticated]
 
@@ -125,7 +125,7 @@ class FriendListView(APIView):
 
 
 class UserSearchView(APIView):
-    """GET /api/friends/search/?q= — cherche des joueurs (hors soi-même) et
+    """GET /api/friends/search/?q= : cherche des joueurs (hors soi-même) et
     annote chaque résultat avec le statut de la relation."""
 
     permission_classes = [IsAuthenticated]
@@ -192,7 +192,7 @@ class UserSearchView(APIView):
 
 
 class SendFriendRequest(APIView):
-    """POST /api/friends/request/ — envoie une demande d'ami."""
+    """POST /api/friends/request/ : envoie une demande d'ami."""
 
     permission_classes = [IsAuthenticated]
 
@@ -244,7 +244,7 @@ class SendFriendRequest(APIView):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class AcceptFriendRequest(APIView):
-    """PUT /api/friends/request/<id>/accept/ — accepte une demande d'ami."""
+    """PUT /api/friends/request/<id>/accept/ : accepte une demande d'ami."""
 
     permission_classes = [IsAuthenticated]
 
@@ -286,7 +286,7 @@ class AcceptFriendRequest(APIView):
 
 
 class DeclineFriendRequest(APIView):
-    """DELETE /api/friends/request/<id>/decline/ — refuse (supprime) une demande d'ami."""
+    """DELETE /api/friends/request/<id>/decline/ : refuse (supprime) une demande d'ami."""
 
     permission_classes = [IsAuthenticated]
 
@@ -327,14 +327,14 @@ class DeclineFriendRequest(APIView):
         return Response({'message': 'Demande refusée'}, status=status.HTTP_200_OK)
 
 class DeleteFriend(APIView):
-    """DELETE /api/friends/request/<id>/delete/ — supprime un ami (rompt l'amitié)."""
+    """DELETE /api/friends/request/<id>/delete/ : supprime un ami (rompt l'amitié)."""
 
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
         summary="Supprime un ami",
         description=(
-            "Supprime définitivement la relation `Friendship` ciblée (id dans l'URL) — "
+            "Supprime définitivement la relation `Friendship` ciblée (id dans l'URL), ce qui "
             "rompt l'amitié. Le `sender` d'origine ou le `receiver` peuvent tous deux la "
             "supprimer (n'importe lequel des deux amis), sinon 403 pour un tiers. Renvoie "
             "400 si la relation n'est pas au statut `accepted` (ce n'est pas encore une "
@@ -369,7 +369,7 @@ class DeleteFriend(APIView):
 
 
 class FriendsFeedView(APIView):
-    """GET /api/friends/feed/ — activité récente des amis (paris placés / gagnés / perdus).
+    """GET /api/friends/feed/ : activité récente des amis (paris placés / gagnés / perdus).
 
     Renvoie le flux du « feed des potes » : les derniers paris des amis acceptés
     (hors soi-même), du plus récent au plus ancien.

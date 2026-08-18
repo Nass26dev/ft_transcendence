@@ -1,4 +1,4 @@
-# Kop — Documentation technique
+# Kop : documentation technique
 
 Document interne : architecture réelle, schéma, endpoints, algorithmes.
 Le [README](README.md) est la porte d'entrée du projet ; ce document décrit **ce qui tourne**.
@@ -21,7 +21,7 @@ Le [README](README.md) est la porte d'entrée du projet ; ce document décrit **
 9. [Règlement des paris](#9-règlement-des-paris)
 10. [Scraping](#10-scraping)
 11. [Classements et tendances](#11-classements-et-tendances)
-12. [Sécurité — état réel](#12-sécurité--état-réel)
+12. [Sécurité : état réel](#12-sécurité--état-réel)
 13. [Conventions](#13-conventions)
 
 ---
@@ -88,15 +88,15 @@ Le socket doit savoir **qui** est connecté. `CookieJWTAuthMiddleware` relit le 
 
 Les ports 8443 et 8080 remplacent 443 et 80 parce que Docker en mode rootless, fréquent sur les postes 42, ne peut pas se lier aux ports privilégiés.
 
-**Un seul process backend** sert le HTTP et les WebSockets — il n'y a pas de service Channels distinct, contrairement à ce que suggérait l'ancienne version de ce document.
+**Un seul process backend** sert le HTTP et les WebSockets : il n'y a pas de service Channels distinct, contrairement à ce que suggérait l'ancienne version de ce document.
 
 ### Flux critiques
 
-**Placer un pari** — le front POST `/api/bets/` → transaction : verrou sur l'utilisateur, vérification du solde, débit, création du `Bet` et de ses `BetSelection` avec **snapshot des cotes**.
+**Placer un pari** : le front POST `/api/bets/` → transaction : verrou sur l'utilisateur, vérification du solde, débit, création du `Bet` et de ses `BetSelection` avec **snapshot des cotes**.
 
-**Régler un pari** — `scrape_live` (toutes les 30 s) détecte les matchs passés `finished`, règle les jambes, résout les tickets, crédite les gagnants et pousse une notification WebSocket.
+**Régler un pari** : `scrape_live` (toutes les 30 s) détecte les matchs passés `finished`, règle les jambes, résout les tickets, crédite les gagnants et pousse une notification WebSocket.
 
-**Cotes live** — le même cycle de 30 s recalcule les cotes des matchs du jour à partir de la forme des équipes puis du score en cours.
+**Cotes live** : le même cycle de 30 s recalcule les cotes des matchs du jour à partir de la forme des équipes puis du score en cours.
 
 ---
 
@@ -220,7 +220,7 @@ Trois consumers, montés dans `core/asgi.py` derrière `CookieJWTAuthMiddleware`
 
 Pas de multiplexage ni de système d'abonnement : **une connexion par salon**, l'URL porte la cible. Plus simple à raisonner, et suffisant à cette échelle.
 
-L'authentification se fait par **cookie**, pas par `?token=` en query string — un token dans l'URL fuiterait dans les logs d'accès.
+L'authentification se fait par **cookie**, pas par `?token=` en query string : un token dans l'URL fuiterait dans les logs d'accès.
 
 ---
 
@@ -232,15 +232,15 @@ L'authentification se fait par **cookie**, pas par `?token=` en query string —
 
 ### Connexion en deux étapes
 
-1. `POST /api/auth/login/` — `authenticate(email, password)`. Si valide, un code à 6 chiffres est tiré avec `secrets.choice`, stocké dans le cache Django sous `otp_<user_id>` avec un TTL de 300 s, puis envoyé par Brevo.
-2. `POST /api/auth/login/verify/` — code comparé, puis génération du couple de tokens et pose des cookies.
+1. `POST /api/auth/login/` : `authenticate(email, password)`. Si valide, un code à 6 chiffres est tiré avec `secrets.choice`, stocké dans le cache Django sous `otp_<user_id>` avec un TTL de 300 s, puis envoyé par Brevo.
+2. `POST /api/auth/login/verify/` : code comparé, puis génération du couple de tokens et pose des cookies.
 
 Le second facteur est **obligatoire à chaque connexion**, pas optionnel.
 
 #### Où vit le code, et ce que ça implique
 
 Aucun `CACHES` n'est configuré : le cache est donc le `LocMemCache` par défaut
-de Django, **propre au process**. C'est cohérent avec le déploiement actuel —
+de Django, **propre au process**. C'est cohérent avec le déploiement actuel :
 `daphne -b 0.0.0.0 -p 8000` est mono-process, donc le code posé à l'étape 1 est
 toujours relu par le même process à l'étape 2.
 
@@ -250,8 +250,8 @@ Deux conséquences assumées :
   (l'utilisateur redemande un code, TTL de 5 min) ;
 - passer Daphne en multi-process **casserait la 2FA** (code posé par un worker,
   relu par un autre). Le jour où ça arrive, la bascule tient en un bloc
-  `CACHES` pointant sur le Redis déjà présent — aucun code applicatif à
-  toucher, les appels `cache.set/get/delete` sont identiques.
+  `CACHES` pointant sur le Redis déjà présent, sans aucun code applicatif à
+  toucher, les appels `cache.set/get/delete` restant identiques.
 
 C'est aussi la raison pour laquelle les tests E2E ne peuvent pas relire le code
 depuis un `manage.py shell` : ce process a son propre cache, vide (cf. § Tests E2E).
@@ -263,7 +263,7 @@ depuis un `manage.py shell` : ce process a son propre cache, vide (cf. § Tests 
 | `ACCESS_TOKEN_LIFETIME` | 5 minutes |
 | `REFRESH_TOKEN_LIFETIME` | 7 jours |
 | Cookies | `access_token`, `refresh_token`, `httponly=True`, `SameSite=Lax` |
-| `Secure` | `not DEBUG` — donc actif en prod seulement |
+| `Secure` | `not DEBUG`, donc actif en prod seulement |
 
 Le front ne lit jamais ces cookies : `frontend/app/api/refresh-token/route.ts` fait le relais côté serveur Next.
 
@@ -286,13 +286,13 @@ LIVE_DRAW_BOOST = 0.25
 
 ### Étapes
 
-1. **Force d'équipe** — moyenne de points par match (3 / 1 / 0) sur les `FORM_WINDOW` derniers matchs terminés *avant* la date du match considéré. Une équipe inconnue vaut 1.0, force neutre.
-2. **Probabilités 1N2** — la force domicile reçoit `HOME_ADVANTAGE`, puis répartition proportionnelle. La probabilité de nul part de 0.30 et diminue à mesure que l'écart de force grandit, avec un plancher à 0.18. Plancher `MIN_PROB` sur chaque issue, puis renormalisation.
-3. **Ajustement live** — pour un match en cours :
+1. **Force d'équipe** : moyenne de points par match (3 / 1 / 0) sur les `FORM_WINDOW` derniers matchs terminés *avant* la date du match considéré. Une équipe inconnue vaut 1.0, force neutre.
+2. **Probabilités 1N2** : la force domicile reçoit `HOME_ADVANTAGE`, puis répartition proportionnelle. La probabilité de nul part de 0.30 et diminue à mesure que l'écart de force grandit, avec un plancher à 0.18. Plancher `MIN_PROB` sur chaque issue, puis renormalisation.
+3. **Ajustement live**, pour un match en cours :
    - un facteur temps passe de 0.4 en début de match à 1.0 à la 90ᵉ : un but à la 5ᵉ pèse moins qu'un but à la 85ᵉ ;
    - à égalité, le nul est progressivement renforcé (`LIVE_DRAW_BOOST × avancement`) ;
    - sinon, l'équipe qui mène absorbe une fraction `1 − exp(−0.55 × |écart| × temps)` des probabilités du nul et de l'adversaire.
-4. **Conversion en cotes** — `cote = 1 / (proba × (1 + MARGIN))`.
+4. **Conversion en cotes** : `cote = 1 / (proba × (1 + MARGIN))`.
 
 Recalculé pour tous les matchs du jour à chaque cycle de 30 s.
 
@@ -302,7 +302,7 @@ Recalculé pour tous les matchs du jour à chaque cycle de 30 s.
 
 `api/sports/services/settle.py`, déclenché depuis `scrape_live`.
 
-`settle_match` tourne sous `@transaction.atomic` et verrouille les jambes concernées avec `select_for_update()` — deux tâches Celery en parallèle ne peuvent pas régler deux fois le même pari.
+`settle_match` tourne sous `@transaction.atomic` et verrouille les jambes concernées avec `select_for_update()` : deux tâches Celery en parallèle ne peuvent pas régler deux fois le même pari.
 
 Résolution d'un ticket :
 
@@ -331,18 +331,18 @@ Le crédit passe par `Least(F("wallet") + gain, MAX_WALLET)` : le plafond est ap
 
 `scrape_live` fait donc cinq choses par cycle : scraper, calculer les cotes, régler, enrichir, et renvoyer un rapport. Concentration assumée pour garantir l'ordre des opérations, mais c'est le point à découper en premier si le cycle devient trop long.
 
-Au premier démarrage, `seed_if_empty` enchaîne `scrape_history` puis `scrape_upcoming` — la seconde attend la fin de la première, sinon les cotes seraient calculées sans historique de forme.
+Au premier démarrage, `seed_if_empty` enchaîne `scrape_history` puis `scrape_upcoming` : la seconde attend la fin de la première, sinon les cotes seraient calculées sans historique de forme.
 
 ---
 
 ## 11. Classements et tendances
 
-**Calculés en SQL**, par agrégation Django sur les paris réglés — il n'y a pas de ZSET Redis, contrairement à ce que prévoyait la spec initiale. Un index et une agrégation suffisent à cette volumétrie, et cela évite d'avoir à reconstruire un état Redis après un incident.
+**Calculés en SQL**, par agrégation Django sur les paris réglés : il n'y a pas de ZSET Redis, contrairement à ce que prévoyait la spec initiale. Un index et une agrégation suffisent à cette volumétrie, et cela évite d'avoir à reconstruire un état Redis après un incident.
 
 - **Périodes** : `week`, `month`, `season`, `all`
 - **Portées** : `world`, `friends` (jointure sur les `Friendship` acceptées)
 
-**Tendances Kop** (`TrendingBetsView`) : paris les plus pris sur une fenêtre glissante qui s'élargit — 1 h, puis 24 h, puis tout l'historique — tant que `TRENDING_TARGET = 3` paris distincts ne sont pas atteints. Objectif : ne jamais afficher une liste vide quand le volume est faible.
+**Tendances Kop** (`TrendingBetsView`) : paris les plus pris sur une fenêtre glissante qui s'élargit (1 h, puis 24 h, puis tout l'historique) tant que `TRENDING_TARGET = 3` paris distincts ne sont pas atteints. Objectif : ne jamais afficher une liste vide quand le volume est faible.
 
 ### Statut en ligne
 
@@ -365,7 +365,7 @@ UPDATE pour une information dont la précision utile est la minute.
 
 ---
 
-## 12. Sécurité — état réel
+## 12. Sécurité : état réel
 
 ### En place
 
@@ -386,7 +386,7 @@ UPDATE pour une information dont la précision utile est la minute.
 À connaître avant la soutenance, ces points étaient annoncés dans l'ancienne spec :
 
 - Pas d'**Argon2** (le hasher Django par défaut reste correct, mais ce n'est pas ce qui était écrit)
-- Pas de **rate limiting** — ni au niveau du reverse proxy, ni via django-ratelimit. L'étape 1 du login est donc brute-forçable.
+- Pas de **rate limiting** : ni au niveau du reverse proxy, ni via django-ratelimit. L'étape 1 du login est donc brute-forçable.
 - Pas d'**audit log**
 - Pas de **CSP** ni d'en-têtes de sécurité durcis
 - Pas de **PKCE** explicite sur l'OAuth (délégué à allauth)
@@ -421,7 +421,7 @@ paris → ligue → roue → chat → réglages → déconnexion) dans une même
 navigateur, avec une capture d'écran à chaque étape dans `e2e/screenshots/`.
 
 - `e2e/helpers.py` : URL de la stack, attentes et interactions (le bruit Selenium) ;
-- `e2e/conftest.py` : fixtures — navigateur (conteneur `selenium` ou Chrome local), compte jetable, session (`logged_in`, qui rend chaque fichier rejouable seul), capture automatique en cas d'échec ;
+- `e2e/conftest.py` : fixtures, à savoir le navigateur (conteneur `selenium` ou Chrome local), le compte jetable, la session (`logged_in`, qui rend chaque fichier rejouable seul) et la capture automatique en cas d'échec ;
 - `./e2e/run.sh --headed --demo` : fenêtre visible + curseur animé, pour montrer le parcours.
 
 Deux points méritent d'être connus :

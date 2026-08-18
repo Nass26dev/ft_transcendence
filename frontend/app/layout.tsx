@@ -5,14 +5,14 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { MotionProvider } from "@/components/ui/motion";
 
 
-/** Texte / UI — moderne, dense, lisible. */
+/** Texte / UI : moderne, dense, lisible. */
 const interTight = Inter_Tight({
   variable: "--font-inter-tight",
   subsets: ["latin"],
   display: "swap",
 });
 
-/** Titres — grotesque athlétique, look "sport". */
+/** Titres : grotesque athlétique, look "sport". */
 const archivo = Archivo({
   variable: "--font-archivo",
   subsets: ["latin"],

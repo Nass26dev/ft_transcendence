@@ -19,7 +19,7 @@ User = get_user_model()
 
 
 class LeagueMessageHistory(APIView):
-    """GET /api/chat/leagues/<league_id>/messages/ — 50 derniers messages d'une ligue."""
+    """GET /api/chat/leagues/<league_id>/messages/ : 50 derniers messages d'une ligue."""
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -55,8 +55,8 @@ class LeagueMessageHistory(APIView):
 
 
 class ConversationList(APIView):
-    """GET  /api/chat/conversations/         — liste mes conversations DM.
-    POST /api/chat/conversations/  {user_id} — récupère/crée une conversation."""
+    """GET  /api/chat/conversations/         : liste mes conversations DM.
+    POST /api/chat/conversations/  {user_id} : récupère/crée une conversation."""
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
@@ -116,7 +116,7 @@ class ConversationList(APIView):
 
 
 class DirectMessageHistory(APIView):
-    """GET /api/chat/conversations/<conversation_id>/messages/ — historique DM."""
+    """GET /api/chat/conversations/<conversation_id>/messages/ : historique DM."""
     permission_classes = [IsAuthenticated]
 
     @extend_schema(
